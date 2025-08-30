@@ -1,0 +1,25 @@
+{
+  "name": "shibasolver",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/hogetee/ShibaSolver#readme",
+  "bugs": {
+    "url": "https://github.com/hogetee/ShibaSolver/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hogetee/ShibaSolver.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0"
+  }
+}
