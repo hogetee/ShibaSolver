@@ -1,10 +1,18 @@
 -- === Types ===
 DO $$ BEGIN
+    CREATE TYPE user_state AS ENUM ('ban','suspend','normal');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- DO $$ BEGIN
+--     CREATE TYPE rating_target_type AS ENUM ('post','comment');
+-- EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
     CREATE TYPE rating_type AS ENUM ('like','dislike');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE report_target_type AS ENUM ('post','comment','user');
+    CREATE TYPE report_target_type AS ENUM ('post','user');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
