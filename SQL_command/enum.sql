@@ -1,0 +1,24 @@
+-- === Types ===
+DO $$ BEGIN
+    CREATE TYPE rating_type AS ENUM ('like','dislike');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE report_target_type AS ENUM ('post','comment','user');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE report_status AS ENUM ('pending','accepted','rejected'); -- รอ, รับเรื่อง, ปฏิเสธ 
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE notification_type AS ENUM ('comment','mention');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE admin_action_type AS ENUM ('delete_post','ban_user','unban_user','suspend_user');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE cookie_choice AS ENUM ('accept','reject');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
