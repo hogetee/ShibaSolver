@@ -1,6 +1,6 @@
 -- === Types ===
 DO $$ BEGIN
-    CREATE TYPE user_state AS ENUM ('ban','suspend','normal');
+    CREATE TYPE user_state AS ENUM ('ban','suspend','normal','deleted');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- DO $$ BEGIN
