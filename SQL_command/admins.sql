@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS admins (
+    admin_id BIGSERIAL PRIMARY KEY,
+    name     TEXT NOT NULL
+);
