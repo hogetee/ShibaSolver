@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS comments (
     post_id        BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
     parent_comment BIGINT REFERENCES comments(comment_id) ON DELETE SET NULL,
     text           TEXT NOT NULL,
-    -- comment_image  TEXT, ไม่ชัวร์
+    comment_image  TEXT, 
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
