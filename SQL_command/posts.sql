@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS posts (
     description TEXT NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     title       TEXT NOT NULL,
-    post_image  TEXT  -- ยังไม่สรุป
+    post_image  TEXT 
 );

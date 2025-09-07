@@ -3,10 +3,6 @@ DO $$ BEGIN
     CREATE TYPE user_state AS ENUM ('ban','suspend','normal','deleted');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- DO $$ BEGIN
---     CREATE TYPE rating_target_type AS ENUM ('post','comment');
--- EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
 DO $$ BEGIN
     CREATE TYPE rating_type AS ENUM ('like','dislike');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -42,28 +38,55 @@ CREATE TABLE IF NOT EXISTS users (
     user_name          TEXT UNIQUE,            -- unique username
     display_name       TEXT,                   -- non-unique display name
     education_level    TEXT,
-    like               NUMERIC(10,4),
-    dislike            NUMERIC(10,4),
+    "like"             NUMERIC(10,4) DEFAULT 0,
+    "dislike"          NUMERIC(10,4) DEFAULT 0,
     bio                TEXT,
     -- created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     interested_subjects TEXT[],                 -- array of subjects the user is interested in
     profile_picture    TEXT                   -- URL to profile picture
 ); 
 
+CREATE TABLE IF NOT EXISTS admins (
+    admin_id BIGSERIAL PRIMARY KEY,
+    name     TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS tags (
     tag_id   BIGSERIAL PRIMARY KEY,
     tag_name TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS reports (
-    report_id   BIGSERIAL PRIMARY KEY,
-    reporter_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    admin_id    BIGINT REFERENCES admins(admin_id) ON DELETE SET NULL,
-    target_type report_target_type NOT NULL,
-    target_id   BIGINT NOT NULL,
-    reason      TEXT,
+CREATE TABLE IF NOT EXISTS posts (
+    post_id     BIGSERIAL PRIMARY KEY,
+    user_id     BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    is_solved   BOOLEAN NOT NULL DEFAULT FALSE,
+    description TEXT NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    status      report_status NOT NULL DEFAULT 'pending'
+    title       TEXT NOT NULL,
+    post_image  TEXT 
+);
+
+CREATE TABLE IF NOT EXISTS post_tags (
+    post_id BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    tag_id  BIGINT NOT NULL REFERENCES tags(tag_id)  ON DELETE CASCADE,
+    PRIMARY KEY (post_id, tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+    comment_id     BIGSERIAL PRIMARY KEY,
+    user_id        BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    post_id        BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    parent_comment BIGINT REFERENCES comments(comment_id) ON DELETE SET NULL,
+    text           TEXT NOT NULL,
+    comment_image  TEXT, 
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS bookmarks (
+    user_id    BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    post_id    BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, post_id)
 );
 
 CREATE TABLE IF NOT EXISTS ratings (
@@ -79,20 +102,15 @@ CREATE TABLE IF NOT EXISTS ratings (
     )
 );
 
-CREATE TABLE IF NOT EXISTS posts (
-    post_id     BIGSERIAL PRIMARY KEY,
-    user_id     BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    is_solved   BOOLEAN NOT NULL DEFAULT FALSE,
-    description TEXT,
+CREATE TABLE IF NOT EXISTS reports (
+    report_id   BIGSERIAL PRIMARY KEY,
+    reporter_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    admin_id    BIGINT REFERENCES admins(admin_id) ON DELETE SET NULL,
+    target_type report_target_type NOT NULL,
+    target_id   BIGINT NOT NULL,
+    reason      TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    title       TEXT NOT NULL,
-    post_image  TEXT NOT NULL -- ยังไม่สรุป
-);
-
-CREATE TABLE IF NOT EXISTS post_tags (
-    post_id BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
-    tag_id  BIGINT NOT NULL REFERENCES tags(tag_id)  ON DELETE CASCADE,
-    PRIMARY KEY (post_id, tag_id)
+    "status"      report_status NOT NULL DEFAULT 'pending'
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
@@ -109,28 +127,6 @@ CREATE TABLE IF NOT EXISTS cookie_consents (
     anon_key   UUID NOT NULL DEFAULT gen_random_uuid(),
     choice     cookie_choice NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS comments (
-    comment_id     BIGSERIAL PRIMARY KEY,
-    user_id        BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    post_id        BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
-    parent_comment BIGINT REFERENCES comments(comment_id) ON DELETE SET NULL,
-    text           TEXT NOT NULL,
-    -- comment_image  TEXT, ไม่ชัวร์
-    created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS bookmarks (
-    user_id    BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    post_id    BIGINT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (user_id, post_id)
-);
-
-CREATE TABLE IF NOT EXISTS admins (
-    admin_id BIGSERIAL PRIMARY KEY,
-    name     TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS admin_actions (

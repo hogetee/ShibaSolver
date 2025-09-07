@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     user_name          TEXT UNIQUE,            -- unique username
     display_name       TEXT,                   -- non-unique display name
     education_level    TEXT,
-    like               NUMERIC(10,4),
-    dislike            NUMERIC(10,4),
+    "like"             NUMERIC(10,4) DEFAULT 0,
+    "dislike"          NUMERIC(10,4) DEFAULT 0,
     bio                TEXT,
     -- created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     interested_subjects TEXT[],                 -- array of subjects the user is interested in
