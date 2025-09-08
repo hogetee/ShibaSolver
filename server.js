@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const adminsRouter = require('./routers/admins.router');
 
 dotenv.config({ path: './config/config.env'});
 
@@ -11,6 +12,8 @@ app.get('/', (req, res) => {
                 message: 'Welcome to ShibaSolver API'
         });
 });
+
+app.use('/api/v1/admins', adminsRouter);
 
 const PORT = process.env.PORT || 5003;
 
