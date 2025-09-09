@@ -25,7 +25,7 @@ export default function UserProfilePage() {
     id: 1,
     username: "johndoe",
     displayName: "John Doe",
-    avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg",
+    avatarUrl: "https://randomuser.me/api/portraits/men/1.jpg",
     bio: "Avid learner and problem solver.",
     educationLevel: "Undergrad",
     shibaMeter: 100,

@@ -11,7 +11,7 @@ export default function MeProfilePage() {
     // If not found, redirect to home (could be a login page in future)
     const username = typeof window !== 'undefined' ? localStorage.getItem('username') : null;
     if (username && username.trim().length > 0) {
-      router.replace(`/u/${username}`);
+      router.replace(`/user/${username}`);
     } else {
       router.replace('/');
     }

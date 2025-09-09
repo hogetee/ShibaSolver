@@ -13,13 +13,13 @@ export default function Home() {
         <div className="flex flex-col gap-4">
           <Button 
             variant="contained" 
-            onClick={() => router.push('/u/me')}
+            onClick={() => router.push('/user/me')}
           >
             Go to My Profile
           </Button>
           <Button 
             variant="outlined" 
-            onClick={() => router.push('/u/testuser')}
+            onClick={() => router.push('/user/testuser')}
           >
             View Test User Profile
           </Button>
