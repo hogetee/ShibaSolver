@@ -3,16 +3,18 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import UserProfilePage from '@/pages/UserProfilePage';
 
-// This is a temporary solution until authentication is implemented
-const DUMMY_CURRENT_USER = 'current-user';
-
 export default function MeProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // TODO: Replace this with actual auth check and username fetch
-    // For now, redirect to the dummy current user profile
-    router.push(`/u/${DUMMY_CURRENT_USER}`);
+    // Attempt to read the authenticated username from client storage
+    // If not found, redirect to home (could be a login page in future)
+    const username = typeof window !== 'undefined' ? localStorage.getItem('username') : null;
+    if (username && username.trim().length > 0) {
+      router.replace(`/u/${username}`);
+    } else {
+      router.replace('/');
+    }
   }, [router]);
 
   return (
