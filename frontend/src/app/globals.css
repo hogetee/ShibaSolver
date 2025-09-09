@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Sarabun&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Afacad&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -15,7 +16,7 @@
   --color-accent-400: #AB72C1;
   --color-accent-600: #4B0082;
   --color-dark-900: #191825;
-  --font-display: "Sarabun", sans-serif; 
+  --font-display: "Afacad","Sarabun", sans-serif;
 }
 
 /* @media (prefers-color-scheme: dark) {

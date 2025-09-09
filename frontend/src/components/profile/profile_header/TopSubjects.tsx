@@ -1,9 +1,11 @@
 type Props = { subjects: string[] };
 
-export default function TopSubject({ subjects }: Props){
+export default function TopSubject({ subjects }: Props) {
   return (
     <div className="flex flex-col items-center m-[0.5rem]">
-      <div className="text-[22px] font-semibold text-neutral-900 mb-3">Top Subjects</div>
+      <div className="text-[22px] font-semibold text-neutral-900 mb-3">
+        Top Subjects
+      </div>
       <div className="flex flex-col items-center gap-2">
         {/* First row - single subject */}
         <div className="flex justify-center">

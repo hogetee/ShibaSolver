@@ -39,7 +39,7 @@ export default function UserProfilePage() {
 
   return (
     <div>
-      <div className="h-[6.25%] bg-dark-900 text-neutral-100 flex justify-center w-[100%]">
+      <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
         NavBar
       </div>
       {/* Add your user page content here */}
