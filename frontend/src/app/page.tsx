@@ -1,30 +1,126 @@
-'use client';
 import Image from "next/image";
-import { Button } from "@mui/material";
-import { useRouter } from "next/navigation";
+import Post, { PostData } from "@/components/post/Post";
 
-export default function Home() {
-  const router = useRouter();
+// ใน sprint ถัดๆไป ส่วนนี้จะเป็นการ fetch จาก API 
+async function getFeedData(): Promise<PostData[]> {
+  const mockData: PostData[] = [
+    {
+      post_id: "post-001",
+      title: "How to solve these chemical equations",
+      description: "I need help with these chemical equations. I'm stuck on balancing the atoms.",
+      is_solved: true,
+      created_at: new Date().toISOString(),
+      tags: ["Science"],
+      author: {
+        user_id: "Nano109",
+        display_name: "NanoBigDick",
+        profile_picture: "/image/DefaultAvatar.png",
+      },
+      stats: { likes: 12, dislikes: 4 },
+      topComment: {
+        comment_id: "comment-101",
+        text: "This is very helpful! Remember to balance the hydrogens last.",
+        created_at: new Date().toISOString(),
+        likes: 15,
+        author: {
+          user_id: "user-tee",
+          display_name: "Tee",
+          profile_picture: "/image/DefaultAvatar.png",
+        },
+      },
+    },
+    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
+    {
+      post_id: "post-002",
+      title: "What is the meaning of this sentence?",
+      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
+      is_solved: false,
+      created_at: new Date().toISOString(),
+      tags: ["English"],
+      author: {
+        user_id: "user-tangent",
+        display_name: "Tangent",
+        profile_picture: "/image/DefaultAvatar.png",
+      },
+      stats: { likes: 5, dislikes: 0 },
+      topComment: undefined, // ไม่มี Top comment
+    },
+    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
+    {
+      post_id: "post-003",
+      title: "What is the meaning of this sentence?",
+      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
+      is_solved: false,
+      created_at: new Date().toISOString(),
+      tags: ["English"],
+      author: {
+        user_id: "user-tangent",
+        display_name: "Tangent",
+        profile_picture: "/image/DefaultAvatar.png",
+      },
+      stats: { likes: 5, dislikes: 0 },
+      topComment: undefined, // ไม่มี Top comment
+    },
+    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
+    {
+      post_id: "post-004",
+      title: "What is the meaning of this sentence?",
+      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
+      is_solved: false,
+      created_at: new Date().toISOString(),
+      tags: ["English"],
+      author: {
+        user_id: "user-tangent",
+        display_name: "Tangent",
+        profile_picture: "/image/DefaultAvatar.png",
+      },
+      stats: { likes: 5, dislikes: 0 },
+      topComment: undefined, // ไม่มี Top comment
+    },
+    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
+    {
+      post_id: "post-005",
+      title: "What is the meaning of this sentence?",
+      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
+      is_solved: false,
+      created_at: new Date().toISOString(),
+      tags: ["English"],
+      author: {
+        user_id: "user-tangent",
+        display_name: "Tangent",
+        profile_picture: "/image/DefaultAvatar.png",
+      },
+      stats: { likes: 5, dislikes: 0 },
+      topComment: undefined, // ไม่มี Top comment
+    },
+    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
+    {
+      post_id: "post-006",
+      title: "What is the meaning of this sentence?",
+      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
+      is_solved: false,
+      created_at: new Date().toISOString(),
+      tags: ["English"],
+      author: {
+        user_id: "user-tangent",
+        display_name: "Tangent",
+        profile_picture: "/image/DefaultAvatar.png",
+      },
+      stats: { likes: 5, dislikes: 0 },
+      topComment: undefined, // ไม่มี Top comment
+    }
+  ];
+  return mockData;
+}
 
+export default async function Home() {
+
+  const posts = await getFeedData();
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <h1>Welcome To Shiba Solver</h1>
-        <div className="flex flex-col gap-4">
-          <Button 
-            variant="contained" 
-            onClick={() => router.push('/user/me')}
-          >
-            Go to My Profile
-          </Button>
-          <Button 
-            variant="outlined" 
-            onClick={() => router.push('/user/testuser')}
-          >
-            View Test User Profile
-          </Button>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen w-full bg-gray-100 p-4 flex flex-col items-center gap-6">
+      {posts.map(post => (
+        <Post key={post.post_id} postData={post} />
+      ))}
+    </main>
   );
 }
