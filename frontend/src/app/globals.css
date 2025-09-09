@@ -4,7 +4,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #191825;
 }
 
 @theme inline {
@@ -16,6 +16,7 @@
   --color-accent-400: #AB72C1;
   --color-accent-600: #4B0082;
   --color-dark-900: #191825;
+  --color-primary-00: #FFFFFF;
   --font-display: "Afacad","Sarabun", sans-serif;
 }
 
