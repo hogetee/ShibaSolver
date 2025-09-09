@@ -26,7 +26,7 @@ type Props = {
 
 export default function ProfileHeader({ dummyUser }: Props) {
   return (
-    <div className="w-[100%] flex gap-6 px-6 pt-8 justify-center h-[270px] align-center ">
+    <div className="w-[100%] flex gap-6 px-6 pt-8 justify-center h-[270px] align-center font-display ">
       <div className="flex items-start justify-center gap-6">
         <div className="flex items-center h-full">
           <ProfilePic
