@@ -1,5 +1,5 @@
 import { exportTraceState } from "next/dist/trace";
-import ProfileFrom from "@/components/edit_profile/ProfileFrom";
+import ProfileFrom from "@/components/edit_profile/ProfileForm";
 import React from "react";
 
 
