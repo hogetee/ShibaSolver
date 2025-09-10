@@ -9,7 +9,7 @@ export default function TextArea({ label, name, value, onChange, placeholder }) 
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="border rounded px-2 py-1 mt-1"
+        className="bg-white border rounded border rounded-lg px-2 py-3 mt-1"
       />
     </div>
   );
