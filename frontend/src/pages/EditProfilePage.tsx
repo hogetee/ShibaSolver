@@ -26,7 +26,7 @@ export default function InformationPage(){
         topSubjects: ["Calculus", "Programming", "Data Structures"],
     };
     return(
-        <div className="min-h-screen bg-purple-50 p-6 flex justify-center items-start">
+        <div className="min-h-screen  p-6 flex justify-center items-start">
             <ProfileFrom />
          </div>
     )

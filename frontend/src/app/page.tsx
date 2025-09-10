@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Post, { PostData } from "@/components/post/Post";
 
 // ใน sprint ถัดๆไป ส่วนนี้จะเป็นการ fetch จาก API 
@@ -118,6 +119,14 @@ export default async function Home() {
   const posts = await getFeedData();
   return (
     <main className="min-h-screen w-full bg-gray-100 p-4 flex flex-col items-center gap-6">
+      <div className="w-full max-w-3xl flex justify-end">
+        <Link
+          href="/user/edit"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow"
+        >
+          Edit Profile
+        </Link>
+      </div>
       {posts.map(post => (
         <Post key={post.post_id} postData={post} />
       ))}

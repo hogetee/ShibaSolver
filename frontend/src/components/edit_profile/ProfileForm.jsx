@@ -4,15 +4,16 @@ import React, { useState } from "react";
 import TextInput from "./TextInput";
 import TextArea from "./TextArea";
 import SelectDropdown from "./SelectDropdown";
-// import Checkbox from "./Checkbox";
+import Checkbox from "./CheckBox";
 import ProfilePicture from "./ProfilePicture";
 
-// Options for dropdowns
+// example Options for dropdowns
 const subjects = ["Math", "Physics", "Chemistry", "Biology"];
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
 export default function ProfileForm() {
-  // Initial values (old data)
+
+  // dummy values (old data)
   const [formData, setFormData] = useState({
     username: "johndoe",
     displayName: "John Doe",
@@ -60,11 +61,15 @@ export default function ProfileForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-purple-100 p-6 rounded-xl max-w-lg mx-auto flex flex-col gap-4"
-    >
-      <h1 className="text-2xl font-bold text-center mb-4">Edit Your Profile</h1>
+    <div className=" p-5 rounded-xl w-[65%] h-full flex flex-col gap-6">
+      <div className = "text-center text-6xl font-medium">
+          Set up your profile
+      </div>
+      <form
+        onSubmit={handleSubmit}
+          className="bg-[var(--color-accent-200)] p-5 rounded-xl h-[80%] flex flex-col gap-5"
+      >
+      
 
       <TextInput
         label="Username"
@@ -73,6 +78,7 @@ export default function ProfileForm() {
         onChange={handleChange}
         error={errors.username}
         placeholder="username"
+        required
       />
 
       <TextInput
@@ -82,6 +88,7 @@ export default function ProfileForm() {
         onChange={handleChange}
         error={errors.displayName}
         placeholder="display name"
+        required
       />
 
       <TextArea
@@ -133,5 +140,7 @@ export default function ProfileForm() {
         Save Profile
       </button>
     </form>
+    </div>
+    
   );
 }
