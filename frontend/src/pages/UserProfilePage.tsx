@@ -1,3 +1,4 @@
+import ProfileContent from "@/components/profile/profile_content/ProfileContent";
 import ProfileHeader from "@/components/profile/profile_header/ProfileHeader";
 import React from "react";
 
@@ -44,6 +45,7 @@ export default function UserProfilePage() {
       </div>
       {/* Add your user page content here */}
       <ProfileHeader dummyUser={dummyUser} />
+      <ProfileContent />
     </div>
   );
 }
