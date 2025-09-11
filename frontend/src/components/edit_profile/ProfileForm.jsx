@@ -7,8 +7,15 @@ import SelectDropdown from "./SelectDropdown";
 import Checkbox from "./CheckBox";
 import ProfilePicture from "./ProfilePicture";
 
-// example Options for dropdowns
-const subjects = ["Math", "Physics", "Chemistry", "Biology"];
+// example Options for dropdowns with colors
+const subjects = [
+  { name: "Math", color: "blue" },
+  { name: "Physics", color: "green" },
+  { name: "Chemistry", color: "purple" },
+  { name: "Biology", color: "red" },
+  { name: "English", color: "orange" },
+  { name: "History", color: "gray" }
+];
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
 export default function ProfileForm() {
@@ -19,7 +26,10 @@ export default function ProfileForm() {
     displayName: "John Doe",
     bio: "Avid learner and problem solver.",
     education: "Undergraduate",
-    subjects: ["Math", "Physics"],
+    subjects: [
+      { name: "Math", color: "blue" },
+      { name: "Physics", color: "green" }
+    ],
     agree: true,
     profilePic: null,
   });
@@ -44,8 +54,9 @@ export default function ProfileForm() {
   const handleProfilePicChange = (file) => {
     setFormData((prev) => ({ ...prev, profilePic: file }));
   };
-
-  // Submit handler
+  // ******************************************** 
+  // Submit handler CHANGE WHEN BACKEND IS READY
+  // ******************************************** 
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {
@@ -61,13 +72,13 @@ export default function ProfileForm() {
   };
 
   return (
-    <div className=" p-5 rounded-xl w-[65%] h-full flex flex-col gap-6">
+    <div className=" p-5 rounded-2xl w-[65%] h-full flex flex-col gap-6">
       <div className = "text-center text-6xl font-medium">
           Set up your profile
       </div>
       <form
         onSubmit={handleSubmit}
-          className="bg-[var(--color-accent-200)] p-5 rounded-xl h-[80%] flex flex-col gap-5"
+          className="bg-[var(--color-accent-200)] p-5 rounded-3xl min-h-[700px] flex flex-col gap-5"
       >
       
 
@@ -99,46 +110,55 @@ export default function ProfileForm() {
         placeholder="Write something about yourself"
       />
 
-      <div className="flex flex-col">
-        <label className="font-semibold">Education level</label>
-        <SelectDropdown
-          options={educationLevels}
-          value={formData.education}
-          onChange={(val) => setFormData((prev) => ({ ...prev, education: val }))}
-          placeholder="Select your education level"
-        />
+      <div className="flex gap-6">
+        {/* Left side - Education and Subjects */}
+        <div className="flex flex-col gap-5 w-2/3">
+          <div className="flex flex-col">
+            <label className="font-semibold">Education level</label>
+            <SelectDropdown
+              options={educationLevels}
+              value={formData.education}
+              onChange={(val) => setFormData((prev) => ({ ...prev, education: val }))}
+              placeholder="Select your education level"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-semibold">Interested Subject(s)</label>
+            <SelectDropdown
+              options={subjects}
+              value={formData.subjects}
+              onChange={handleSubjectsChange}
+              placeholder="Select your subjects"
+              multiple
+            />
+          </div>
+        </div>
+
+        {/* Right side - Profile Picture */}
+        <div className="w-1/3 flex justify-center">
+          <ProfilePicture value={formData.profilePic} onChange={handleProfilePicChange} />
+        </div>
       </div>
-
-      <div className="flex flex-col">
-        <label className="font-semibold">Interested Subject(s)</label>
-        <SelectDropdown
-          options={subjects}
-          value={formData.subjects}
-          onChange={handleSubjectsChange}
-          placeholder="Select your subjects"
-          multiple
+      <div className="flex justify-between items-center mt-auto">
+        <Checkbox
+          name="agree"
+          checked={formData.agree}
+          onChange={handleChange}
+          label={
+            <>
+              Agree to <a href="#" className="text-blue-600 underline">Terms & Agreement</a>
+            </>
+          }
         />
+
+        <button
+          type="submit"
+          className="bg-purple-800 text-white px-4 py-2 rounded"
+        >
+          Save Profile
+        </button>
       </div>
-
-      <ProfilePicture value={formData.profilePic} onChange={handleProfilePicChange} />
-
-      <Checkbox
-        name="agree"
-        checked={formData.agree}
-        onChange={handleChange}
-        label={
-          <>
-            Agree to <a href="#" className="text-blue-600 underline">Terms & Agreement</a>
-          </>
-        }
-      />
-
-      <button
-        type="submit"
-        className="bg-purple-800 text-white px-4 py-2 rounded self-end"
-      >
-        Save Profile
-      </button>
     </form>
     </div>
     
