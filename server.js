@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const adminsRouter = require('./routers/admins.router');
+const adminsRouter = require('./routers/admins_router');
 
 dotenv.config({ path: './config/config.env'});
 
