@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', postsCtrl.getAllPosts);
 router.get('/:id', postsCtrl.getPost);
-router.post('/bookmark', postsCtrl.addBookmark);
-router.get('/bookmark/:user_id', postsCtrl.getBookmarkedFeed);
+router.post('/bookmarks', postsCtrl.addBookmark);
+router.get('/bookmarks/:user_id', postsCtrl.getBookmarks);
 // export router
 module.exports = router;

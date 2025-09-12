@@ -36,7 +36,7 @@ exports.addBookmark = async (req, res, next) => {
   }
 };
 
-exports.getBookmarkedFeed = async (req, res, next) => {
+exports.getBookmarks = async (req, res, next) => {
   try {
     const { user_id } = req.params;
     if (!/^\d+$/.test(String(user_id))) {
