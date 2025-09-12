@@ -11,6 +11,7 @@ async function getFeedData(): Promise<PostData[]> {
       is_solved: true,
       created_at: new Date().toISOString(),
       tags: ["Science"],
+      post_image: "/image/mock-chemical-equation.png",
       author: {
         user_id: "Nano109",
         display_name: "NanoBigDick",
@@ -37,6 +38,7 @@ async function getFeedData(): Promise<PostData[]> {
       is_solved: false,
       created_at: new Date().toISOString(),
       tags: ["English"],
+      post_image: "/image/mock-english-equation.jpg",
       author: {
         user_id: "user-tangent",
         display_name: "Tangent",
@@ -48,67 +50,29 @@ async function getFeedData(): Promise<PostData[]> {
     // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
     {
       post_id: "post-003",
-      title: "What is the meaning of this sentence?",
-      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
-      is_solved: false,
+      title: "How to solve this hard equation?",
+      description: "Can anyone help me understand how to solve this please (x^2 + 5x + 6 = 0)?",
+      is_solved: true,
       created_at: new Date().toISOString(),
-      tags: ["English"],
+      tags: ["Math"],
       author: {
         user_id: "user-tangent",
         display_name: "Tangent",
         profile_picture: "/image/DefaultAvatar.png",
       },
       stats: { likes: 5, dislikes: 0 },
-      topComment: undefined, // ไม่มี Top comment
+      topComment: {
+        comment_id: "comment-501",
+        text: "Thank you so much",
+        created_at: new Date().toISOString(),
+        likes: 9999,
+        author: {
+          user_id: "user-best",
+          display_name: "Best",
+          profile_picture: "/image/DefaultAvatar.png",
+        },
+      },
     },
-    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
-    {
-      post_id: "post-004",
-      title: "What is the meaning of this sentence?",
-      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
-      is_solved: false,
-      created_at: new Date().toISOString(),
-      tags: ["English"],
-      author: {
-        user_id: "user-tangent",
-        display_name: "Tangent",
-        profile_picture: "/image/DefaultAvatar.png",
-      },
-      stats: { likes: 5, dislikes: 0 },
-      topComment: undefined, // ไม่มี Top comment
-    },
-    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
-    {
-      post_id: "post-005",
-      title: "What is the meaning of this sentence?",
-      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
-      is_solved: false,
-      created_at: new Date().toISOString(),
-      tags: ["English"],
-      author: {
-        user_id: "user-tangent",
-        display_name: "Tangent",
-        profile_picture: "/image/DefaultAvatar.png",
-      },
-      stats: { likes: 5, dislikes: 0 },
-      topComment: undefined, // ไม่มี Top comment
-    },
-    // เพิ่มโพสต์ที่ยังไม่ถูกแก้ และไม่มีคอมเมนต์
-    {
-      post_id: "post-006",
-      title: "What is the meaning of this sentence?",
-      description: "Can anyone help me understand the grammatical structure of this complex sentence?",
-      is_solved: false,
-      created_at: new Date().toISOString(),
-      tags: ["English"],
-      author: {
-        user_id: "user-tangent",
-        display_name: "Tangent",
-        profile_picture: "/image/DefaultAvatar.png",
-      },
-      stats: { likes: 5, dislikes: 0 },
-      topComment: undefined, // ไม่มี Top comment
-    }
   ];
   return mockData;
 }

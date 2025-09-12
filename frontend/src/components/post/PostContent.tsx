@@ -15,7 +15,7 @@ const PostContent = ({ title, description, postImage }: PostContentProps) => {
         {description}
       </p>
       {postImage && (
-        <img src={postImage} alt="Post content" className="mt-4 rounded-lg w-full object-cover" />
+        <img src={postImage} alt="Post content" className="mt-4 rounded-lg w-3/5 object-cover" />
       )}
     </div>
   );
