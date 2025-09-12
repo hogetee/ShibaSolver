@@ -21,9 +21,10 @@ export default function ProfileTabs({ postCountLabel, commentCountLabel }: { pos
         onChange={handleChange} 
         aria-label="profile tabs"
         sx={{
-          '& .MuiTab-root': { color: 'rgb(255, 255, 255,0.5)' },
-          '& .Mui-selected': { color: 'rgb(255, 255, 255,1)' },
-          '& .MuiTabs-indicator': { backgroundColor: 'white' }
+          '& .MuiTab-root': { color: 'rgba(255,255,255,0.5)' },
+          '& .MuiTab-root.Mui-selected': { color: 'rgb(255,255,255)' },
+          '& .MuiTabs-indicator': { backgroundColor: 'rgb(255,255,255)' },
+          '& .MuiTab-root:focus': { color: 'rgb(255,255,255)' }
         }}
       >
         <Tab value="posts" label={`Posts (${postCountLabel})`} sx={{
