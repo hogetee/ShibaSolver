@@ -14,9 +14,9 @@ exports.requireAuth = (req, res, next) => {
     }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { uid: payload.uid, role: payload.role };
+    req.user = { uid: payload.uid };
     next();
-  } catch (e) {
+  } catch (err) {
     return res.status(401).json({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid or expired session" } });
   }
 };

@@ -57,13 +57,14 @@ exports.googleLogin = async (req, res) => {
       await pool.query(
         `UPDATE users
            SET email=$2, display_name=$3, profile_picture=$4, updated_at=now()
-         WHERE google_account=$1`,
+         WHERE google_account=$1
+          RETURNING *`,
         [sub, email, name || user.display_name, picture || user.profile_picture]
       );
     }
 
     // ออก session JWT ของระบบเรา
-    const token = signSessionJwt({ uid: user.user_id, role: user.role || "member" });
+    const token = signSessionJwt({ uid: user.user_id });
     res.cookie("ss_token", token, cookieOpts());
 
     return res.status(200).json({
