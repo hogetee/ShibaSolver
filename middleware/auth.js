@@ -10,13 +10,19 @@ exports.requireAuth = (req, res, next) => {
     else if (cookieToken) token = cookieToken;
 
     if (!token) {
-      return res.status(401).json({ success: false, error: { code: "UNAUTHORIZED", message: "Missing session token" } });
+      return res.status(401).json({
+        success: false,
+        error: { code: "UNAUTHORIZED", message: "Missing session token" },
+      });
     }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.user = { uid: payload.uid };
     next();
   } catch (err) {
-    return res.status(401).json({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid or expired session" } });
+    return res.status(401).json({
+      success: false,
+      error: { code: "UNAUTHORIZED", message: "Invalid or expired session" },
+    });
   }
 };

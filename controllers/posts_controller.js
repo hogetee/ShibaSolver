@@ -1,5 +1,5 @@
 exports.getPost = (req, res) => {
-  res.status(200).json({ success: true, where: 'getPost', id: req.params.id });
+  res.status(200).json({ success: true, where: "getPost", id: req.params.id });
 };
 
 exports.refreshFeed = async (req, res, next) => {
@@ -8,17 +8,23 @@ exports.refreshFeed = async (req, res, next) => {
     const { rows } = await pool.query(
       `SELECT * FROM public.posts
       ORDER BY created_at DESC`
-    );//order by creation date desc, might be changed later
+    ); //order by creation date desc, might be changed later
 
     return res.status(200).json({ success: true, count: rows.length, rows });
-  } catch (e) { next(e); }
-}
+  } catch (e) {
+    next(e);
+  }
+};
 
 exports.addBookmark = async (req, res, next) => {
   try {
-    const { user_id, post_id } = req.body;
+    // const { user_id, post_id } = req.body;
+    const { post_id } = req.body;
+    const user_id = req.user.uid; // เอาจาก token
     if (!/^\d+$/.test(String(user_id)) || !/^\d+$/.test(String(post_id))) {
-      return res.status(400).json({ success: false, message: 'Invalid user_id or post_id' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user_id or post_id" });
     }
 
     const pool = req.app.locals.pool;
@@ -35,10 +41,15 @@ exports.addBookmark = async (req, res, next) => {
     if (rows.length === 1) {
       return res.status(201).json({ success: true, data: rows[0] });
     }
-    return res.status(200).json({ success: false, message: 'Already bookmarked' });
+    return res
+      .status(200)
+      .json({ success: false, message: "Already bookmarked" });
   } catch (e) {
-    if (e.code === '23503') { // FK violation
-      return res.status(400).json({ success: false, message: 'user_id or post_id does not exist' });
+    if (e.code === "23503") {
+      // FK violation
+      return res
+        .status(400)
+        .json({ success: false, message: "user_id or post_id does not exist" });
     }
     next(e);
   }
@@ -46,9 +57,12 @@ exports.addBookmark = async (req, res, next) => {
 
 exports.getBookmarks = async (req, res, next) => {
   try {
-    const { user_id } = req.params;
+    // const { user_id } = req.params;
+    const user_id = req.user.uid;  // เอาจาก token
     if (!/^\d+$/.test(String(user_id))) {
-      return res.status(400).json({ success: false, message: 'Invalid user_id' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user_id" });
     }
 
     const pool = req.app.locals.pool;
@@ -66,5 +80,7 @@ exports.getBookmarks = async (req, res, next) => {
     );
 
     return res.status(200).json({ success: true, count: rows.length, rows });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 };

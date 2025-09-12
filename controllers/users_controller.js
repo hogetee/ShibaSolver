@@ -20,7 +20,7 @@ exports.getUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const id = req.user.uid;
     if (!/^\d+$/.test(id)) return res.status(400).json({ success:false, message:'Invalid id' });
 
     const pool = req.app.locals.pool;
@@ -36,7 +36,7 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.updateUser = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const id = req.user.uid;
     const { new_data } = req.body;
 
     if (!/^\d+$/.test(id)) {
