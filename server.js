@@ -24,6 +24,7 @@ app.use(express.json());
         app.use('/api/v1/admins', adminsRouter);
         app.use('/api/v1/users', usersRouter);
         app.use('/api/v1/posts', postsRouter);
+        
 
         const PORT = process.env.PORT || 5000;
 
