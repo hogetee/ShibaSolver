@@ -1,11 +1,34 @@
-export default function CommentsList() {
+"use client";
+
+import useUserComments from "@/hooks/useUserComments";
+
+export default function CommentsList({ username }: { username?: string }) {
+  const { comments, isLoading, error } = useUserComments(username);
+
   return (
-    //must create case for when there are no comments as well as when there are comments
     <div className="p-4 rounded-lg">
-      <div className="flex justify-center items-center h-32">
-        {/* Comments list content goes here */}
-        <p className="text-white text-xl">No comments available.</p>
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-32">
+          <p className="text-white text-xl">Loading comments…</p>
+        </div>
+      ) : error ? (
+        <div className="flex justify-center items-center h-32">
+          <p className="text-red-400 text-xl">{error}</p>
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="flex justify-center items-center h-32">
+          <p className="text-white text-xl">No comments available.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {comments.map((c) => (
+            <div key={c.comment_id} className="bg-white/5 rounded-lg p-4 text-white">
+              <div className="text-sm opacity-70">{c.created_at}</div>
+              <div className="mt-1">{c.text}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

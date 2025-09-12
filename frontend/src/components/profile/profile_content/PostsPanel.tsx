@@ -1,7 +1,10 @@
 import PostsList from "./PostsList";
+import { useSearchParams } from "next/navigation";
 
 
 export default function PostsPanel() {
+  const sp = useSearchParams();
+  const username = typeof window !== 'undefined' ? (window.location.pathname.split('/').pop() || undefined) : undefined;
   return (
     <div className="pt-4">
       {/* <div className="mb-4 flex items-baseline">
@@ -10,7 +13,7 @@ export default function PostsPanel() {
           <span className="text-2xl text-white ml-2 mr-2">{`(${countLabel})`}</span>
         ) : null}
       </div> */}
-      <PostsList />
+      <PostsList username={username} />
     </div>
   );
 }
