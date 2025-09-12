@@ -1,10 +1,18 @@
-exports.getAllPosts = (req, res) => {
-  res.status(200).json({ success: true, where: 'listPosts', data: [] });
-};
-
 exports.getPost = (req, res) => {
   res.status(200).json({ success: true, where: 'getPost', id: req.params.id });
 };
+
+exports.refreshFeed = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const { rows } = await pool.query(
+      `SELECT * FROM public.posts
+      ORDER BY created_at DESC`
+    );//order by creation date desc, might be changed later
+
+    return res.status(200).json({ success: true, count: rows.length, rows });
+  } catch (e) { next(e); }
+}
 
 exports.addBookmark = async (req, res, next) => {
   try {
