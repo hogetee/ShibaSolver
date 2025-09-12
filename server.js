@@ -3,10 +3,13 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');   
 const adminsRouter = require('./routers/admins_router');
 const usersRouter  = require('./routers/users_router');
+const postsRouter  = require('./routers/posts_router');
+
 
 dotenv.config({ path: './config/config.env'});
 
 const app = express();
+app.use(express.json());  
 
 (async () => {
         const pool = await connectDB();   
@@ -20,6 +23,7 @@ const app = express();
 
         app.use('/api/v1/admins', adminsRouter);
         app.use('/api/v1/users', usersRouter);
+        app.use('/api/v1/posts', postsRouter);
 
         const PORT = process.env.PORT || 5000;
 
