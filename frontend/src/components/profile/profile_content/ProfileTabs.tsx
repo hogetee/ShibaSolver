@@ -22,7 +22,7 @@ export default function ProfileTabs({ postCountLabel, commentCountLabel }: { pos
         aria-label="profile tabs"
         sx={{
           '& .MuiTab-root': { color: 'rgb(255, 255, 255,0.5)' },
-          '& .Mui-selected': { color: 'white' },
+          '& .Mui-selected': { color: 'rgb(255, 255, 255,1)' },
           '& .MuiTabs-indicator': { backgroundColor: 'white' }
         }}
       >
