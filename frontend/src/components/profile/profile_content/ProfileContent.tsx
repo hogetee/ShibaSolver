@@ -1,16 +1,23 @@
 import PostsPanel from "./PostsPanel";
 import CommentsPanel from "./CommentsPanel";
+import ProfileTabs from "./ProfileTabs";
 
-export default function ProfileContent() {
+type Props = {
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
+
+export default function ProfileContent({ searchParams }: Props) {
   const postCountLabel = "300";
   const commentCountLabel = "1.2k";
+  const tab = typeof searchParams?.tab === 'string' ? searchParams.tab : 'posts';
 
   return (
-    <div className="w-full flex justify-center font-display mt-6 mb-10">
-      <div className="flex w-4xl gap-6">
-        <PostsPanel countLabel={postCountLabel} />
-        {/* <CommentsPanel countLabel={commentCountLabel} /> */}
+    <div className="w-full flex flex-col items-center font-display mt-6 mb-10">
+      <div className="w-full max-w-4xl pt-4 pl-8 pr-8 pb-8 w-[100%] bg-accent-400 rounded-xl flex flex-col">
+        <ProfileTabs postCountLabel={postCountLabel} commentCountLabel={commentCountLabel} />
+          {(tab === 'posts' || !tab) && <PostsPanel />}
+          {tab === 'comments' && <CommentsPanel />}
+        </div>
       </div>
-    </div>
   );
 }

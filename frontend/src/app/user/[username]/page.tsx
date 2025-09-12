@@ -2,18 +2,16 @@ import UserProfile from '@/pages/UserProfilePage';
 type Props = {
   params: {
     username: string
-  }
+  },
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default function UserPage({ params }: Props) {
+export default function UserPage({ params, searchParams }: Props) {
   const { username } = params;
   
   return (
     <div className="min-h-screen">
-      {/* <h1 className="text-2xl font-bold">Profile: {username}</h1> */}
-      {/* Add your profile content here */}
-      {/* You can fetch user data based on the username parameter */}
-      <UserProfile />
+      <UserProfile searchParams={searchParams} />
     </div>
   );
 }

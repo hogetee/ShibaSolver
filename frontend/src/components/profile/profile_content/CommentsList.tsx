@@ -4,7 +4,7 @@ export default function CommentsList() {
     <div className="p-4 rounded-lg">
       <div className="flex justify-center items-center h-32">
         {/* Comments list content goes here */}
-        <p className="text-dark-900">No comments available.</p>
+        <p className="text-white text-xl">No comments available.</p>
       </div>
     </div>
   );

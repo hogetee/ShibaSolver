@@ -18,7 +18,11 @@ type UserProfileProps = {
   posts: null; // list of recent posts
 };
 
-export default function UserProfilePage() {
+type Props = {
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
+
+export default function UserProfilePage({ searchParams }: Props) {
   // supposedly fetch user data based on props.id or props.username
   // real implementation should not pass in the whole props, just get useParams and fetch data of u/{username}
 
@@ -45,7 +49,7 @@ export default function UserProfilePage() {
       </div>
       {/* Add your user page content here */}
       <ProfileHeader dummyUser={dummyUser} />
-      <ProfileContent />
+      <ProfileContent searchParams={searchParams} />
     </div>
   );
 }
