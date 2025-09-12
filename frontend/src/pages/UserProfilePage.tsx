@@ -2,6 +2,8 @@
 
 import ProfileContent from "@/components/profile/profile_content/ProfileContent";
 import ProfileHeader from "@/components/profile/profile_header/ProfileHeader";
+import ProfileHeaderSkeleton from "@/components/profile/profile_header/ProfileHeaderSkeleton";
+import ProfileContentSkeleton from "@/components/profile/profile_content/ProfileContentSkeleton";
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import useUserProfile from "@/hooks/useUserProfile";
@@ -43,7 +45,10 @@ export default function UserProfilePage({ searchParams }: Props) {
         NavBar
       </div>
       {isLoading ? (
-        <div className="w-full flex justify-center py-8 text-neutral-700">Loading profile…</div>
+        <>
+          <ProfileHeaderSkeleton />
+          <ProfileContentSkeleton />
+        </>
       ) : error ? (
         <div className="w-full flex justify-center py-8 text-red-500">{error}</div>
       ) : user ? (

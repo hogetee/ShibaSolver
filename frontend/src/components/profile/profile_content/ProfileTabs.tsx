@@ -11,7 +11,7 @@ export default function ProfileTabs({ postCountLabel, commentCountLabel }: { pos
   const tab = searchParams?.get('tab') || 'posts';
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    router.push(`?tab=${newValue}`);
+    router.push(`?tab=${newValue}`, { scroll: false });
   };
 
   return (

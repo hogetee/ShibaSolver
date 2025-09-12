@@ -6,10 +6,13 @@ export default function CommentsList({ username }: { username?: string }) {
   const { comments, isLoading, error } = useUserComments(username);
 
   return (
-    <div className="p-4 rounded-lg">
+    <div className="p-4 rounded-lg min-h-[289px]">
       {isLoading ? (
-        <div className="flex justify-center items-center h-32">
-          <p className="text-white text-xl">Loading comments…</p>
+        <div className="w-full">
+          <div className="w-full min-h-[12rem] bg-white/10 rounded-2xl p-6 animate-pulse">
+            <div className="h-4 bg-white/20 rounded w-1/2 mb-3" />
+            <div className="h-4 bg-white/20 rounded w-2/3" />
+          </div>
         </div>
       ) : error ? (
         <div className="flex justify-center items-center h-32">
