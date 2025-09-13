@@ -21,7 +21,7 @@ export default function GoogleSignInButton({ onSuccess, className = "" }: Google
         script.onload = () => {
           if (window.google && buttonRef.current) {
             window.google.accounts.id.initialize({
-              client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+              client_id: '793748976757-g3vog3do94a090h7niis00a9o7mss299.apps.googleusercontent.com',
               callback: onSuccess,
             });
 
