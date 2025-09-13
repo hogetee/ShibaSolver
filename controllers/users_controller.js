@@ -2,6 +2,7 @@ exports.getAllUsers = (req, res) => {
   res.status(200).json({ success: true, where: 'listUsers', data: [] });
 };
 
+
 exports.getUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -33,6 +34,8 @@ exports.deleteUser = async (req, res, next) => {
     return res.status(200).json({ success:true, data: rows[0] });
   } catch (err) { next(err); }
 };
+
+
 exports.adminDeleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -48,6 +51,8 @@ exports.adminDeleteUser = async (req, res, next) => {
     return res.status(200).json({ success:true, data: rows[0] });
   } catch (err) { next(err); }
 };
+
+
 exports.updateUser = async (req, res, next) => {
   try {
     const id = req.user.uid;
@@ -106,6 +111,7 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
+
 exports.adminUpdateUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -163,4 +169,3 @@ exports.adminUpdateUser = async (req, res, next) => {
     next(err);
   }
 };
-
