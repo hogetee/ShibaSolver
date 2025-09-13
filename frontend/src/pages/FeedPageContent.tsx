@@ -1,11 +1,11 @@
-
-import React from "react";
-
+import Image from "next/image";
 import Post, { PostData } from "@/components/post/Post";
 import Notifications, { Notification } from "@/components/notification/Notifications";
 import TopMenu from "@/components/topMenu/TopMenu";
 
-const mockData: PostData[] = [
+// ใน sprint ถัดๆไป ส่วนนี้จะเป็นการ fetch จาก API 
+async function getFeedData(): Promise<PostData[]> {
+  const mockData: PostData[] = [
     {
       post_id: "post-001",
       title: "How to solve these chemical equations",
@@ -76,25 +76,28 @@ const mockData: PostData[] = [
       },
     },
   ];
+  return mockData;
+}
 
-export default function FeedPageContent() {
-  return (
+export default async function Home() {
+
+  const posts = await getFeedData();
+  return ( //add className for padding top to avoid being hidden under the fixed top menu
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Navbar */}
-      <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
-        <TopMenu />
-      </div>
-
-      {/* Feed content */}
-      <div className="flex flex-1">
-        {/* Notifications */}
-        <Notifications
-          notifications={[
-            { noti_id: "1", message: "Nano liked your post", time: "2 hrs ago" },
-            { noti_id: "2", message: "Nano replied: “Thanks ...”", time: "2 hrs ago" },
-            { noti_id: "3", message: "Tan replied: “I agree ...”", time: "yesterday" },
-          ]}
-        />
+        {/* Navbar */}
+        <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
+          <TopMenu />
+        </div>
+        {/* Feed content */}
+        <div className="flex flex-1">
+          {/* Notifications */}
+          <Notifications
+            notifications={[
+              { noti_id: "1", message: "Nano liked your post", time: "2 hrs ago" },
+              { noti_id: "2", message: "Nano replied: “Thanks ...”", time: "2 hrs ago" },
+              { noti_id: "3", message: "Tan replied: “I agree ...”", time: "yesterday" },
+            ]}
+          />
 
         {/* Posts */}
         <main className="flex-1 p-5">
@@ -102,7 +105,7 @@ export default function FeedPageContent() {
             Recent Posts
           </h1>
           <div className="space-y-5">
-            {mockData.map((post) => (
+            {posts.map((post) => (
               <Post key={post.post_id} postData={post} />
             ))}
           </div>
