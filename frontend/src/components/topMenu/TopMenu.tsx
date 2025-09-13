@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -15,8 +16,24 @@ import {
 } from '@mui/icons-material';
 import { IconButton, Avatar } from '@mui/material';
 
+type User = {
+  username: string;
+  image: string;
+};
+
 export default function TopMenu() {
   const pathname = usePathname() ?? '';
+  const [user, setUser] = useState<User | null>(null);
+
+  /*
+  useEffect(() => {
+    // Simulate client-side login state
+    setUser({
+      username: 'Suk014',
+      image: '/image/DefaulAvatar.jpg',
+    });
+  }, []);
+*/
 
   const isActive = (path: string) => {
     if (path === '/') return pathname === '/';
@@ -26,7 +43,7 @@ export default function TopMenu() {
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
       {/* Website Name */}
-      <Link href="/" className="font-sans font-bold text-3xl mr-6 text-white px-4">
+      <Link href="/" className="font-sans font-black text-3xl mr-6 text-white px-4">
         Shiba
       </Link>
 
@@ -35,7 +52,7 @@ export default function TopMenu() {
         <input
             type="text"
             placeholder="Search..."
-            className="w-full rounded-full px-4 pr-10 py-1.5 text-black focus:outline-none bg-white border border-gray-300"
+            className="w-full rounded-full px-5 pr-10 py-1.5 text-black focus:outline-none bg-white border border-gray-300"
         />
         <button
             type="submit"
@@ -80,11 +97,18 @@ export default function TopMenu() {
         </Link>
 
         {/* Profile Picture */}
-        <Link href="/profile" passHref>
-          <IconButton size="large" className="p-0 ml-3">
-            <Avatar alt="User Name" src="/path/to/profile.jpg" className="w-8 h-8" />
-          </IconButton>
-        </Link>
+         {user ? (
+          <Link href={`/user/${user.username}`} passHref>
+            <IconButton size="large" className="p-0 ml-3">
+              <Avatar alt={user.username} src={user.image || '/default-avatar.png'} className="w-8 h-8" />
+            </IconButton>
+          </Link>
+        ) : (
+          <Link href="/login" className="font-display font-semibold text-xl 
+          mr-6 text-primary-0 rounded-full bg-white py-2 px-4 hover:bg-accent-200">
+            Sign in
+          </Link>
+        )}
       </div>
     </nav>
   );
