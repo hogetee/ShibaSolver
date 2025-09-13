@@ -25,7 +25,10 @@ exports.googleLogin = async (req, res) => {
   try {
     const { id_token } = req.body;
     if (!id_token) {
-      return res.status(400).json({ success: false, error: { code: "BAD_REQUEST", message: "id_token is required" } });
+      return res.status(400).json({
+        success: false,
+        error: { code: "BAD_REQUEST", message: "id_token is required" },
+      });
     }
 
     // verify id_token กับ Google
@@ -37,29 +40,40 @@ exports.googleLogin = async (req, res) => {
     const { sub, email, name, picture, email_verified } = payload;
 
     if (!email_verified) {
-      return res.status(401).json({ success: false, error: { code: "EMAIL_NOT_VERIFIED", message: "Google email not verified" } });
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: "EMAIL_NOT_VERIFIED",
+          message: "Google email not verified",
+        },
+      });
     }
 
     const pool = req.app.locals.pool;
 
     // หา user ด้วย google_account (เก็บ sub)
-    let user = (await pool.query("SELECT * FROM users WHERE google_account=$1", [sub])).rows[0];
+    let user = (
+      await pool.query("SELECT * FROM users WHERE google_account=$1", [sub])
+    ).rows[0];
 
     if (!user) {
-      user = (await pool.query(
-        `INSERT INTO users (google_account, email, display_name, profile_picture)
+      user = (
+        await pool.query(
+          `INSERT INTO users (google_account, email, display_name, profile_picture)
          VALUES ($1,$2,$3,$4)
          RETURNING *`,
-        [sub, email, name || null, picture || null]
-      )).rows[0];
+          [sub, email, name || null, picture || null]
+        )
+      ).rows[0];
     } else {
       // อัปเดตข้อมูลล่าสุดจาก Google
       await pool.query(
         `UPDATE users
-           SET email=$2, display_name=$3, profile_picture=$4, updated_at=now()
+            SET email=$2,
+                updated_at=now()
          WHERE google_account=$1
-          RETURNING *`,
-        [sub, email, name || user.display_name, picture || user.profile_picture]
+         RETURNING *`,
+        [sub, email]
       );
     }
 
@@ -78,7 +92,10 @@ exports.googleLogin = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    return res.status(401).json({ success: false, error: { code: "INVALID_ID_TOKEN", message: "Invalid Google id_token" } });
+    return res.status(401).json({
+      success: false,
+      error: { code: "INVALID_ID_TOKEN", message: "Invalid Google id_token" },
+    });
   }
 };
 
