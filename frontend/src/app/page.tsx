@@ -80,8 +80,8 @@ async function getFeedData(): Promise<PostData[]> {
 export default async function Home() {
 
   const posts = await getFeedData();
-  return (
-    <main className="min-h-screen w-full bg-gray-100 p-4 flex flex-col items-center gap-6">
+  return ( //add className for padding top to avoid being hidden under the fixed top menu
+    <main className="pt-20 min-h-screen w-full bg-gray-100 p-4 flex flex-col items-center gap-6">
       {posts.map(post => (
         <Post key={post.post_id} postData={post} />
       ))}
