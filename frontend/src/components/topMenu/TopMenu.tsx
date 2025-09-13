@@ -104,7 +104,7 @@ export default function TopMenu() {
             </IconButton>
           </Link>
         ) : (
-          <Link href="/login" className="font-display font-semibold text-xl 
+          <Link href="/signup" className="font-display font-semibold text-xl 
           mr-6 text-primary-0 rounded-full bg-white py-2 px-4 hover:bg-accent-200">
             Sign in
           </Link>
