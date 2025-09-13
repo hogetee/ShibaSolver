@@ -65,6 +65,19 @@ exports.googleLogin = async (req, res) => {
           [sub, email, name || null, picture || null]
         )
       ).rows[0];
+      const token = signSessionJwt({ uid: user.user_id });
+      res.cookie("ss_token", token, cookieOpts());
+
+      return res.status(201).json({
+        success: true,
+        new_user: true, // <<< ใช้เช็คฝั่ง FE
+        data: {
+          user_id: user.user_id,
+          email: user.email,
+          display_name: user.display_name,
+          avatar_url: user.profile_picture,
+        },
+      });
     } else {
       // อัปเดตข้อมูลล่าสุดจาก Google
       await pool.query(
@@ -75,21 +88,20 @@ exports.googleLogin = async (req, res) => {
          RETURNING *`,
         [sub, email]
       );
+      const token = signSessionJwt({ uid: user.user_id });
+      res.cookie("ss_token", token, cookieOpts());
+
+      return res.status(200).json({
+        success: true,
+        new_user: false, // <<< ใช้เช็คฝั่ง FE
+        data: {
+          user_id: user.user_id,
+          email: user.email,
+          display_name: user.display_name,
+          avatar_url: user.profile_picture,
+        },
+      });
     }
-
-    // ออก session JWT ของระบบเรา
-    const token = signSessionJwt({ uid: user.user_id });
-    res.cookie("ss_token", token, cookieOpts());
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        user_id: user.user_id,
-        email: user.email,
-        display_name: user.display_name,
-        avatar_url: user.profile_picture,
-      },
-    });
   } catch (err) {
     console.error(err);
     return res.status(401).json({
