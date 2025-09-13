@@ -5,7 +5,6 @@
 :root {
   --background: #ffffff;
   --foreground: #191825;
-}
 
 @theme inline {
   --color-background: var(--background);
