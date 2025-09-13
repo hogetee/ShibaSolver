@@ -1,5 +1,6 @@
 import Post, { PostData } from "@/components/post/Post";
 import Notification, { NotificationData } from "@/components/notification/Notification";
+import Link from 'next/link';
 
 // ใน sprint ถัดๆไป ส่วนนี้จะเป็นการ fetch จาก API 
 async function getPostData(): Promise<PostData[]> {
@@ -130,16 +131,14 @@ export default async function Home() {
         </main>
 
         {/* Premium Sidebar */}
-        <aside className="w-80 bg-white border-1 p-8 flex flex-col items-center rounded-xl shadow-md mt-5 mr-5 h-fit self-start">
-          <h2 className="text-2xl font-bold mb-2">
-            Get Premium
-          </h2>
-          <p className="text-4xl font-extrabold text-purple-400 mb-4">
-            20% off
-          </p>
-          <button className="bg-white border-2 border-purple-300 text-purple-800 px-6 py-2 rounded-lg shadow font-bold">
-            Subscribe
-          </button>
+        <aside className="w-80 mt-24 mr-5 self-start">
+          <Link href="/subscribe" className="block rounded-xl shadow-md overflow-hidden">
+            <img
+              src="/image/premium-banner.png"
+              alt="Get Premium - 20% off"
+              className="w-full h-auto rounded-xl cursor-pointer"
+            />
+          </Link>
         </aside>
       </div>
     </div>
