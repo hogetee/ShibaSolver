@@ -3,6 +3,7 @@ import React from "react";
 
 import Post, { PostData } from "@/components/post/Post";
 import Notifications, { Notification } from "@/components/notification/Notifications";
+import TopMenu from "@/components/topMenu/TopMenu";
 
 const mockData: PostData[] = [
     {
@@ -81,7 +82,7 @@ export default function FeedPageContent() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
       <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
-        Navbar
+        <TopMenu />
       </div>
 
       {/* Feed content */}
@@ -98,7 +99,7 @@ export default function FeedPageContent() {
         {/* Posts */}
         <main className="flex-1 p-5">
           <h1 className="text-3xl font-bold p-4 mb-2">
-            Top Posts
+            Recent Posts
           </h1>
           <div className="space-y-5">
             {mockData.map((post) => (
