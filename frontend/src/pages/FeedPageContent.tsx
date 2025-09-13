@@ -109,7 +109,7 @@ export default async function Home() {
         <div className="flex flex-1">
             {/* Notifications */}
             <aside className="w-[20%] bg-white border-r p-2 flex flex-col">
-            <h2 className="text-lg font-bold mb-6">
+            <h2 className="text-2xl font-bold mb-6 mt-5 ml-4 font-display">
                 Notifications
             </h2>
             {notifications.map((notification) => (
@@ -119,7 +119,7 @@ export default async function Home() {
 
         {/* Posts */}
         <main className="flex-1 p-5">
-          <h1 className="text-3xl font-bold p-4 mb-2">
+          <h1 className="text-5xl font-bold p-4 mb-2 font-display">
             Recent Posts
           </h1>
           <div className="space-y-5">
@@ -131,13 +131,13 @@ export default async function Home() {
 
         {/* Premium Sidebar */}
         <aside className="w-80 bg-white border-1 p-8 flex flex-col items-center rounded-xl shadow-md mt-5 mr-5 h-fit self-start">
-          <h2 className="text-2xl font-bold mb-2">
+          <h2 className="text-2xl font-bold mb-2 font-display">
             Get Premium
           </h2>
-          <p className="text-4xl font-extrabold text-purple-400 mb-4">
+          <p className="text-4xl font-extrabold text-purple-400 mb-4 font-display">
             20% off
           </p>
-          <button className="bg-white border-2 border-purple-300 text-purple-800 px-6 py-2 rounded-lg shadow font-bold">
+          <button className="bg-white border-2 border-purple-300 text-purple-800 px-6 py-2 rounded-lg shadow font-bold font-display">
             Subscribe
           </button>
         </aside>
