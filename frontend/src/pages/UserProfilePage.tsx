@@ -7,6 +7,7 @@ import ProfileContentSkeleton from "@/components/profile/profile_content/Profile
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import useUserProfile from "@/hooks/useUserProfile";
+import ShibaError from "@/components/error/ShibaError";
 
 type UserProfileProps = {
   id: number;
@@ -50,7 +51,9 @@ export default function UserProfilePage({ searchParams }: Props) {
           <ProfileContentSkeleton />
         </>
       ) : error ? (
-        <div className="w-full flex justify-center py-8 text-red-500">{error}</div>
+        <div className="w-full flex justify-center py-8 text-red-500">
+          <ShibaError message={error} />
+        </div>
       ) : user ? (
         <>
           <ProfileHeader dummyUser={user as unknown as any} />
