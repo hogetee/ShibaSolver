@@ -110,7 +110,7 @@ export default async function Home() {
         <div className="flex flex-1">
             {/* Notifications */}
             <aside className="w-[20%] bg-white border-r p-2 flex flex-col">
-            <h2 className="text-lg font-bold mb-6">
+            <h2 className="text-2xl font-bold mb-6 mt-5 ml-4 font-display">
                 Notifications
             </h2>
             {notifications.map((notification) => (
@@ -120,7 +120,7 @@ export default async function Home() {
 
         {/* Posts */}
         <main className="flex-1 p-5">
-          <h1 className="text-3xl font-bold p-4 mb-2">
+          <h1 className="text-5xl font-bold p-4 mb-2 font-display">
             Recent Posts
           </h1>
           <div className="space-y-5">
