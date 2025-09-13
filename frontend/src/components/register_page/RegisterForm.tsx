@@ -168,9 +168,9 @@ export default function RegisterForm({ initial = {} }: Props) {
             </div>
           </div>
 
-          <div className="w-1/3 flex justify-center">
+          {/* <div className="w-1/3 flex justify-center">
             <ProfilePicture value={formData.profilePic as any} onChange={handleProfilePicChange} />
-          </div>
+          </div> */}
         </div>
 
         <div className="flex justify-between items-center mt-auto">
