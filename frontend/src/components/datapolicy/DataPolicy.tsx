@@ -14,11 +14,28 @@ const DataPolicy = () => {
         <p className="mt-2 text-gray-600">
           Welcome to Shiba Solver. We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
           <br /><br />
-          We may collect information about you in a variety of ways. The information we may collect on the Site includes:
+          During Account Registration
           <br /><br />
-          <strong>Personal Data:</strong> Personally identifiable information, such as your name, email address, that you voluntarily give to us when you register with the Site.
+          Personal Data Collection Agreement
+          Our system will collect the following information to provide you with full access to our services:
+          <ul className="list-disc list-inside pl-5 mt-2">
+            <li>Display Name</li>
+            <li>Education Level</li>
+            <li>User Name</li>
+            <li>Interested Subjects</li>
+          </ul>
           <br /><br />
-          <strong>Derivative Data:</strong> Information our servers automatically collect when you access the Site, such as your IP address, your browser type, your operating system, your access times.
+          Purposes:
+          <ul className="list-disc list-inside pl-5 mt-2">
+            <li>To create your user account</li>
+            <li>To improve content recommendations based on your interests</li>
+          </ul>
+          <br /><br />
+          Data Privacy:
+          <ul className="list-disc list-inside pl-5 mt-2">
+            <li>You may edit or delete this information at any time.</li>
+            <li>We do not share your personal data with any third parties.</li>
+          </ul>
         </p>
 
         
