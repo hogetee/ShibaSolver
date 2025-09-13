@@ -5,13 +5,14 @@ exports.getAllUsers = (req, res) => {
 
 exports.getUser = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    if (!/^\d+$/.test(id)) return res.status(400).json({ success:false, message:'Invalid id' });
+    const { username } = req.params;
+    
+    if (!/^[\w-]+$/.test(username)) return res.status(400).json({ success:false, message:'Invalid username' });
 
     const pool = req.app.locals.pool;
     const { rows } = await pool.query(
       `SELECT * FROM public.users 
-      WHERE user_id = $1`, [id]
+      WHERE user_name = $1`, [username]
     );
     if (rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
 
@@ -21,13 +22,13 @@ exports.getUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
   try {
-    const id = req.user.uid;
-    if (!/^\d+$/.test(id)) return res.status(400).json({ success:false, message:'Invalid id' });
+    const username = req.user.username;
+    if (!/^[\w-]+$/.test(username)) return res.status(400).json({ success:false, message:'Invalid username' });
 
     const pool = req.app.locals.pool;
     const { rows } = await pool.query(
-      `DELETE FROM public.users WHERE user_id = $1
-      RETURNING user_id, user_name, google_account`, [id]
+      `DELETE FROM public.users WHERE user_name = $1
+      RETURNING user_id, user_name, google_account`, [username]
     );
     if (rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
 
@@ -38,13 +39,13 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.adminDeleteUser = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    if (!/^\d+$/.test(id)) return res.status(400).json({ success:false, message:'Invalid id' });
+    const { username } = req.params;
+    if (!/^[\w-]+$/.test(username)) return res.status(400).json({ success:false, message:'Invalid username' });
 
     const pool = req.app.locals.pool;
     const { rows } = await pool.query(
-      `DELETE FROM public.users WHERE user_id = $1
-      RETURNING user_id, user_name, google_account`, [id]
+      `DELETE FROM public.users WHERE user_name = $1
+      RETURNING user_id, user_name, google_account`, [username]
     );
     if (rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
 
@@ -55,11 +56,11 @@ exports.adminDeleteUser = async (req, res, next) => {
 
 exports.updateUser = async (req, res, next) => {
   try {
-    const id = req.user.uid;
+    const username = req.user.username;
     const { new_data } = req.body;
 
-    if (!/^\d+$/.test(id)) {
-      return res.status(400).json({ success: false, message: 'Invalid id' });
+    if (!/^[\w-]+$/.test(username)) {
+      return res.status(400).json({ success: false, message: 'Invalid username' });
     }
 
     if (!new_data || Object.keys(new_data).length === 0) {
@@ -95,11 +96,11 @@ exports.updateUser = async (req, res, next) => {
     const query = `
       UPDATE public.users
       SET ${setClause}
-      WHERE user_id = $${fields.length + 1}
+      WHERE user_name = $${fields.length + 1}
       RETURNING user_id, google_account, is_premium, user_state, user_name, display_name, education_level, "like", "dislike", bio, interested_subjects, profile_picture
     `;
 
-    const { rows } = await pool.query(query, [...values, id]);
+    const { rows } = await pool.query(query, [...values, username]);
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Fail to Update' });
@@ -114,11 +115,11 @@ exports.updateUser = async (req, res, next) => {
 
 exports.adminUpdateUser = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { username } = req.params;
     const { new_data } = req.body;
 
-    if (!/^\d+$/.test(id)) {
-      return res.status(400).json({ success: false, message: 'Invalid id' });
+    if (!/^[\w-]+$/.test(username)) {
+      return res.status(400).json({ success: false, message: 'Invalid username' });
     }
 
     if (!new_data || Object.keys(new_data).length === 0) {
@@ -154,11 +155,11 @@ exports.adminUpdateUser = async (req, res, next) => {
     const query = `
       UPDATE public.users
       SET ${setClause}
-      WHERE user_id = $${fields.length + 1}
+      WHERE user_name = $${fields.length + 1}
       RETURNING user_id, google_account, is_premium, user_state, user_name, display_name, education_level, "like", "dislike", bio, interested_subjects, profile_picture
     `;
 
-    const { rows } = await pool.query(query, [...values, id]);
+    const { rows } = await pool.query(query, [...values, username]);
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Fail to Update' });

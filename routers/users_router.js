@@ -5,7 +5,7 @@ const { requireAuth } = require("../middleware/auth");
 const router = express.Router();
 
 router.get("/", usersCtrl.getAllUsers);
-router.get("/:id", usersCtrl.getUser);
+router.get("/:username", usersCtrl.getUser);
 router.delete("/", requireAuth, usersCtrl.deleteUser);
 router.put("/", requireAuth, usersCtrl.updateUser);
 router.delete("/:id", usersCtrl.adminDeleteUser);
