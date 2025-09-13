@@ -22,6 +22,7 @@ export interface PostData {
     comment_image?: string;
     created_at: string;
     likes: number;
+    dislikes: number;
     author: {
       user_id: string;
       display_name: string;

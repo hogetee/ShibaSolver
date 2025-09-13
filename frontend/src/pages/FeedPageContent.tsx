@@ -15,7 +15,7 @@ async function getPostData(): Promise<PostData[]> {
       post_image: "/image/mock-chemical-equation.png",
       author: {
         user_id: "Nano109",
-        display_name: "NanoBigDick",
+        display_name: "Nano",
         profile_picture: "/image/DefaultAvatar.png",
       },
       stats: { likes: 12, dislikes: 4 },
@@ -24,6 +24,7 @@ async function getPostData(): Promise<PostData[]> {
         text: "This is very helpful! Remember to balance the hydrogens last.",
         created_at: new Date().toISOString(),
         likes: 15,
+        dislikes: 15,
         author: {
           user_id: "user-tee",
           display_name: "Tee",
@@ -67,6 +68,7 @@ async function getPostData(): Promise<PostData[]> {
         text: "Thank you so much",
         created_at: new Date().toISOString(),
         likes: 9999,
+        dislikes: 2215,
         author: {
           user_id: "user-best",
           display_name: "Best",
@@ -131,7 +133,7 @@ export default async function Home() {
         </main>
 
         {/* Premium Sidebar */}
-        <aside className="w-80 mt-27 mr-5 self-start">
+        <aside className="w-80 mt-24 mr-5 self-start">
           <Link href="/subscribe" className="block rounded-xl shadow-md overflow-hidden">
             <img
               src="/image/premium-banner.png"

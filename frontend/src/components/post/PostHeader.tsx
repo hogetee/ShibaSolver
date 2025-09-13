@@ -1,3 +1,8 @@
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import FlagIcon from '@mui/icons-material/Flag';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+
 interface PostHeaderProps {
   isSolved: boolean;
   tags: string[];
@@ -33,14 +38,22 @@ const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
         ))}
       </div>
       
-      {/* ปุ่มเมนู (SVG Icon) */}
-      <button className="text-gray-400 hover:text-gray-600">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="1"></circle>
-          <circle cx="19" cy="12" r="1"></circle>
-          <circle cx="5" cy="12" r="1"></circle>
-        </svg>
-      </button>
+      {/* กลุ่มปุ่ม: Bookmark และ Report (ยังไม่มี state) */}
+      <div className="flex items-center gap-2">
+        <button 
+          className="text-gray-500 hover:text-yellow-400 transition-colors"
+          aria-label="Bookmark post"
+        >
+          <BookmarkBorderIcon />
+        </button>
+
+        <button 
+          className="text-gray-500 hover:text-red-600 transition-colors"
+          aria-label="Report post"
+        >
+          <OutlinedFlagIcon />
+        </button>
+      </div>
     </div>
   );
 };

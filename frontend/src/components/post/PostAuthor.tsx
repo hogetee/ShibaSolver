@@ -18,7 +18,7 @@ const PostAuthor = ({ author, stats }: PostAuthorProps) => {
     <div className="flex justify-between items-center">
       <div className="flex items-center gap-3">
         <img src={author.profile_picture} alt={`${author.display_name}'s avatar`} className="w-10 h-10 rounded-full" />
-        <span className="font-semibold text-gray-700">{author.display_name}</span>
+        <span className="font-semibold text-dark-900">{author.display_name}</span>
       </div>
       <div className="flex items-center gap-4">
         {/* Like Button */}
