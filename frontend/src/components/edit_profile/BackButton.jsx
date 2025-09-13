@@ -7,7 +7,7 @@ export default function BackButton() {
   return (
     <button
       type="button"
-      className="w-fit flex items-center cursor-pointer gap-2 text-accent-600/70 hover:text-accent-400 font-semibold mb-4"
+      className="w-fit flex items-center cursor-pointer gap-2 text-accent-600/70 hover:text-accent-600/60 font-semibold mb-4"
       onClick={() => router.back()}
     >
       <ArrowBackIcon fontSize="small" />

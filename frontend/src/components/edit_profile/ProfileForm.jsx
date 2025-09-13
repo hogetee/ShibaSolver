@@ -84,8 +84,8 @@ export default function ProfileForm() {
   };
 
   return (
-    <div className=" p-5 rounded-2xl w-[65%] h-full flex flex-col gap-6">
-      <div className = "text-center text-6xl font-medium">
+    <div className=" p-5 rounded-2xl w-[65%] h-full flex flex-col gap-6 font-display">
+      <div className = "text-center text-6xl font-medium text-dark-900">
           Set up your profile
       </div>
       <form
@@ -126,7 +126,7 @@ export default function ProfileForm() {
         {/* Left side - Education and Subjects */}
         <div className="flex flex-col gap-5 w-2/3">
           <div className="flex flex-col">
-            <label className="font-semibold">Education level</label>
+            <label className="font-semibold text-dark-900">Education level</label>
             <SelectDropdown
               options={educationLevels}
               value={formData.education}
@@ -136,7 +136,7 @@ export default function ProfileForm() {
           </div>
 
           <div className="flex flex-col">
-            <label className="font-semibold">Interested Subject(s)</label>
+            <label className="font-semibold text-dark-900">Interested Subject(s)</label>
             <SelectDropdown
               options={subjects}
               value={formData.subjects}
@@ -148,21 +148,22 @@ export default function ProfileForm() {
         </div>
 
         {/* Right side - Profile Picture */}
-        <div className="w-1/3 flex justify-center h-6rem">
+        <div className="w-1/3 flex justify-center h-6rem mt-5">
           <ProfilePicture value={formData.profilePic} onChange={handleProfilePicChange} />
         </div>
       </div>
+
       <div className="flex justify-between items-center mt-auto">
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors duration-200"
+            className="bg-red-600/70 text-white px-4 py-2 rounded hover:bg-red-600/60 transition-colors duration-200"
           >
             Delete Account
           </button>
           <button
             type="submit"
-            className="bg-accent-600 text-white px-4 py-2 rounded"
+            className="bg-accent-600 hover:bg-accent-600/80 text-white px-4 py-2 rounded"
           >
             Save Profile
           </button>

@@ -11,7 +11,7 @@ export default function ProfilePicture({ value, onChange }) {
 
   return (
     <div className="flex flex-col " >
-      <label className="font-semibold cursor-pointer bg-accent-600/70 hover:bg-accent-400 text-white px-4 py-2 rounded-xl justify-center flex" onClick={() => inputRef.current.click()}> 
+      <label className="font-semibold cursor-pointer bg-accent-600/70 hover:bg-accent-600/60 text-white px-4 py-2 rounded-xl justify-center flex" onClick={() => inputRef.current.click()}> 
         <AddCircleOutlineIcon  fontSize="small" className="text-white mr-1" />
         Select profile picture
       </label>
