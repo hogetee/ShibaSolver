@@ -1,10 +1,8 @@
-import Image from "next/image";
 import Post, { PostData } from "@/components/post/Post";
-import Notifications, { Notification } from "@/components/notification/Notifications";
-import TopMenu from "@/components/topMenu/TopMenu";
+import Notification, { NotificationData } from "@/components/notification/Notification";
 
 // ใน sprint ถัดๆไป ส่วนนี้จะเป็นการ fetch จาก API 
-async function getFeedData(): Promise<PostData[]> {
+async function getPostData(): Promise<PostData[]> {
   const mockData: PostData[] = [
     {
       post_id: "post-001",
@@ -79,25 +77,45 @@ async function getFeedData(): Promise<PostData[]> {
   return mockData;
 }
 
+async function getNotificationData(): Promise<NotificationData[]> {
+  const mockData: NotificationData[] = [
+    { 
+      noti_id: "1",
+      message: "Nano liked your post", 
+      time: "2 hrs ago" 
+    },
+    {
+        noti_id: "2",
+        message: "Nano replied: “Thanks ...”",
+        time: "2 hrs ago"
+    },
+    {
+        noti_id: "3",
+        message: "Tan replied: “I agree ...”",
+        time: "yesterday"
+    },
+  ];
+  return mockData;
+}
+
 export default async function Home() {
 
-  const posts = await getFeedData();
-  return ( //add className for padding top to avoid being hidden under the fixed top menu
+  const posts = await getPostData();
+  const notifications = await getNotificationData();
+  return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-        {/* Navbar */}
-        <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
-          <TopMenu />
-        </div>
+        
         {/* Feed content */}
         <div className="flex flex-1">
-          {/* Notifications */}
-          <Notifications
-            notifications={[
-              { noti_id: "1", message: "Nano liked your post", time: "2 hrs ago" },
-              { noti_id: "2", message: "Nano replied: “Thanks ...”", time: "2 hrs ago" },
-              { noti_id: "3", message: "Tan replied: “I agree ...”", time: "yesterday" },
-            ]}
-          />
+            {/* Notifications */}
+            <aside className="w-[20%] bg-white border-r p-2 flex flex-col">
+            <h2 className="text-lg font-bold mb-6">
+                Notifications
+            </h2>
+            {notifications.map((notification) => (
+                <Notification key={notification.noti_id} notificationData={notification} />
+            ))}
+            </aside>
 
         {/* Posts */}
         <main className="flex-1 p-5">
