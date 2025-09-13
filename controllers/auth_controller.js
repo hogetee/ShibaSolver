@@ -117,16 +117,16 @@ exports.logout = (req, res) => {
 };
 
 
+
 exports.getMe = async (req, res, next) => {
   try {
-    const  username  = req.user.uid; 
-    
-    if (!/^[\w-]+$/.test(username)) return res.status(400).json({ success:false, message:'Invalid username' });
+    const id  = req.user.uid;
+    if (!/^\d+$/.test(id)) return res.status(400).json({ success:false, message:'Invalid id' });
 
     const pool = req.app.locals.pool;
     const { rows } = await pool.query(
       `SELECT * FROM public.users 
-      WHERE user_name = $1`, [username]
+      WHERE user_id = $1`, [id]
     );
     if (rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
 
