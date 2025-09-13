@@ -96,9 +96,9 @@ export function useUserProfile(username?: string | null): UseUserResult {
           if (!aborted) setData(mock);
         } else {
           // Adjust BASE_URL to your backend origin as needed
-          const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+          const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
           // Backend should provide this route; alternatively implement resolve-username -> id
-          const res = await fetch(`${BASE_URL}/api/users/by-username/${encodeURIComponent(username)}`, {
+          const res = await fetch(`${BASE_URL}/api/v1/users/${encodeURIComponent(username)}`, {
             signal: controller.signal,
             credentials: "include",
           });
