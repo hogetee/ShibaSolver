@@ -136,7 +136,7 @@ export default function ProfileForm() {
         </div>
 
         {/* Right side - Profile Picture */}
-        <div className="w-1/3 flex justify-center">
+        <div className="w-1/3 flex justify-center h-6rem">
           <ProfilePicture value={formData.profilePic} onChange={handleProfilePicChange} />
         </div>
       </div>

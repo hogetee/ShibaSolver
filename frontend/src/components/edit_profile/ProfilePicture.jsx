@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 export default function ProfilePicture({ value, onChange }) {
   const inputRef = useRef();
@@ -9,10 +10,13 @@ export default function ProfilePicture({ value, onChange }) {
   };
 
   return (
-    <div className="flex flex-col">
-      <label className="font-semibold">Profile Picture</label>
+    <div className="flex flex-col " >
+      <label className="font-semibold bg-purple-800 text-white px-4 py-2 rounded-xl justify-center flex" onClick={() => inputRef.current.click()}> 
+        <AddCircleOutlineIcon  fontSize="small" className="text-white mr-1" />
+        Select profile picture
+      </label>
       <div
-        className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer mt-1"
+        className="w-[100%] h-[100%] rounded-full bg-gray-200 flex items-center justify-center cursor-pointer mt-1"
         onClick={() => inputRef.current.click()}
       >
         {value ? (
