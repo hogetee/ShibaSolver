@@ -7,7 +7,7 @@ export default function GuestContinueButton({ onClick, className = "" }: GuestCo
   return (
     <button
       onClick={onClick}
-      className={`text-black cursor-pointer hover:text-grey-600 text-md underline transition-colors duration-200 ${className}`}
+      className={`text-black cursor-pointer text-md hover:underline transition-colors duration-200 ${className}`}
     >
       Continue as a guest
     </button>
