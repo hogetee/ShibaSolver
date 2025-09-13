@@ -7,6 +7,7 @@ import TextArea from "./TextArea";
 import SelectDropdown from "./SelectDropdown";
 import Checkbox from "./CheckBox";
 import ProfilePicture from "./ProfilePicture";
+import BackButton from "./BackButton";
 import DeleteAccountModal from "./DeleteAccountModal";
 
 // example Options for dropdowns with colors
@@ -152,18 +153,6 @@ export default function ProfileForm() {
         </div>
       </div>
       <div className="flex justify-between items-center mt-auto">
-        <Checkbox
-          name="agree"
-          checked={formData.agree}
-          onChange={handleChange}
-          label={
-            <>
-              Agree to <a href="#" className="text-blue-600 underline">Terms & Agreement</a>
-            </>
-          }
-        />
-
-        <div className="flex gap-3">
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
@@ -173,14 +162,14 @@ export default function ProfileForm() {
           </button>
           <button
             type="submit"
-            className="bg-purple-800 text-white px-4 py-2 rounded"
+            className="bg-accent-600 text-white px-4 py-2 rounded"
           >
             Save Profile
           </button>
-        </div>
       </div>
     </form>
-
+    
+    <BackButton />
     {/* Delete Account Modal */}
     <DeleteAccountModal
       isOpen={showDeleteModal}
