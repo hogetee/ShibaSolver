@@ -106,13 +106,13 @@ export default async function Home() {
   const posts = await getPostData();
   const notifications = await getNotificationData();
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-display">
         
         {/* Feed content */}
         <div className="flex flex-1">
             {/* Notifications */}
             <aside className="w-[20%] bg-white border-r p-2 flex flex-col">
-            <h2 className="text-2xl font-bold mb-6 mt-5 ml-4 font-display text-dark-900">
+            <h2 className="text-2xl font-bold mb-6 mt-5 ml-4 text-dark-900">
                 Notifications
             </h2>
             {notifications.map((notification) => (
@@ -122,7 +122,7 @@ export default async function Home() {
 
         {/* Posts */}
         <main className="flex-1 p-5">
-          <h1 className="text-5xl font-bold p-4 mb-2 font-display text-dark-900">
+          <h1 className="text-5xl font-bold p-4 mb-2 text-dark-900">
             Recent Posts
           </h1>
           <div className="space-y-5">
@@ -134,7 +134,7 @@ export default async function Home() {
 
         {/* Premium Sidebar */}
         <aside className="w-80 mt-27 mr-5 self-start">
-          <Link href="/subscribe" className="block rounded-xl shadow-md overflow-hidden">
+          <Link href="/subscribe" className="block rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-2xl/15">
             <img
               src="/image/premium-banner.png"
               alt="Get Premium - 20% off"

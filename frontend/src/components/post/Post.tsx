@@ -41,7 +41,7 @@ interface PostProps {
 
 const Post = ({ postData }: PostProps) => {
   return (
-    <div className="w-full min-h-[30vh] bg-white rounded-2xl shadow-lg p-6 flex flex-col font-display">
+    <div className="w-full min-h-[30vh] bg-white cursor-pointer hover:shadow-2xl/15 rounded-2xl shadow-lg p-6 flex flex-col font-display">
       <div className="flex-grow">
         <PostHeader isSolved={postData.is_solved} tags={postData.tags} />
         <PostContent 

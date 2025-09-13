@@ -41,14 +41,14 @@ const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
       {/* กลุ่มปุ่ม: Bookmark และ Report (ยังไม่มี state) */}
       <div className="flex items-center gap-2">
         <button 
-          className="text-gray-500 hover:text-yellow-400 transition-colors"
+          className="text-gray-500 hover:text-yellow-400 cursor-pointer transition-colors"
           aria-label="Bookmark post"
         >
           <BookmarkBorderIcon />
         </button>
 
         <button 
-          className="text-gray-500 hover:text-red-600 transition-colors"
+          className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors"
           aria-label="Report post"
         >
           <OutlinedFlagIcon />
