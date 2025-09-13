@@ -8,15 +8,25 @@ import GuestContinueButton from '@/components/auth/GuestContinueButton';
 export default function SignupPage() {
   const router = useRouter();
 
-  const handleGoogleSignIn = async () => {
-    try {
-      // TODO: Replace with your friend's backend Google auth endpoint
-      // For now, this will redirect to the main page
-      console.log('Google sign in clicked - integrate with backend');
-      router.push('/');
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-    }
+  const handleGoogleResponse = (response) => {
+    // response.credential คือ id_token
+    fetch("http://localhost:5000/api/v1/auth/google", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // สำคัญเพื่อส่ง/รับ cookie
+      body: JSON.stringify({ id_token: response.credential }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Login success:", data);
+        // เก็บ user profile ใน state/frontend
+        router.push('/'); // Redirect to main page after successful login
+      })
+      .catch((error) => {
+        console.error('Error signing in with Google:', error);
+      });
   };
 
   const handleGuestContinue = () => {
@@ -39,7 +49,7 @@ export default function SignupPage() {
 
         {/* Google Sign In Button */}
         <div className="mb-4">
-          <GoogleSignInButton onClick={handleGoogleSignIn} />
+          <GoogleSignInButton onSuccess={handleGoogleResponse} />
         </div>
 
         {/* Continue as Guest Link */}
