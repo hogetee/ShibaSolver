@@ -131,7 +131,7 @@ export default async function Home() {
         </main>
 
         {/* Premium Sidebar */}
-        <aside className="w-80 mt-24 mr-5 self-start">
+        <aside className="w-80 mt-27 mr-5 self-start">
           <Link href="/subscribe" className="block rounded-xl shadow-md overflow-hidden">
             <img
               src="/image/premium-banner.png"
