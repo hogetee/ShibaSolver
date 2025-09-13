@@ -10,6 +10,8 @@ export default function SignupPage() {
 
   const handleGoogleResponse = (response) => {
     // response.credential คือ id_token
+    // const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003'; //some changes need rechecking
+    // fetch(`${API_BASE}/api/v1/auth/google`, {
     fetch("http://localhost:5000/api/v1/auth/google", {
       method: "POST",
       headers: {
@@ -21,8 +23,13 @@ export default function SignupPage() {
       .then((res) => res.json())
       .then((data) => {
         console.log("Login success:", data);
-        // เก็บ user profile ใน state/frontend
-        router.push('/'); // Redirect to main page after successful login
+        // Prefill register page with values from backend response
+        if (typeof window !== 'undefined' && data?.data) {
+          sessionStorage.setItem('prefill_display_name', data.data.display_name || '');
+          sessionStorage.setItem('prefill_avatar_url', data.data.avatar_url || '');
+        }
+        // Redirect to register page to complete profile
+        router.push('/register');
       })
       .catch((error) => {
         console.error('Error signing in with Google:', error);
