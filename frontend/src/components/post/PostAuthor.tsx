@@ -36,7 +36,7 @@ const PostAuthor = ({ author, stats }: PostAuthorProps) => {
           <span className="font-bold">{stats.dislikes}</span>
         </div>
         {/* Comment Button */}
-        <button className="bg-[#7e3ff2] text-white font-semibold px-5 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+        <button className="bg-[#4B0082] text-white font-semibold px-5 py-2 rounded-lg hover:bg-purple-700 transition-colors">
           Comment
         </button>
       </div>
