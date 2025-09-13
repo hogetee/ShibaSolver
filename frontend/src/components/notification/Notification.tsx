@@ -14,7 +14,8 @@ interface NotificationProps {
 const Notification = ({ notificationData }: NotificationProps) => {
   return (
     <ul className="space-y-2 text-md mb-2">
-        <li key={notificationData.noti_id} className="bg-purple-100 rounded p-2 flex justify-between items-center font-display">
+        <li key={notificationData.noti_id} className="bg-accent-200 rounded p-2 flex justify-between items-center font-display
+        text-dark-900">
           <span>
               {notificationData.message}
           </span>
