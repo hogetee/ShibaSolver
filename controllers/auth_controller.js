@@ -115,3 +115,21 @@ exports.logout = (req, res) => {
   res.cookie("ss_token", "", { ...cookieOpts(), maxAge: 0 });
   res.json({ success: true });
 };
+
+
+exports.getMe = async (req, res, next) => {
+  try {
+    const  username  = req.user.uid; 
+    
+    if (!/^[\w-]+$/.test(username)) return res.status(400).json({ success:false, message:'Invalid username' });
+
+    const pool = req.app.locals.pool;
+    const { rows } = await pool.query(
+      `SELECT * FROM public.users 
+      WHERE user_name = $1`, [username]
+    );
+    if (rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
+
+    return res.status(200).json({ success:true, data: rows[0] });
+  } catch (err) { next(err); }
+};
