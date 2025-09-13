@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 // Sub-components
 import TextInput from "./TextInput";
@@ -6,6 +7,7 @@ import TextArea from "./TextArea";
 import SelectDropdown from "./SelectDropdown";
 import Checkbox from "./CheckBox";
 import ProfilePicture from "./ProfilePicture";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 // example Options for dropdowns with colors
 const subjects = [
@@ -19,6 +21,7 @@ const subjects = [
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
 export default function ProfileForm() {
+  const router = useRouter();
 
   // dummy values (old data)
   const [formData, setFormData] = useState({
@@ -35,6 +38,7 @@ export default function ProfileForm() {
   });
 
   const [errors, setErrors] = useState({ username: false, displayName: false });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Generic input change handler
   const handleChange = (e) => {
@@ -69,6 +73,13 @@ export default function ProfileForm() {
       console.log("Form submitted", formData);
       alert("Profile updated!");
     }
+  };
+
+  // Handle successful account deletion
+  const handleDeleteSuccess = () => {
+    setShowDeleteModal(false);
+    // Redirect to home page or login page
+    router.push('/');
   };
 
   return (
@@ -152,14 +163,30 @@ export default function ProfileForm() {
           }
         />
 
-        <button
-          type="submit"
-          className="bg-purple-800 text-white px-4 py-2 rounded"
-        >
-          Save Profile
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors duration-200"
+          >
+            Delete Account
+          </button>
+          <button
+            type="submit"
+            className="bg-purple-800 text-white px-4 py-2 rounded"
+          >
+            Save Profile
+          </button>
+        </div>
       </div>
     </form>
+
+    {/* Delete Account Modal */}
+    <DeleteAccountModal
+      isOpen={showDeleteModal}
+      onClose={() => setShowDeleteModal(false)}
+      onSuccess={handleDeleteSuccess}
+    />
     </div>
     
   );
