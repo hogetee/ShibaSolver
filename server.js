@@ -7,7 +7,8 @@ const cors = require("cors");
 const adminsRouter = require("./routers/admins_router");
 const usersRouter = require("./routers/users_router");
 const postsRouter = require("./routers/posts_router");
-const authRouter = require("./routers/auth");
+const feedRouter = require("./routers/feed_router");
+const authRouter = require("./routers/auth_router");
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -35,6 +36,8 @@ app.use(
   app.use("/api/v1/admins", adminsRouter);
   app.use("/api/v1/users", usersRouter);
   app.use("/api/v1/posts", postsRouter);
+  app.use("/api/v1/feeds", feedRouter);
+
 
   const PORT = process.env.PORT || 5000;
 
