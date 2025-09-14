@@ -52,11 +52,14 @@ export default function RegisterForm({ initial = {} }: Props) {
     profilePic: initial.profilePic || null as null | string,
   });
 
-  const [errors, setErrors] = useState({ username: false, displayName: false, submit: '' });
+  const [errors, setErrors] = useState<{ username: boolean; displayName: boolean; submit: string; agree?: boolean }>({ username: false, displayName: false, submit: '', agree: false });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as any;
     setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    if (name === 'agree') {
+      setErrors((prev) => ({ ...prev, agree: false, submit: '' }));
+    }
   };
 
   const handleSubjectsChange = (selected: any[]) => {
@@ -73,9 +76,10 @@ export default function RegisterForm({ initial = {} }: Props) {
       username: !formData.username.trim(),
       displayName: !formData.displayName.trim(),
       submit: '',
+      agree: !formData.agree,
     };
     setErrors(newErrors);
-    if (newErrors.username || newErrors.displayName || !formData.agree) return;
+    if (newErrors.username || newErrors.displayName || newErrors.agree) return;
 
     const payload = {
       user_name: formData.username.trim(),
@@ -113,7 +117,7 @@ export default function RegisterForm({ initial = {} }: Props) {
 
   return (
     <div className="p-5 rounded-2xl w-[65%] flex flex-col gap-6 font-display">
-      <div className="text-center text-6xl font-medium">Set up your profile</div>
+      <div className="text-center text-6xl font-medium text-dark-900">Set up your profile</div>
 
       <form onSubmit={handleSubmit} className="bg-[var(--color-accent-200)] p-5 rounded-3xl min-h-[700px] flex flex-col gap-5">
         <TextInput
@@ -147,7 +151,7 @@ export default function RegisterForm({ initial = {} }: Props) {
         <div className="flex gap-6">
           <div className="flex flex-col gap-5 w-2/3">
             <div className="flex flex-col">
-              <label className="font-semibold">Education level</label>
+              <label className="font-semibold text-dark-900">Education level</label>
               <SelectDropdown
                 options={educationLevels}
                 value={formData.education as any}
@@ -157,7 +161,7 @@ export default function RegisterForm({ initial = {} }: Props) {
             </div>
 
             <div className="flex flex-col">
-              <label className="font-semibold">Interested Subject(s)</label>
+              <label className="font-semibold text-dark-900">Interested Subject(s)</label>
               <SelectDropdown
                 options={subjects}
                 value={formData.subjects as any}
@@ -168,20 +172,26 @@ export default function RegisterForm({ initial = {} }: Props) {
             </div>
           </div>
 
-          {/* <div className="w-1/3 flex justify-center">
+          {/* Right side - Profile Picture */}
+          <div className="w-1/3 flex justify-center mt-5">
             <ProfilePicture value={formData.profilePic as any} onChange={handleProfilePicChange} />
-          </div> */}
+          </div>
         </div>
 
-        <div className="flex justify-between items-center mt-auto">
-          <Checkbox
-            name="agree"
-            checked={formData.agree as any}
-            onChange={handleChange as any}
-            label={<>Agree to <a href="#" className="text-blue-600 underline">Terms & Agreement</a></>}
-          />
+        <div className="flex justify-between items-center mt-auto text-dark-900">
+          <div className="flex flex-col">
+            <Checkbox
+              name="agree"
+              checked={formData.agree as any}
+              onChange={handleChange as any}
+              label={<>Agree to <a href="#" className="text-blue-600 underline">Terms & Agreements</a></>}
+            />
+            {errors.agree && (
+              <div className="text-red-600 text-sm mt-1">You Must Agree to Terms & Agreements to Signup</div>
+            )}
+          </div>
 
-          <button type="submit" className="bg-purple-800 text-white px-4 py-2 rounded">Submit</button>
+          <button type="submit" className="bg-accent-600 hover:bg-accent-600/80 text-white px-4 py-2 rounded cursor-pointer">Submit</button>
         </div>
 
         {errors.submit && <div className="text-red-600 text-sm mt-2">{errors.submit}</div>}
@@ -189,4 +199,3 @@ export default function RegisterForm({ initial = {} }: Props) {
     </div>
   );
 }
-
