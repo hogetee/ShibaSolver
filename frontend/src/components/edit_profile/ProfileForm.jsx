@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // Sub-components
@@ -21,25 +21,45 @@ const subjects = [
 ];
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
-export default function ProfileForm() {
+export default function ProfileForm({ userData }) {
   const router = useRouter();
 
-  // dummy values (old data)
+  // Initialize form data with user data or default values
   const [formData, setFormData] = useState({
-    username: "johndoe",
-    displayName: "John Doe",
-    bio: "Avid learner and problem solver.",
-    education: "Undergraduate",
-    subjects: [
-      { name: "Math", color: "blue" },
-      { name: "Physics", color: "green" }
-    ],
+    username: userData?.username || "",
+    displayName: userData?.displayName || "",
+    bio: userData?.bio || "",
+    education: userData?.educationLevel || "Undergraduate",
+    subjects: userData?.topSubjects?.map(subject => {
+      // Find matching subject with color from the subjects array
+      const subjectObj = subjects.find(s => s.name.toLowerCase() === subject.toLowerCase());
+      return subjectObj || { name: subject, color: "blue" };
+    }) || [],
     agree: true,
-    profilePic: null,
+    profilePic: userData?.avatarUrl || null,
   });
 
   const [errors, setErrors] = useState({ username: false, displayName: false });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Update form data when userData changes
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        username: userData.username || "",
+        displayName: userData.displayName || "",
+        bio: userData.bio || "",
+        education: userData.educationLevel || "Undergraduate",
+        subjects: userData.topSubjects?.map(subject => {
+          // Find matching subject with color from the subjects array
+          const subjectObj = subjects.find(s => s.name.toLowerCase() === subject.toLowerCase());
+          return subjectObj || { name: subject, color: "blue" };
+        }) || [],
+        agree: true,
+        profilePic: userData.avatarUrl || null,
+      });
+    }
+  }, [userData]);
 
   // Generic input change handler
   const handleChange = (e) => {
