@@ -1,15 +1,28 @@
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import FlagIcon from '@mui/icons-material/Flag';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+
 interface PostHeaderProps {
   isSolved: boolean;
   tags: string[];
 }
 
 const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
+
+  //Object for storing color pairs of each subject
+  const tagColorMap: { [key: string]: string } = {
+    "Math": "bg-blue-500",
+    "Science": "bg-teal-400",
+    "English": "bg-pink-500",
+  };
+
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
         {/* Tag สถานะ Solved/Unsolved */}
         <span 
-          className={`${isSolved ? 'bg-[#29c46a]' : 'bg-gray-400'} text-white text-sm font-semibold px-3 py-1.5 rounded-md`}
+          className={`${isSolved ? 'bg-[#28AF70]' : 'bg-[#FF2428]'} text-white text-b font-bold px-2.5 py-1 rounded-md`}
         >
           {isSolved ? 'Solved' : 'Unsolved'}
         </span>
@@ -18,21 +31,29 @@ const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
         {tags.map((tag) => (
           <span 
             key={tag} 
-            className="bg-[#ff8c43] text-white text-sm font-semibold px-3 py-1.5 rounded-md"
+             className={`${tagColorMap[tag] || 'bg-gray-500'} text-white text-b font-bold px-2.5 py-1 rounded-md`}
           >
             {tag}
           </span>
         ))}
       </div>
       
-      {/* ปุ่มเมนู (SVG Icon) */}
-      <button className="text-gray-400 hover:text-gray-600">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="1"></circle>
-          <circle cx="19" cy="12" r="1"></circle>
-          <circle cx="5" cy="12" r="1"></circle>
-        </svg>
-      </button>
+      {/* กลุ่มปุ่ม: Bookmark และ Report (ยังไม่มี state) */}
+      <div className="flex items-center gap-2">
+        <button 
+          className="text-gray-500 hover:text-yellow-400 cursor-pointer transition-colors"
+          aria-label="Bookmark post"
+        >
+          <BookmarkBorderIcon />
+        </button>
+
+        <button 
+          className="text-gray-500 hover:text-red-600 cursor-pointer transition-colors"
+          aria-label="Report post"
+        >
+          <OutlinedFlagIcon />
+        </button>
+      </div>
     </div>
   );
 };
