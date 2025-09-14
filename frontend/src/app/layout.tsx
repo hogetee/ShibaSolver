@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import CookieConsentModal from "@/components/CookieConsentModal";
 import TopMenu from "@/components/topMenu/TopMenu";
 
 const geistSans = Geist({
@@ -30,6 +31,7 @@ export default function RootLayout({
       >
         <TopMenu />
         {children}
+        <CookieConsentModal />
       </body>
     </html>
   );
