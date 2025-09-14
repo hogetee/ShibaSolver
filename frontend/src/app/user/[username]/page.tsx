@@ -1,19 +1,18 @@
 import UserProfile from '@/pages/UserProfilePage';
 type Props = {
-  params: {
+  params: Promise<{
     username: string
-  }
+  }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default function UserPage({ params }: Props) {
-  const { username } = params;
+export default async function UserPage({ params, searchParams }: Props) {
+  const { username } = await params;
+  const resolvedSearchParams = await searchParams;
   
   return (
     <div className="min-h-screen">
-      {/* <h1 className="text-2xl font-bold">Profile: {username}</h1> */}
-      {/* Add your profile content here */}
-      {/* You can fetch user data based on the username parameter */}
-      <UserProfile />
+      <UserProfile searchParams={resolvedSearchParams} />
     </div>
   );
 }

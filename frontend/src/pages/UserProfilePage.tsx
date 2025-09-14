@@ -1,5 +1,13 @@
+"use client";
+
+import ProfileContent from "@/components/profile/profile_content/ProfileContent";
 import ProfileHeader from "@/components/profile/profile_header/ProfileHeader";
+import ProfileHeaderSkeleton from "@/components/profile/profile_header/ProfileHeaderSkeleton";
+import ProfileContentSkeleton from "@/components/profile/profile_content/ProfileContentSkeleton";
 import React from "react";
+import { useSearchParams } from "next/navigation";
+import useUserProfile from "@/hooks/useUserProfile";
+import ShibaError from "@/components/error/ShibaError";
 
 type UserProfileProps = {
   id: number;
@@ -17,33 +25,43 @@ type UserProfileProps = {
   posts: null; // list of recent posts
 };
 
-export default function UserProfilePage() {
-  // supposedly fetch user data based on props.id or props.username
-  // real implementation should not pass in the whole props, just get useParams and fetch data of u/{username}
+type Props = {
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
 
-  const dummyUser: UserProfileProps = {
-    id: 1,
-    username: "johndoe",
-    displayName: "John Doe",
-    avatarUrl: "https://randomuser.me/api/portraits/men/1.jpg",
-    bio: "Avid learner and problem solver.",
-    educationLevel: "Undergrad",
-    shibaMeter: 100,
-    topSubjects: ["Calculus", "Programming", "Data Structures"],
-    stats: {
-      posts: 42,
-      comments: 128,
-    },
-    posts: null, // would be a list of recent posts
-  };
+export default function UserProfilePage({ searchParams }: Props) {
+  // We expect routing as /user/[username]?tab=...
+  // The app route provides username via the segment; this page receives searchParams for tab only.
+  // We'll read username from the URL pathname client-side.
+  const sp = useSearchParams();
+  const tabParam = sp?.get("tab") ?? undefined;
+
+  // Derive username from location.pathname since this component is used by app/user/[username]/page.tsx
+  const username = typeof window !== 'undefined' ? (window.location.pathname.split('/').pop() || null) : null;
+  const { user, isLoading, error } = useUserProfile(username);
 
   return (
     <div>
       <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
         NavBar
       </div>
-      {/* Add your user page content here */}
-      <ProfileHeader dummyUser={dummyUser} />
+      {isLoading ? (
+        <>
+          <ProfileHeaderSkeleton />
+          <ProfileContentSkeleton />
+        </>
+      ) : error ? (
+        <div className="w-full flex justify-center py-8 text-red-500">
+          <ShibaError message={error} />
+        </div>
+      ) : user ? (
+        <>
+          <ProfileHeader dummyUser={user as unknown as any} />
+          <ProfileContent searchParams={{ ...(searchParams || {}), tab: tabParam }} />
+        </>
+      ) : (
+        <div className="w-full flex justify-center py-8 text-neutral-700">User not found.</div>
+      )}
     </div>
   );
 }
