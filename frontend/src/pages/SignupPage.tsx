@@ -34,7 +34,7 @@ export default function SignupPage() {
           return;
         }
 
-        return fetch(`${API_BASE}/api/v1/users/${uid}`, { credentials: 'include' })
+        return fetch(`${API_BASE}/api/v1/auth/me`, { credentials: 'include' })
           .then((r) => r.json())
           .then((userInfo) => {
             const username = userInfo?.data?.user_name;
