@@ -2,15 +2,15 @@ import Link from 'next/link';
 
 const DataPolicy = () => {
   return (
-    <div className="relative h-screen w-2/5 bg-white p-6 flex flex-col">
+    <div className="pt-20 relative h-screen w-2/5 bg-white p-6 flex flex-col">
       {/* --- ส่วนหัว --- */}
-      <div className="flex-shrink-0">
+      <div className="font-display flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-800">Data Policy</h1>
         <p className="text-sm text-gray-500 mt-1">Last updated: September 12, 2025</p>
       </div>
 
       {/* --- ส่วนเนื้อหา (สามารถ scroll ได้) --- */}
-      <div className="flex-grow overflow-y-auto my-6 pr-2">
+      <div className="font-display flex-grow overflow-y-auto my-6 pr-2">
         <p className="mt-2 text-gray-600">
           Welcome to Shiba Solver. We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
           <br /><br />
@@ -42,14 +42,14 @@ const DataPolicy = () => {
       </div>
 
       {/* --- ส่วนท้าย (ปุ่ม Back) --- */}
-      <div className="flex-shrink-0 flex items-center gap-4 mt-4">
+      <div className="font-display flex-shrink-0 flex items-center gap-4 mt-4">
         {/* ปุ่ม Accept สีม่วง */}
-        <button className="w-1/4 text-center bg-[#4B0082] text-white font-bold py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+        <button className="w-1/4 text-center bg-[#4B0082] text-xl text-white font-bold py-2 px-3 rounded-lg hover:bg-purple-700 transition-colors">
           Accept
         </button>
 
         {/* ปุ่ม Cancel สีแดง */}
-        <button className="w-1/4 text-center bg-red-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-600 transition-colors">
+        <button className="w-1/4 text-center bg-red-500 text-xl text-white font-bold py-2 px-3 rounded-lg hover:bg-red-700 transition-colors">
           Cancel
         </button>
       </div>
