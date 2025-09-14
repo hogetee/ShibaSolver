@@ -21,7 +21,7 @@ const subjects = [
 ];
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
-export default function ProfileForm({ userData }) {
+export default function ProfileForm({ userData, onProfileUpdate }) {
   const router = useRouter();
   const apiBase = () => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
 
@@ -40,9 +40,10 @@ export default function ProfileForm({ userData }) {
     profilePic: userData?.avatarUrl || null,
   });
 
-  const [errors, setErrors] = useState({ username: false, displayName: false });
+  const [errors, setErrors] = useState({ username: false, displayName: false, submit: '' });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState('idle'); // idle | checking | available | taken | error
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const debounceRef = useRef(null);
   const originalUsername = userData?.username || "";
 
@@ -107,20 +108,63 @@ export default function ProfileForm({ userData }) {
   const handleProfilePicChange = (file) => {
     setFormData((prev) => ({ ...prev, profilePic: file }));
   };
-  // ******************************************** 
-  // Submit handler CHANGE WHEN BACKEND IS READY
-  // ******************************************** 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    
     const newErrors = {
       username: !formData.username.trim() || usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error',
       displayName: !formData.displayName.trim(),
+      submit: '',
     };
     setErrors(newErrors);
 
-    if (!newErrors.username && !newErrors.displayName && formData.agree) {
-      console.log("Form submitted", formData);
-      alert("Profile updated!");
+    if (newErrors.username || newErrors.displayName) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    const payload = {
+      user_name: formData.username.trim(),
+      display_name: formData.displayName.trim(),
+      bio: formData.bio || null,
+      education_level: formData.education || null,
+      interested_subjects: (formData.subjects || []).map((s) =>
+        typeof s === 'string' ? s : s?.name
+      ),
+      profile_picture: typeof formData.profilePic === 'string' ? formData.profilePic : null,
+    };
+
+    try {
+      const res = await fetch(`${apiBase()}/api/v1/users`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ new_data: payload }),
+      });
+      const json = await res.json();
+
+      if (!json.success) {
+        const msg = (json?.error?.message) || (json?.message) || 'Could not save profile';
+        setErrors((prev) => ({ ...prev, submit: msg }));
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Update localStorage with new username if it changed
+      const username = json.data?.user_name || payload.user_name;
+      if (username) localStorage.setItem('username', username);
+      
+      // Refresh the current user data
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+      
+      // Redirect to the user's profile page
+      router.push(`/user/${username}`);
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, submit: 'Network error. Please try again.' }));
+      setIsSubmitting(false);
     }
   };
 
@@ -222,14 +266,16 @@ export default function ProfileForm({ userData }) {
           </button>
           <button
             type="submit"
-            disabled={usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error'}
+            disabled={usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error' || isSubmitting}
             className={`bg-accent-600 text-white px-4 py-2 rounded cursor-pointer ${
-              usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent-600/80'
+              usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error' || isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent-600/80'
             }`}
           >
-            Save Profile
+            {isSubmitting ? 'Saving...' : 'Save Profile'}
           </button>
       </div>
+      
+      {errors.submit && <div className="text-red-600 text-sm mt-2">{errors.submit}</div>}
     </form>
     
     <BackButton />

@@ -17,7 +17,7 @@ type InformationProps = {
 };
 
 export default function InformationPage(){
-    const { user: currentUser, isLoading, error } = useCurrentUser();
+    const { user: currentUser, isLoading, error, refetch } = useCurrentUser();
 
     if (isLoading) {
         return (
@@ -78,7 +78,7 @@ export default function InformationPage(){
 
     return(
         <div className="max-h-screen p-6 flex justify-center items-start">
-            <ProfileFrom userData={userData} />
+            <ProfileFrom userData={userData} onProfileUpdate={refetch} />
          </div>
     )
 }
