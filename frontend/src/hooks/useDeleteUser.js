@@ -4,35 +4,33 @@ export const useDeleteUser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
+
   const deleteUser = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Get the auth token from localStorage or wherever you store it
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch('/api/users/delete', {
+      const response = await fetch(`${API_BASE}/api/v1/users`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Adjust based on your auth implementation
-        },
+        credentials: 'include', // use httpOnly session cookie (ss_token)
       });
 
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        // ignore JSON parse error; we'll surface a generic message below
+      }
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete user');
+      if (!response.ok || (data && data.success === false)) {
+        const msg = data?.error?.message || data?.message || 'Failed to delete user';
+        throw new Error(msg);
       }
 
       return data;
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to delete user');
       throw err;
     } finally {
       setIsLoading(false);
