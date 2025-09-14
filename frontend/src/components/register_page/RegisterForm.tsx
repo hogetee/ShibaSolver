@@ -52,11 +52,14 @@ export default function RegisterForm({ initial = {} }: Props) {
     profilePic: initial.profilePic || null as null | string,
   });
 
-  const [errors, setErrors] = useState({ username: false, displayName: false, submit: '' });
+  const [errors, setErrors] = useState<{ username: boolean; displayName: boolean; submit: string; agree?: boolean }>({ username: false, displayName: false, submit: '', agree: false });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as any;
     setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    if (name === 'agree') {
+      setErrors((prev) => ({ ...prev, agree: false, submit: '' }));
+    }
   };
 
   const handleSubjectsChange = (selected: any[]) => {
@@ -73,9 +76,10 @@ export default function RegisterForm({ initial = {} }: Props) {
       username: !formData.username.trim(),
       displayName: !formData.displayName.trim(),
       submit: '',
+      agree: !formData.agree,
     };
     setErrors(newErrors);
-    if (newErrors.username || newErrors.displayName || !formData.agree) return;
+    if (newErrors.username || newErrors.displayName || newErrors.agree) return;
 
     const payload = {
       user_name: formData.username.trim(),
@@ -175,14 +179,19 @@ export default function RegisterForm({ initial = {} }: Props) {
         </div>
 
         <div className="flex justify-between items-center mt-auto text-dark-900">
-          <Checkbox
-            name="agree"
-            checked={formData.agree as any}
-            onChange={handleChange as any}
-            label={<>Agree to <a href="#" className="text-blue-600 underline">Terms & Agreement</a></>}
-          />
+          <div className="flex flex-col">
+            <Checkbox
+              name="agree"
+              checked={formData.agree as any}
+              onChange={handleChange as any}
+              label={<>Agree to <a href="#" className="text-blue-600 underline">Terms & Agreements</a></>}
+            />
+            {errors.agree && (
+              <div className="text-red-600 text-sm mt-1">You Must Agree to Terms & Agreements to Signup</div>
+            )}
+          </div>
 
-          <button type="submit" className="bg-accent-600 hover:bg-accent-600/80 text-white px-4 py-2 rounded">Submit</button>
+          <button type="submit" className="bg-accent-600 hover:bg-accent-600/80 text-white px-4 py-2 rounded cursor-pointer">Submit</button>
         </div>
 
         {errors.submit && <div className="text-red-600 text-sm mt-2">{errors.submit}</div>}
@@ -190,4 +199,3 @@ export default function RegisterForm({ initial = {} }: Props) {
     </div>
   );
 }
-

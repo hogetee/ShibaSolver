@@ -86,7 +86,7 @@ export default function ProfileForm() {
   return (
     <div className=" p-5 rounded-2xl w-[65%] h-full flex flex-col gap-6 font-display">
       <div className = "text-center text-6xl font-medium text-dark-900">
-          Set up your profile
+          Edit your profile
       </div>
       <form
         onSubmit={handleSubmit}
