@@ -4,12 +4,20 @@ interface PostHeaderProps {
 }
 
 const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
+
+  //Object for storing color pairs of each subject
+  const tagColorMap: { [key: string]: string } = {
+    "Math": "bg-blue-500",
+    "Science": "bg-teal-400",
+    "English": "bg-pink-500",
+  };
+
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
         {/* Tag สถานะ Solved/Unsolved */}
         <span 
-          className={`${isSolved ? 'bg-[#29c46a]' : 'bg-gray-400'} text-white text-sm font-semibold px-3 py-1.5 rounded-md`}
+          className={`${isSolved ? 'bg-[#28AF70]' : 'bg-[#FF2428]'} text-white text-b font-bold px-2.5 py-1 rounded-md`}
         >
           {isSolved ? 'Solved' : 'Unsolved'}
         </span>
@@ -18,7 +26,7 @@ const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
         {tags.map((tag) => (
           <span 
             key={tag} 
-            className="bg-[#ff8c43] text-white text-sm font-semibold px-3 py-1.5 rounded-md"
+             className={`${tagColorMap[tag] || 'bg-gray-500'} text-white text-b font-bold px-2.5 py-1 rounded-md`}
           >
             {tag}
           </span>
