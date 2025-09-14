@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // Sub-components
@@ -23,6 +23,7 @@ const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
 export default function ProfileForm({ userData }) {
   const router = useRouter();
+  const apiBase = () => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
 
   // Initialize form data with user data or default values
   const [formData, setFormData] = useState({
@@ -41,6 +42,9 @@ export default function ProfileForm({ userData }) {
 
   const [errors, setErrors] = useState({ username: false, displayName: false });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState('idle'); // idle | checking | available | taken | error
+  const debounceRef = useRef(null);
+  const originalUsername = userData?.username || "";
 
   // Update form data when userData changes
   useEffect(() => {
@@ -68,6 +72,30 @@ export default function ProfileForm({ userData }) {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    if (name === 'username') {
+      const v = (value || '').trim();
+      setUsernameStatus(v ? 'checking' : 'idle');
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        checkUsername(v);
+      }, 500);
+    }
+  };
+
+  const checkUsername = async (username) => {
+    if (!username) { setUsernameStatus('idle'); return; }
+    // If unchanged, allow
+    if (originalUsername && username === originalUsername) { setUsernameStatus('available'); return; }
+    const valid = /^[\w-]{3,20}$/.test(username);
+    if (!valid) { setUsernameStatus('error'); return; }
+    try {
+      const res = await fetch(`${apiBase()}/api/v1/users/${encodeURIComponent(username)}`);
+      if (res.status === 404) setUsernameStatus('available');
+      else if (res.ok) setUsernameStatus('taken');
+      else setUsernameStatus('error');
+    } catch (e) {
+      setUsernameStatus('error');
+    }
   };
 
   // Subjects change
@@ -85,7 +113,7 @@ export default function ProfileForm({ userData }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {
-      username: !formData.username.trim(),
+      username: !formData.username.trim() || usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error',
       displayName: !formData.displayName.trim(),
     };
     setErrors(newErrors);
@@ -115,7 +143,10 @@ export default function ProfileForm({ userData }) {
       
 
       <TextInput
-        label="Username"
+        label={<>
+          Username
+          <span className="ml-2 text-sm font-normal text-gray-600">3–20 chars: letters, numbers, _ or -</span>
+        </>}
         name="username"
         value={formData.username}
         onChange={handleChange}
@@ -123,6 +154,14 @@ export default function ProfileForm({ userData }) {
         placeholder="username"
         required
       />
+      {formData.username && (
+        <div className="text-sm mt-1">
+          {usernameStatus === 'checking' && <span className="text-gray-500">Checking availability…</span>}
+          {usernameStatus === 'available' && <span className="text-green-600">Username is available</span>}
+          {usernameStatus === 'taken' && <span className="text-red-600">Username is already taken</span>}
+          {usernameStatus === 'error' && <span className="text-red-600">Use 3–20 letters, numbers, _ or -</span>}
+        </div>
+      )}
 
       <TextInput
         label="Display Name"
@@ -177,13 +216,16 @@ export default function ProfileForm({ userData }) {
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="bg-red-600/70 text-white px-4 py-2 rounded hover:bg-red-600/60 transition-colors duration-200"
+            className="bg-red-600/70 text-white px-4 py-2 rounded hover:bg-red-600/60 transition-colors duration-200 cursor-pointer" 
           >
             Delete Account
           </button>
           <button
             type="submit"
-            className="bg-accent-600 hover:bg-accent-600/80 text-white px-4 py-2 rounded"
+            disabled={usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error'}
+            className={`bg-accent-600 text-white px-4 py-2 rounded cursor-pointer ${
+              usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent-600/80'
+            }`}
           >
             Save Profile
           </button>

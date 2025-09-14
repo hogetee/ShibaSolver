@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Reuse existing building blocks from the edit_profile set
@@ -53,12 +53,36 @@ export default function RegisterForm({ initial = {} }: Props) {
   });
 
   const [errors, setErrors] = useState<{ username: boolean; displayName: boolean; submit: string; agree?: boolean }>({ username: false, displayName: false, submit: '', agree: false });
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as any;
     setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     if (name === 'agree') {
       setErrors((prev) => ({ ...prev, agree: false, submit: '' }));
+    }
+    if (name === 'username') {
+      setUsernameStatus(value.trim() ? 'checking' : 'idle');
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        checkUsername(value.trim());
+      }, 500);
+    }
+  };
+
+  const checkUsername = async (username: string) => {
+    if (!username) { setUsernameStatus('idle'); return; }
+    // Client-side pattern check to match backend validation
+    const valid = /^[\w-]{3,20}$/.test(username);
+    if (!valid) { setUsernameStatus('error'); return; }
+    try {
+      const res = await fetch(`${apiBase()}/api/v1/users/${encodeURIComponent(username)}`);
+      if (res.status === 404) setUsernameStatus('available');
+      else if (res.ok) setUsernameStatus('taken');
+      else setUsernameStatus('error');
+    } catch {
+      setUsernameStatus('error');
     }
   };
 
@@ -73,7 +97,7 @@ export default function RegisterForm({ initial = {} }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors = {
-      username: !formData.username.trim(),
+      username: !formData.username.trim() || usernameStatus === 'taken' || usernameStatus === 'error' || usernameStatus === 'checking',
       displayName: !formData.displayName.trim(),
       submit: '',
       agree: !formData.agree,
@@ -121,7 +145,10 @@ export default function RegisterForm({ initial = {} }: Props) {
 
       <form onSubmit={handleSubmit} className="bg-[var(--color-accent-200)] p-5 rounded-3xl min-h-[700px] flex flex-col gap-5">
         <TextInput
-          label="Username"
+          label={<>
+            Username
+            <span className="ml-2 text-sm font-normal text-gray-600">3–20 chars (A-Z, a-z, 1234567890, _ or -)</span>
+          </>}
           name="username"
           value={formData.username}
           onChange={handleChange}
@@ -129,6 +156,15 @@ export default function RegisterForm({ initial = {} }: Props) {
           placeholder="username"
           required
         />
+        {/* Username availability feedback */}
+        {formData.username && (
+          <div className="text-sm">
+            {usernameStatus === 'checking' && <span className="text-gray-500">Checking availability…</span>}
+            {usernameStatus === 'available' && <span className="text-green-600">Username is available</span>}
+            {usernameStatus === 'taken' && <span className="text-red-600">Username is already taken</span>}
+            {usernameStatus === 'error' && <span className="text-red-600">Use 3–20 letters, numbers, _ or -</span>}
+          </div>
+        )}
 
         <TextInput
           label="Display Name"
@@ -191,7 +227,15 @@ export default function RegisterForm({ initial = {} }: Props) {
             )}
           </div>
 
-          <button type="submit" className="bg-accent-600 hover:bg-accent-600/80 text-white px-4 py-2 rounded cursor-pointer">Submit</button>
+          <button
+            type="submit"
+            disabled={usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error'}
+            className={`bg-accent-600 text-white px-4 py-2 rounded cursor-pointer ${
+              usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent-600/80'
+            }`}
+          >
+            Submit
+          </button>
         </div>
 
         {errors.submit && <div className="text-red-600 text-sm mt-2">{errors.submit}</div>}
