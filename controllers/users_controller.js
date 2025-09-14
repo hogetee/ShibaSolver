@@ -22,13 +22,13 @@ exports.getUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
   try {
-    const username = req.user.username;
-    if (!/^[\w-]+$/.test(username)) return res.status(400).json({ success:false, message:'Invalid username' });
+    const id = req.user.uid;
+    if (!/^\d+$/.test(id)) return res.status(400).json({ success:false, message:'Invalid id' });
 
     const pool = req.app.locals.pool;
     const { rows } = await pool.query(
-      `DELETE FROM public.users WHERE user_name = $1
-      RETURNING user_id, user_name, google_account`, [username]
+      `DELETE FROM public.users WHERE user_id = $1
+      RETURNING user_id, user_name, google_account`, [id]
     );
     if (rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
 
@@ -56,12 +56,12 @@ exports.adminDeleteUser = async (req, res, next) => {
 
 exports.updateUser = async (req, res, next) => {
   try {
-    const username = req.user.username;
+    const id  = req.user.uid;
     const { new_data } = req.body;
 
-    if (!/^[\w-]+$/.test(username)) {
-      return res.status(400).json({ success: false, message: 'Invalid username' });
-    }
+      if (!/^\d+$/.test(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid id' });
+      }
 
     if (!new_data || Object.keys(new_data).length === 0) {
       return res.status(400).json({ success: false, message: 'No data to update' });
@@ -96,11 +96,11 @@ exports.updateUser = async (req, res, next) => {
     const query = `
       UPDATE public.users
       SET ${setClause}
-      WHERE user_name = $${fields.length + 1}
+      WHERE user_id = $${fields.length + 1}
       RETURNING user_id, google_account, is_premium, user_state, user_name, display_name, education_level, "like", "dislike", bio, interested_subjects, profile_picture
     `;
 
-    const { rows } = await pool.query(query, [...values, username]);
+    const { rows } = await pool.query(query, [...values, id]);
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Fail to Update' });
