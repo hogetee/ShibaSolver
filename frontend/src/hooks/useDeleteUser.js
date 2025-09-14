@@ -11,6 +11,7 @@ export const useDeleteUser = () => {
     setError(null);
 
     try {
+
       const response = await fetch(`${API_BASE}/api/v1/users`, {
         method: 'DELETE',
         credentials: 'include', // use httpOnly session cookie (ss_token)
@@ -26,11 +27,14 @@ export const useDeleteUser = () => {
       if (!response.ok || (data && data.success === false)) {
         const msg = data?.error?.message || data?.message || 'Failed to delete user';
         throw new Error(msg);
+
       }
 
       return data;
     } catch (err) {
+
       setError(err.message || 'Failed to delete user');
+
       throw err;
     } finally {
       setIsLoading(false);

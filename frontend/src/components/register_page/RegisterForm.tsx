@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+
 import { useRouter } from 'next/navigation';
 
 // Reuse existing building blocks from the edit_profile set
@@ -52,13 +53,16 @@ export default function RegisterForm({ initial = {} }: Props) {
     profilePic: initial.profilePic || null as null | string,
   });
 
+
   const [errors, setErrors] = useState<{ username: boolean; displayName: boolean; submit: string; agree?: boolean }>({ username: false, displayName: false, submit: '', agree: false });
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as any;
     setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+
     if (name === 'agree') {
       setErrors((prev) => ({ ...prev, agree: false, submit: '' }));
     }
@@ -84,6 +88,7 @@ export default function RegisterForm({ initial = {} }: Props) {
     } catch {
       setUsernameStatus('error');
     }
+
   };
 
   const handleSubjectsChange = (selected: any[]) => {
@@ -97,6 +102,7 @@ export default function RegisterForm({ initial = {} }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors = {
+
       username: !formData.username.trim() || usernameStatus === 'taken' || usernameStatus === 'error' || usernameStatus === 'checking',
       displayName: !formData.displayName.trim(),
       submit: '',
@@ -104,6 +110,7 @@ export default function RegisterForm({ initial = {} }: Props) {
     };
     setErrors(newErrors);
     if (newErrors.username || newErrors.displayName || newErrors.agree) return;
+
 
     const payload = {
       user_name: formData.username.trim(),
@@ -149,6 +156,7 @@ export default function RegisterForm({ initial = {} }: Props) {
             Username
             <span className="ml-2 text-sm font-normal text-gray-600">3–20 chars (A-Z, a-z, 1234567890, _ or -)</span>
           </>}
+
           name="username"
           value={formData.username}
           onChange={handleChange}
@@ -156,6 +164,7 @@ export default function RegisterForm({ initial = {} }: Props) {
           placeholder="username"
           required
         />
+
         {/* Username availability feedback */}
         {formData.username && (
           <div className="text-sm">
@@ -165,6 +174,7 @@ export default function RegisterForm({ initial = {} }: Props) {
             {usernameStatus === 'error' && <span className="text-red-600">Use 3–20 letters, numbers, _ or -</span>}
           </div>
         )}
+
 
         <TextInput
           label="Display Name"
@@ -187,7 +197,9 @@ export default function RegisterForm({ initial = {} }: Props) {
         <div className="flex gap-6">
           <div className="flex flex-col gap-5 w-2/3">
             <div className="flex flex-col">
+
               <label className="font-semibold text-dark-900">Education level</label>
+
               <SelectDropdown
                 options={educationLevels}
                 value={formData.education as any}
@@ -197,7 +209,9 @@ export default function RegisterForm({ initial = {} }: Props) {
             </div>
 
             <div className="flex flex-col">
+
               <label className="font-semibold text-dark-900">Interested Subject(s)</label>
+
               <SelectDropdown
                 options={subjects}
                 value={formData.subjects as any}
@@ -236,6 +250,7 @@ export default function RegisterForm({ initial = {} }: Props) {
           >
             Submit
           </button>
+
         </div>
 
         {errors.submit && <div className="text-red-600 text-sm mt-2">{errors.submit}</div>}

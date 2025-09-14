@@ -4,6 +4,7 @@ import ProfileFrom from "@/components/edit_profile/ProfileForm";
 import React from "react";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import ShibaError from "@/components/error/ShibaError";
+import { exportTraceState } from "next/dist/trace";
 
 type InformationProps = {
   id: number;
@@ -17,6 +18,7 @@ type InformationProps = {
 };
 
 export default function InformationPage(){
+
     const { user: currentUser, isLoading, error, refetch } = useCurrentUser();
 
     if (isLoading) {
