@@ -3,9 +3,78 @@
  * @route   GET /api/v1/posts/:id
  * @access  Private
  */
-exports.getPost = (req, res) => {
-  res.status(200).json({ success: true, where: "getPost", id: req.params.id });
+exports.getPost = async (req, res,next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const postId = Number(req.params.postId);
+
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid postId" });
+    }
+
+    //request the post with author info
+    const postSql = `
+      SELECT p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,
+      u.user_id AS author_id, u.user_name, u.display_name, u.profile_picture
+      FROM posts p
+      JOIN users u ON u.user_id = p.user_id
+      WHERE p.post_id = $1
+      LIMIT 1;
+    `;
+    const postRes = await pool.query(postSql, [postId]);
+    if (postRes.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+    const post = postRes.rows[0];
+
+    //request comments with author info, in threaded structure
+    const commentsSql = `
+      WITH RECURSIVE thread AS (
+        SELECT c.comment_id, c.text, c.comment_image, c.created_at,
+              c.user_id, c.post_id, c.parent_comment,
+              0 AS depth, ARRAY[c.comment_id] AS path
+        FROM comments c
+        WHERE c.post_id = $1 AND c.parent_comment IS NULL
+        UNION ALL
+        SELECT ch.comment_id, ch.text, ch.comment_image, ch.created_at,
+              ch.user_id, ch.post_id, ch.parent_comment,
+              t.depth + 1, t.path || ch.comment_id
+        FROM comments ch
+        JOIN thread t ON t.comment_id = ch.parent_comment
+      )
+      SELECT t.comment_id, t.text, t.comment_image, t.created_at,
+            t.parent_comment, t.depth,
+            jsonb_build_object(
+              'user_id', u.user_id,
+              'user_name', u.user_name,
+              'display_name', u.display_name
+            ) AS "user"
+      FROM thread t
+      JOIN users u ON u.user_id = t.user_id
+      ORDER BY t.path;
+    `;
+    const commentsRes = await pool.query(commentsSql, [postId]);
+
+    // Convert flat list to nested structure
+    // easy for frontend to render threaded comments
+    const flat = commentsRes.rows;
+    const byId = new Map();
+    flat.forEach(c => { c.children = []; byId.set(c.comment_id, c); });
+    const roots = [];
+    flat.forEach(c => {
+      if (c.parent_comment == null) roots.push(c);
+      else {
+        const parent = byId.get(c.parent_comment);
+        parent ? parent.children.push(c) : roots.push(c);
+      }
+    });
+    return res.status(200).json({ success: true, data: post, comments: roots });
+
+  }catch (e) {
+    next(e);
+  }
 };
+
 
 /**
  * @desc    Create a new post
