@@ -10,9 +10,10 @@ router.get("/bookmarks/:user_id", requireAuth, postsCtrl.getBookmarks);
 
 //POST
 router.post("/bookmarks", requireAuth, postsCtrl.addBookmark);
+router.post("/", postsCtrl.createPost);
 
 //PUT
-router.put("/", postsCtrl.createPost);
+
 //DELETE
 
 // export router
