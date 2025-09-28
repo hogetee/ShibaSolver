@@ -1,8 +1,17 @@
+/**
+ * @desc    Get all users
+ * @route   GET /api/v1/users
+ * @access  Private/Admin
+ */
 exports.getAllUsers = (req, res) => {
   res.status(200).json({ success: true, where: 'listUsers', data: [] });
 };
 
-
+/**
+ * @desc    Get a single user by username
+ * @route   GET /api/v1/users/:username
+ * @access  Private 
+ */
 exports.getUser = async (req, res, next) => {
   try {
     const { username } = req.params;
@@ -20,6 +29,11 @@ exports.getUser = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+/**
+ * @desc    Delete a user by ID
+ * @route   DELETE /api/v1/users/:id
+ * @access  Private
+ */
 exports.deleteUser = async (req, res, next) => {
   try {
     const id = req.user.uid;
@@ -36,7 +50,11 @@ exports.deleteUser = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-
+/** 
+  * @desc    Admin delete a user by username
+  * @route   DELETE /api/v1/users/:username
+  * @access  Private/Admin
+*/
 exports.adminDeleteUser = async (req, res, next) => {
   try {
     const { username } = req.params;
@@ -53,7 +71,11 @@ exports.adminDeleteUser = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-
+/** 
+ * @desc    Update a user by ID
+ * @route   PUT /api/v1/users/:id
+ * @access  Private
+ */
 exports.updateUser = async (req, res, next) => {
   try {
     const id  = req.user.uid;
@@ -112,7 +134,11 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
-
+/**
+ * @desc    Admin update a user by username
+ * @route   PUT /api/v1/users/:username
+ * @access  Private/Admin
+ */
 exports.adminUpdateUser = async (req, res, next) => {
   try {
     const { username } = req.params;

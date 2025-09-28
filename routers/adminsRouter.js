@@ -1,8 +1,9 @@
 const express = require('express');
-const adminsCtrl = require('../controllers/admins_controller'); 
+const adminsCtrl = require('../controllers/adminsController'); 
 
 const router = express.Router();
 
+//GET
 router.get('/', adminsCtrl.getAllAdmins);
 router.get('/:id', adminsCtrl.getAdmin);
 
