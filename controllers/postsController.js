@@ -1,7 +1,45 @@
+/**
+ * @desc    Get a single post by ID
+ * @route   GET /api/v1/posts/:id
+ * @access  Private
+ */
 exports.getPost = (req, res) => {
   res.status(200).json({ success: true, where: "getPost", id: req.params.id });
 };
 
+/**
+ * @desc    Create a new post
+ * @route   PUT /api/v1/posts
+ * @access  Private
+ */
+exports.createPost = async (req, res, next) => {
+  try {
+    const user_id = req.user.uid; // user ID is from token
+    const { title, description, post_image } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({ success: false, message: "Title and description are required" });
+    }
+
+    const pool = req.app.locals.pool;
+    const sql = `
+      INSERT INTO public.posts (user_id, title, description, post_image)
+      VALUES ($1, $2, $3, $4)
+      RETURNING post_id, user_id, title, description, post_image, created_at
+    `;
+    const { rows } = await pool.query(sql, [user_id, title, description, post_image || null]);
+
+    return res.status(201).json({ success: true, data: rows[0] });
+  } catch (e) {
+    next(e);
+  }
+};
+
+/**
+ * @desc    Refresh the feed
+ * @route   GET /api/v1/posts/feed
+ * @access  Private
+ */
 exports.refreshFeed = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
@@ -16,6 +54,11 @@ exports.refreshFeed = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Add a bookmark
+ * @route   POST /api/v1/posts/bookmarks
+ * @access  Private
+ */
 exports.addBookmark = async (req, res, next) => {
   try {
     // const { user_id, post_id } = req.body;
@@ -54,6 +97,12 @@ exports.addBookmark = async (req, res, next) => {
     next(e);
   }
 };
+
+/**
+ * @desc    Get bookmarks for a user
+ * @route   GET /api/v1/posts/bookmarks
+ * @access  Private
+ */
 
 exports.getBookmarks = async (req, res, next) => {
   try {

@@ -4,11 +4,11 @@ const connectDB = require("./config/db");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
-const adminsRouter = require("./routers/admins_router");
-const usersRouter = require("./routers/users_router");
-const postsRouter = require("./routers/posts_router");
-const feedRouter = require("./routers/feed_router");
-const authRouter = require("./routers/auth_router");
+const adminsRouter = require("./routers/adminsRouter");
+const usersRouter = require("./routers/usersRouter");
+const postsRouter = require("./routers/postsRouter");
+const feedRouter = require("./routers/feedRouter");
+const authRouter = require("./routers/authRouter");
 
 dotenv.config({ path: "./config/config.env" });
 

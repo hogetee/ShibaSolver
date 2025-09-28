@@ -1,3 +1,8 @@
+/**
+ * @desc    Get all feeds
+ * @route   GET /api/v1/feeds
+ * @access  Private
+ */
 exports.getAllFeeds = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
