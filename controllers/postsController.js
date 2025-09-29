@@ -27,48 +27,7 @@ exports.getPost = async (req, res,next) => {
     }
     const post = postRes.rows[0];
 
-    //request comments with author info, in threaded structure
-    const commentsSql = `
-      WITH RECURSIVE thread AS (
-        SELECT c.comment_id, c.text, c.comment_image, c.created_at,
-              c.user_id, c.post_id, c.parent_comment,
-              0 AS depth, ARRAY[c.comment_id] AS path
-        FROM comments c
-        WHERE c.post_id = $1 AND c.parent_comment IS NULL
-        UNION ALL
-        SELECT ch.comment_id, ch.text, ch.comment_image, ch.created_at,
-              ch.user_id, ch.post_id, ch.parent_comment,
-              t.depth + 1, t.path || ch.comment_id
-        FROM comments ch
-        JOIN thread t ON t.comment_id = ch.parent_comment
-      )
-      SELECT t.comment_id, t.text, t.comment_image, t.created_at,
-            t.parent_comment, t.depth,
-            jsonb_build_object(
-              'user_id', u.user_id,
-              'user_name', u.user_name,
-              'display_name', u.display_name
-            ) AS "user"
-      FROM thread t
-      JOIN users u ON u.user_id = t.user_id
-      ORDER BY t.path;
-    `;
-    const commentsRes = await pool.query(commentsSql, [postId]);
-
-    // Convert flat list to nested structure
-    // easy for frontend to render threaded comments
-    const flat = commentsRes.rows;
-    const byId = new Map();
-    flat.forEach(c => { c.children = []; byId.set(c.comment_id, c); });
-    const roots = [];
-    flat.forEach(c => {
-      if (c.parent_comment == null) roots.push(c);
-      else {
-        const parent = byId.get(c.parent_comment);
-        parent ? parent.children.push(c) : roots.push(c);
-      }
-    });
-    return res.status(200).json({ success: true, data: post, comments: roots });
+    return res.status(200).json({ success: true, data: post});
 
   }catch (e) {
     next(e);
