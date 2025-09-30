@@ -3,9 +3,37 @@
  * @route   GET /api/v1/posts/:id
  * @access  Private
  */
-exports.getPost = (req, res) => {
-  res.status(200).json({ success: true, where: "getPost", id: req.params.id });
+exports.getPost = async (req, res,next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const postId = Number(req.params.postId);
+
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid postId" });
+    }
+
+    //request the post with author info
+    const postSql = `
+      SELECT p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,
+      u.user_id AS author_id, u.user_name, u.display_name, u.profile_picture
+      FROM posts p
+      JOIN users u ON u.user_id = p.user_id
+      WHERE p.post_id = $1
+      LIMIT 1;
+    `;
+    const postRes = await pool.query(postSql, [postId]);
+    if (postRes.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+    const post = postRes.rows[0];
+
+    return res.status(200).json({ success: true, data: post});
+
+  }catch (e) {
+    next(e);
+  }
 };
+
 
 /**
  * @desc    Create a new post
