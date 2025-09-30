@@ -1,6 +1,10 @@
+'use client';
+
 import Post, { PostData } from "@/components/post/Post";
 import Notification, { NotificationData } from "@/components/notification/Notification";
 import Link from 'next/link';
+import React, {useEffect, useState} from "react";
+import { Notifications } from '@mui/icons-material';
 
 // ใน sprint ถัดๆไป ส่วนนี้จะเป็นการ fetch จาก API 
 async function getPostData(): Promise<PostData[]> {
@@ -101,27 +105,52 @@ async function getNotificationData(): Promise<NotificationData[]> {
   return mockData;
 }
 
-export default async function Home() {
+export default function Home() {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
 
-  const posts = await getPostData();
-  const notifications = await getNotificationData();
+  // const posts = await getPostData();
+  // const notifications = await getNotificationData();
+  useEffect(() => {
+    async function fetchData() {
+      const postsData = await getPostData();
+      const notificationsData = await getNotificationData();
+      setPosts(postsData);
+      setNotifications(notificationsData);
+    }
+    fetchData();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-display">
         
-        {/* Feed content */}
-        <div className="flex flex-1">
-            {/* Notifications */}
-            <aside className="w-[20%] bg-white border-r p-2 flex flex-col">
-            <h2 className="text-2xl font-bold mb-6 mt-5 ml-4 text-dark-900">
-                Notifications
-            </h2>
-            {notifications.map((notification) => (
-                <Notification key={notification.noti_id} notificationData={notification} />
-            ))}
-            </aside>
+      {/* Notification toggle Button */}
+      <button
+        style={{ left: showNotifications ? 'calc(20% + 8px)' : '8px' }}
+        className={`fixed top-20 z-50 text-white rounded-full p-2 cursor-pointer transition-all duration-300
+          ${showNotifications ? "bg-accent-600/70" : "bg-accent-600"} hover:bg-accent-600/85`}
+        onClick={() => setShowNotifications((prev) => !prev)}
+        aria-label="Toggle notifications"
+      >
+        <Notifications />
+      </button>
 
+      {/* Notifications */}
+      <aside className={`fixed top-16 h-full border-r p-2 transition-transform duration-300 ${
+        showNotifications ? "translate-x-0 w-[20%] max-w-320" : "-translate-x-full w-[20%] max-w-xs"}`}>
+        <h2 className="text-2xl font-bold mb-6 mt-5 ml-4 text-dark-900">
+            Notifications
+        </h2>
+        {notifications.map((notification) => (
+            <Notification key={notification.noti_id} notificationData={notification} />
+        ))}
+      </aside>
+
+      {/* Feed content */}
+      <div className={`flex flex-1 transition-all duration-300 ${showNotifications ? "ml-[20%]" : ""}`}>
         {/* Posts */}
-        <main className="flex-1 p-5">
+        <main className="flex-1 mb-10 px-[5%]">
           <h1 className="text-5xl font-bold p-4 mb-2 text-dark-900">
             Recent Posts
           </h1>
