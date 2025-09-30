@@ -70,9 +70,9 @@ exports.createPost = async (req, res, next) => {
  */
 exports.editPost = async (req, res, next) => {
   try {
-    // const user_id = req.user.uid; // user ID is from token
+    const user_id = req.user.uid; // user ID is from token
     const postId = Number(req.params.postId);
-    const { user_id, title, description, post_image, is_solved } = req.body;
+    const { title, description, post_image, is_solved } = req.body;
     if (!Number.isInteger(postId) || postId <= 0) {
       return res.status(400).json({ success: false, message: "Invalid postId" });
     }
