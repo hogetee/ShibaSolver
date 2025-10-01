@@ -37,7 +37,7 @@ exports.getPost = async (req, res,next) => {
 
 /**
  * @desc    Create a new post
- * @route   PUT /api/v1/posts
+ * @route   POST /api/v1/posts
  * @access  Private
  */
 exports.createPost = async (req, res, next) => {
@@ -62,6 +62,47 @@ exports.createPost = async (req, res, next) => {
     next(e);
   }
 };
+
+/**
+ * @desc    Edit a post
+ * @route   PUT /api/v1/posts/:id
+ * @access  Private
+ */
+exports.editPost = async (req, res, next) => {
+  try {
+    const user_id = req.user.uid; // user ID is from token
+    const postId = Number(req.params.postId);
+    const { title, description, post_image, is_solved } = req.body;
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid postId" });
+    }
+    const pool = req.app.locals.pool;
+    const sql = `
+      UPDATE public.posts
+      SET 
+        title = COALESCE($2, title),
+        description = COALESCE($3, description),
+        post_image = COALESCE($4, post_image),
+        is_solved = COALESCE($5, is_solved)
+      WHERE post_id = $1 AND user_id = $6
+      RETURNING post_id, user_id, title, description, post_image, is_solved, created_at
+    `;
+    const { rows } = await pool.query(sql, [postId, 
+                                            title ?? null, 
+                                            description ?? null, 
+                                            post_image ?? null, 
+                                            is_solved ?? false, 
+                                            user_id]
+                                      );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Post not found or not authorized" });
+    }
+    return res.status(200).json({ success: true, data: rows[0] });
+  } catch (e) {
+    next(e);
+  }
+}
 
 /**
  * @desc    Refresh the feed
