@@ -50,6 +50,88 @@ exports.getCommentsByPopularity = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get all comments from post ordered by latest (newest first)
+ * @route   GET /api/v1/comments/post/:postId/latest
+ * @access  Private
+ */
+exports.getCommentsByLatest = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const postId = Number(req.params.postId);
+
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid postId" });
+    }
+
+    const sql = `
+      SELECT 
+          c.comment_id,
+          c.user_id,
+          c.post_id,
+          c.parent_comment,
+          c.text,
+          c.comment_image,
+          c.is_solution,
+          c.is_updated,
+          c.created_at,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
+          COALESCE(COUNT(r.rating_id), 0) AS total_votes
+      FROM comments c
+      LEFT JOIN ratings r ON c.comment_id = r.comment_id
+      WHERE c.post_id = $1
+      GROUP BY c.comment_id
+      ORDER BY c.created_at DESC;
+    `;
+    const { rows } = await pool.query(sql, [postId]);
+    return res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc    Get all comments from post ordered by oldest (oldest first)
+ * @route   GET /api/v1/comments/post/:postId/oldest
+ * @access  Private
+ */
+exports.getCommentsByOldest = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const postId = Number(req.params.postId);
+
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid postId" });
+    }
+
+    const sql = `
+      SELECT 
+          c.comment_id,
+          c.user_id,
+          c.post_id,
+          c.parent_comment,
+          c.text,
+          c.comment_image,
+          c.is_solution,
+          c.is_updated,
+          c.created_at,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
+          COALESCE(COUNT(r.rating_id), 0) AS total_votes
+      FROM comments c
+      LEFT JOIN ratings r ON c.comment_id = r.comment_id
+      WHERE c.post_id = $1
+      GROUP BY c.comment_id
+      ORDER BY c.created_at ASC;
+    `;
+    const { rows } = await pool.query(sql, [postId]);
+    return res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @desc    Get a single comment by ID
  * @route   GET /api/v1/comments/:id
  * @access  Private
