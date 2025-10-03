@@ -12,6 +12,6 @@ router.post('/', requireAuth, commentsCtrl.createComment);
 //PUT
 router.put('/:id', requireAuth, commentsCtrl.editComment);
 //DELETE
-
+router.delete('/:id', requireAuth, commentsCtrl.deleteComment);
 // export router
 module.exports = router;

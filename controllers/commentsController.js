@@ -246,3 +246,35 @@ exports.editComment = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * @desc    Delete a comment
+ * @route   DELETE /api/v1/comments/:id
+ * @access  Private
+ */
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const commentId = Number(req.params.id);
+    const userId = req.user.id; // จาก JWT middleware
+
+    if (!Number.isInteger(commentId) || commentId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid commentId" });
+    }
+
+    const sql = `
+      DELETE FROM comments
+      WHERE comment_id = $1 AND user_id = $2
+      RETURNING comment_id;
+    `;
+    const { rows } = await pool.query(sql, [commentId, userId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Comment not found or not authorized" });
+    }
+
+    return res.status(200).json({ success: true, message: "Comment deleted", data: rows[0] });
+  } catch (err) {
+    next(err);
+  }
+};
