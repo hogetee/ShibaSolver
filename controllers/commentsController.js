@@ -23,7 +23,11 @@ exports.getComment = (req, res) => {
 
 
 
-
+/**
+ * @desc    Create a comment
+ * @route   POST /api/v1/comments
+ * @access  Private
+ */
 exports.createComment = async (req, res) => {
   try {
     const pool = req.app.locals.pool; 
