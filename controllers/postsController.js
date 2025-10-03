@@ -2,6 +2,8 @@
  * @desc    Get a single post by ID
  * @route   GET /api/v1/posts/:id
  * @access  Private
+ * @return {post_id, title, description, post_image, is_solved, created_at, poster_id}
+ * }
  */
 exports.getPost = async (req, res,next) => {
   try {
@@ -15,7 +17,7 @@ exports.getPost = async (req, res,next) => {
     //request the post with author info
     const postSql = `
       SELECT p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,
-      u.user_id AS author_id, u.user_name, u.display_name, u.profile_picture
+      u.user_id AS poster_id
       FROM posts p
       JOIN users u ON u.user_id = p.user_id
       WHERE p.post_id = $1
@@ -39,6 +41,7 @@ exports.getPost = async (req, res,next) => {
  * @desc    Create a new post
  * @route   POST /api/v1/posts
  * @access  Private
+ * @request {user_id, title, description, post_image}
  */
 exports.createPost = async (req, res, next) => {
   try {
@@ -67,6 +70,7 @@ exports.createPost = async (req, res, next) => {
  * @desc    Edit a post
  * @route   PUT /api/v1/posts/:id
  * @access  Private
+ * @request {title, description, post_image, is_solved}
  */
 exports.editPost = async (req, res, next) => {
   try {
