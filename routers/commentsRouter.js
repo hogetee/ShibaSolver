@@ -7,11 +7,15 @@ const router = express.Router();
 //GET
 router.get('/post/:postId/popular', requireAuth, commentsCtrl.getCommentsByPopularity);
 router.get('/:id', commentsCtrl.getComment);
+
 //POST
 router.post('/', requireAuth, commentsCtrl.createComment);
+
 //PUT
 router.put('/:id', requireAuth, commentsCtrl.editComment);
+
 //DELETE
 router.delete('/:id', requireAuth, commentsCtrl.deleteComment);
+
 // export router
 module.exports = router;
