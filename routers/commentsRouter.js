@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/post/:postId/popular', requireAuth, commentsCtrl.getCommentsByPopularity);
 router.get('/post/:postId/latest', requireAuth, commentsCtrl.getCommentsByLatest);
 router.get('/post/:postId/oldest', requireAuth, commentsCtrl.getCommentsByOldest);
-router.get('/:id', commentsCtrl.getComment);
+router.get('/:id', requireAuth, commentsCtrl.getComment);
 
 //POST
 router.post('/', requireAuth, commentsCtrl.createComment);

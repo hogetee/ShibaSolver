@@ -5,7 +5,7 @@ function isNonEmptyString(s) {
 
 /**
  * @desc    Get all comments from post ordered by popularity (likes + dislikes)
- * @route   GET /api/v1/comments
+ * @route   GET /api/v1/comments/post/:postId/popular
  * @access  Private
  */
 exports.getCommentsByPopularity = async (req, res, next) => {
@@ -37,7 +37,7 @@ exports.getCommentsByPopularity = async (req, res, next) => {
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
       WHERE c.post_id = $1
       GROUP BY c.comment_id
-      ORDER BY total_votes DESC, c.created_at ASC;
+      ORDER BY total_votes DESC, c.created_at ASC, c.comment_id ASC;
     `;
     const { rows } = await pool.query(sql, [postId]);
 
@@ -81,7 +81,7 @@ exports.getCommentsByLatest = async (req, res, next) => {
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
       WHERE c.post_id = $1
       GROUP BY c.comment_id
-      ORDER BY c.created_at DESC;
+      ORDER BY c.created_at DESC, c.comment_id DESC;
     `;
     const { rows } = await pool.query(sql, [postId]);
     return res.status(200).json({ success: true, count: rows.length, data: rows });
@@ -122,7 +122,7 @@ exports.getCommentsByOldest = async (req, res, next) => {
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
       WHERE c.post_id = $1
       GROUP BY c.comment_id
-      ORDER BY c.created_at ASC;
+      ORDER BY c.created_at ASC, c.comment_id ASC;
     `;
     const { rows } = await pool.query(sql, [postId]);
     return res.status(200).json({ success: true, count: rows.length, data: rows });
@@ -262,7 +262,7 @@ exports.createComment = async (req, res) => {
       const insertRes = await client.query(
         `INSERT INTO comments (user_id, post_id, parent_comment, text, comment_image)
          VALUES ($1, $2, $3, $4, $5)
-         RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, is_solution, created_at`,
+         RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, is_solution, is_updated, created_at`,
         [userId, post_id, parentId, text.trim(), comment_image ?? null]
       );
 
@@ -312,7 +312,7 @@ exports.editComment = async (req, res, next) => {
       SET 
         text = COALESCE($2, text),
         comment_image = COALESCE($3, comment_image),
-        is_updated = TRUE,
+        is_updated = TRUE
       WHERE comment_id = $1 AND user_id = $4
       RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, 
                 is_solution, is_updated, created_at;
