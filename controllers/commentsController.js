@@ -468,7 +468,7 @@ exports.replyToComment = async (req, res, next) => {
     const reply = ins.rows[0];
 
     // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
-    if (String(parent.parent_user_id) !== String(actorUserId)) {
+    if (parent.parent_user_id !== actorUserId) {
       await client.query(
         `INSERT INTO notifications
          (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
@@ -524,7 +524,7 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
     let isPremium = false;
 
     if (req.user?.id) {
-      currentUserId = String(req.user.uid);
+      currentUserId = req.user.uid;
       const u = await pool.query(
         `SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]
       );
