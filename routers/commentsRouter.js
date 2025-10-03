@@ -10,7 +10,7 @@ router.get('/:id', commentsCtrl.getComment);
 //POST
 router.post('/', requireAuth, commentsCtrl.createComment);
 //PUT
-
+router.put('/:id', requireAuth, commentsCtrl.editComment);
 //DELETE
 
 // export router

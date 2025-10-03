@@ -207,7 +207,42 @@ exports.createComment = async (req, res) => {
 };
 
 /**
- * @desc    Edit comment
- * @route   PUT /api/v1/comments
+ * @desc    Edit a comment
+ * @route   PUT /api/v1/comments/:id
  * @access  Private
  */
+exports.editComment = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const commentId = Number(req.params.id);
+    const userId = req.user.id; // จาก JWT middleware
+    const { text, comment_image } = req.body;
+
+    if (!Number.isInteger(commentId) || commentId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid commentId" });
+    }
+    if (!text && !comment_image) {
+      return res.status(400).json({ success: false, message: "Nothing to update" });
+    }
+
+    const sql = `
+      UPDATE comments
+      SET 
+        text = COALESCE($2, text),
+        comment_image = COALESCE($3, comment_image),
+        is_updated = TRUE,
+      WHERE comment_id = $1 AND user_id = $4
+      RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, 
+                is_solution, is_updated, created_at;
+    `;
+    const { rows } = await pool.query(sql, [commentId, text ?? null, comment_image ?? null, userId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Comment not found or not authorized" });
+    }
+
+    return res.status(200).json({ success: true, data: rows[0] });
+  } catch (err) {
+    next(err);
+  }
+};
