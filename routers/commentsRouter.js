@@ -16,6 +16,9 @@ router.post('/', requireAuth, commentsCtrl.createComment);
 //PUT
 router.put('/:id', requireAuth, commentsCtrl.editComment);
 
+// PATCH (toggle flag/unflag solution)
+router.patch('/:commentId/solution', requireAuth, commentsCtrl.toggleMyCommentSolution);
+
 //DELETE
 router.delete('/:id', requireAuth, commentsCtrl.deleteComment);
 

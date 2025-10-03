@@ -377,3 +377,47 @@ exports.deleteComment = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.toggleMyCommentSolution = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const userId = req.user.id;
+    const { commentId } = req.params;
+
+    const { rows } = await pool.query(
+      `SELECT comment_id, user_id, is_solution
+       FROM comments
+       WHERE comment_id = $1`,
+      [commentId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Comment not found' });
+    }
+
+    const comment = rows[0];
+
+    if (comment.user_id !== userId) {
+      return res.status(403).json({ success: false, error: 'You are not the owner of this comment' });
+    }
+
+    const newValue = !comment.is_solution;
+
+    const update = await pool.query(
+      `UPDATE comments
+       SET is_solution = $1,
+           is_updated  = TRUE
+       WHERE comment_id = $2
+       RETURNING comment_id, user_id, is_solution, is_updated, created_at`,
+      [newValue, commentId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: update.rows[0]
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
