@@ -4,6 +4,45 @@ function isNonEmptyString(s) {
 }
 
 /**
+ * @desc    Get all comments of the current user
+ * @route   GET /api/v1/comments/me
+ * @access  Private
+ */
+exports.getMyComments = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const userId = req.user.id; // มาจาก JWT middleware
+
+    const sql = `
+      SELECT 
+          c.comment_id,
+          c.user_id,
+          c.post_id,
+          c.parent_comment,
+          c.text,
+          c.comment_image,
+          c.is_solution,
+          c.is_updated,
+          c.created_at,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
+          COALESCE(COUNT(r.rating_id), 0) AS total_votes
+      FROM comments c
+      LEFT JOIN ratings r ON c.comment_id = r.comment_id
+      WHERE c.user_id = $1
+      GROUP BY c.comment_id
+      ORDER BY c.created_at DESC;
+    `;
+
+    const { rows } = await pool.query(sql, [userId]);
+
+    return res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @desc    Get all comments from post ordered by popularity (likes + dislikes)
  * @route   GET /api/v1/comments/post/:postId/popular
  * @access  Private
