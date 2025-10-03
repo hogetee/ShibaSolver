@@ -7,7 +7,7 @@ const router = express.Router();
 //GET
 router.get('/me', requireAuth, commentsCtrl.getMyComments);
 router.get('/post/:postId/top', commentsCtrl.getTopComment);
-router.get('/post/:postId', requireAuth, commentsCtrl.getComments);
+router.get('/post/:postId', optionalAuth, commentsCtrl.getCommentsAccessControlled);
 router.get('/:id', requireAuth, commentsCtrl.getComment);
 
 //POST
