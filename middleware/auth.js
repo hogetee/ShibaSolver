@@ -17,7 +17,7 @@ exports.requireAuth = (req, res, next) => {
     }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: String(payload.uid) };
+    req.user = { uid: payload.uid };
     next();
   } catch (err) {
     return res.status(401).json({
@@ -36,7 +36,7 @@ exports.optionalAuth = (req, _res, next) => {
     else if (cookieToken) token = cookieToken;
     if (!token) return next();
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: String(payload.uid) };
+    req.user = { uid: payload.uid };
     next();
   } catch {
     next();

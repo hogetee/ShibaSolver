@@ -11,7 +11,7 @@ function isNonEmptyString(s) {
 exports.getMyComments = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
-    const userId = req.user.id; // มาจาก JWT middleware
+    const userId = req.user.uid; // มาจาก JWT middleware
 
     const sql = `
       SELECT 
@@ -208,7 +208,7 @@ exports.getComment = async (req, res, next) => {
 exports.createComment = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
-    const userId = req.user.id; // จาก JWT middleware
+    const userId = req.user.uid; // จาก JWT middleware
     const { post_id, text, parent_comment, comment_image } = req.body || {};
 
     // 1) validate input ขั้นพื้นฐาน
@@ -314,7 +314,7 @@ exports.editComment = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const commentId = Number(req.params.id);
-    const userId = req.user.id; // จาก JWT middleware
+    const userId = req.user.uid; // จาก JWT middleware
     const { text, comment_image } = req.body;
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
@@ -355,7 +355,7 @@ exports.deleteComment = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const commentId = Number(req.params.id);
-    const userId = req.user.id; // จาก JWT middleware
+    const userId = req.user.uid; // จาก JWT middleware
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
       return res.status(400).json({ success: false, message: "Invalid commentId" });
@@ -386,7 +386,7 @@ exports.deleteComment = async (req, res, next) => {
 exports.toggleMyCommentSolution = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
-    const userId = req.user.id;
+    const userId = req.user.uid;
     const { commentId } = req.params;
 
     const { rows } = await pool.query(
@@ -402,7 +402,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
 
     const comment = rows[0];
 
-    if (String(comment.user_id) !== String(userId)) {
+    if (comment.user_id !== userId) {
       return res.status(403).json({ success: false, error: 'You are not the owner of this comment' });
     }
 
@@ -435,7 +435,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
 exports.replyToComment = async (req, res, next) => {
   const client = await req.app.locals.pool.connect();
   try {
-    const actorUserId = req.user.id;
+    const actorUserId = req.user.uid;
     const { commentId } = req.params;         // parent comment id
     const { text, comment_image } = req.body;
 
@@ -524,7 +524,7 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
     let isPremium = false;
 
     if (req.user?.id) {
-      currentUserId = String(req.user.id);
+      currentUserId = String(req.user.uid);
       const u = await pool.query(
         `SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]
       );
