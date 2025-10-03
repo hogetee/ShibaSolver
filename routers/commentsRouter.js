@@ -5,7 +5,7 @@ const commentsCtrl = require('../controllers/commentsController');
 const router = express.Router();
 
 //GET
-router.get('/', commentsCtrl.getAllComments);
+router.get('/post/:postId/popular', requireAuth, commentsCtrl.getCommentsByPopularity);
 router.get('/:id', commentsCtrl.getComment);
 //POST
 router.post('/', requireAuth, commentsCtrl.createComment);
