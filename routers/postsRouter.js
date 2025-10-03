@@ -16,6 +16,6 @@ router.post("/", requireAuth,postsCtrl.createPost);
 router.put('/:postId', requireAuth, postsCtrl.editPost);
 
 //DELETE
-
+router.delete("/:postId", requireAuth, postsCtrl.deletePost);
 // export router
 module.exports = router;

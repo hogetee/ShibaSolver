@@ -104,6 +104,36 @@ exports.editPost = async (req, res, next) => {
   }
 }
 
+
+/**
+ * @desc    delete own post
+ * @route   DELETE /api/v1/posts/:postId
+ * @access  Private
+ */
+
+exports.deletePost = async (req, res, next) => {
+  try {
+    const user_id = req.user.uid; // user ID is from token
+    const postId = Number(req.params.postId);
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid postId" });
+    }
+    const pool = req.app.locals.pool;
+    const sql = `
+      DELETE FROM public.posts
+      WHERE post_id = $1 and user_id = $2 
+      RETURNING post_id`;
+
+    const { rows } = await pool.query(sql, [postId, user_id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Post not found or not authorized" });
+    }
+    return res.status(200).json({ success: true, message: "Post deleted", data: rows[0] });
+  } catch (e) {
+      next(e);
+  } 
+};
+
 /**
  * @desc    Refresh the feed
  * @route   GET /api/v1/posts/feed
