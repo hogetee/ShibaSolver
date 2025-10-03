@@ -49,6 +49,7 @@ export default function useUserPosts(username?: string | null): UseUserPostsResu
                 text: "This is very helpful! Remember to balance the hydrogens last.",
                 created_at: new Date().toISOString(),
                 likes: 15,
+                dislikes: 10,
                 author: {
                   user_id: "user-tee",
                   display_name: "Tee",

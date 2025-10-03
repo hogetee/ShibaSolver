@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react'; 
 
-interface Comment{
+export interface CommentData{
     id: string; // data type ไม่แน่ใจ
     author: {
         display_name: string;
@@ -16,7 +16,7 @@ interface Comment{
 }
 
 interface CommentProps{
-    comment: Comment;
+    commentData: CommentData;
 }
 
 const useCommentActions = (
@@ -140,9 +140,9 @@ const formatTimeAgo = (dateString: string) => {
 
 
 
-const CommentComponent = ({ comment }: CommentProps) => {
+const Comment= ({ commentData }: CommentProps) => {
     
-    const hasReplies = comment.Replies > 0;
+    const hasReplies = commentData.Replies > 0;
     
     const { 
         likes, 
@@ -154,14 +154,14 @@ const CommentComponent = ({ comment }: CommentProps) => {
         handleDislike, 
         handleMainReplyAction,
         handleCancelReply 
-    } = useCommentActions(comment.id, comment.likes, comment.dislikes);
+    } = useCommentActions(commentData.id, commentData.likes, commentData.dislikes);
 
     // กำหนดข้อความสำหรับปุ่ม Reply/View Replies
     let replyButtonLabel = 'Reply';
     if (hasReplies && isRepliesOpen) {
         replyButtonLabel = 'Hide replies';
     } else if (hasReplies) {
-        replyButtonLabel = `View ${comment.Replies} replies`;
+        replyButtonLabel = `View ${commentData.Replies} replies`;
     } 
 
     // กำหนดสีของ SVG icon ตามสถานะของผู้ใช้
@@ -171,15 +171,15 @@ const CommentComponent = ({ comment }: CommentProps) => {
     return (
         <div>
             <div className="flex items-start gap-3">
-                <img src={comment.author.profile_picture} alt={`${comment.author.display_name}'s avatar`} className="w-8 h-8 rounded-full" />
+                <img src={commentData.author.profile_picture} alt={`${commentData.author.display_name}'s avatar`} className="w-8 h-8 rounded-full" />
                 
                 <div className="flex-grow">
                     {/* Header และ Text Content */}
                     <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-dark-900">{comment.author.display_name}</span>
-                        <span className="text-xs text-gray-400">{formatTimeAgo(comment.created_at)}</span>
+                        <span className="font-semibold text-dark-900">{commentData.author.display_name}</span>
+                        <span className="text-xs text-gray-400">{formatTimeAgo(commentData.created_at)}</span>
                     </div>
-                    <p className="text-gray-600 mt-1 mb-2">{comment.text}</p>
+                    <p className="text-gray-600 mt-1 mb-2">{commentData.text}</p>
                     
                     {/* ACTION ROW */}
                     <div className="flex items-center justify-between text-gray-500">
@@ -275,4 +275,4 @@ const CommentComponent = ({ comment }: CommentProps) => {
     );
 };
 
-export default CommentComponent;
+export default Comment;
