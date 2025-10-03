@@ -12,6 +12,7 @@ router.get('/:id', requireAuth, commentsCtrl.getComment);
 
 //POST
 router.post('/', requireAuth, commentsCtrl.createComment);
+router.post('/:commentId/replies', requireAuth, commentsCtrl.replyToComment);
 
 //PUT
 router.put('/:id', requireAuth, commentsCtrl.editComment);

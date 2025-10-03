@@ -421,3 +421,58 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.replyToComment = async (req, res, next) => {
+  const client = await req.app.locals.pool.connect();
+  try {
+    const actorUserId = req.user.id;
+    const { commentId } = req.params;         // parent comment id
+    const { text, comment_image } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ success:false, error:'Text is required' });
+    }
+
+    await client.query('BEGIN');
+
+    // 1) หา parent (ถ้า hard delete ไปแล้ว จะไม่พบ)
+    const par = await client.query(
+      `SELECT comment_id, user_id AS parent_user_id, post_id
+       FROM comments
+       WHERE comment_id = $1`,
+      [commentId]
+    );
+    if (par.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success:false, error:'Parent comment not found' });
+    }
+    const parent = par.rows[0];
+
+    // 2) สร้าง reply (ผูก post เดียวกับ parent)
+    const ins = await client.query(
+      `INSERT INTO comments (user_id, post_id, parent_comment, text, comment_image, is_updated)
+       VALUES ($1, $2, $3, $4, $5, TRUE)
+       RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, is_solution, is_updated, created_at`,
+      [actorUserId, parent.post_id, commentId, text.trim(), comment_image || null]
+    );
+    const reply = ins.rows[0];
+
+    // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
+    if (String(parent.parent_user_id) !== String(actorUserId)) {
+      await client.query(
+        `INSERT INTO notifications
+         (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
+         VALUES ($1, $2, $3, $4, $5, 'reply')`,
+        [parent.parent_user_id, actorUserId, parent.post_id, reply.comment_id, parent.comment_id]
+      );
+    }
+
+    await client.query('COMMIT');
+    return res.status(201).json({ success:true, data: reply });
+  } catch (err) {
+    try { await client.query('ROLLBACK'); } catch (_) {}
+    next(err);
+  } finally {
+    client.release();
+  }
+};
