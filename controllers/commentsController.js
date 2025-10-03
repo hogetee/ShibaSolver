@@ -13,7 +13,6 @@ exports.getMyComments = async (req, res, next) => {
     const pool = req.app.locals.pool;
     const userId = req.user.uid; // จาก JWT middleware
 
-
     const sql = `
       SELECT 
           c.comment_id,
@@ -210,6 +209,7 @@ exports.createComment = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const userId = req.user.uid; // จาก JWT middleware
+    const userId = req.user.uid; // จาก JWT middleware
     const { post_id, text, parent_comment, comment_image } = req.body || {};
 
     // 1) validate input ขั้นพื้นฐาน
@@ -316,6 +316,7 @@ exports.editComment = async (req, res, next) => {
     const pool = req.app.locals.pool;
     const commentId = Number(req.params.id);
     const userId = req.user.uid; // จาก JWT middleware
+    const userId = req.user.uid; // จาก JWT middleware
     const { text, comment_image } = req.body;
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
@@ -356,6 +357,7 @@ exports.deleteComment = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const commentId = Number(req.params.id);
+    const userId = req.user.uid; // จาก JWT middleware
     const userId = req.user.uid; // จาก JWT middleware
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
