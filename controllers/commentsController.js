@@ -378,6 +378,11 @@ exports.deleteComment = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Toggle flag/unflag solution on a comment
+ * @route   PATCH /api/v1/comments/:commentId/solution
+ * @access  Private
+ */
 exports.toggleMyCommentSolution = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
@@ -422,6 +427,11 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Reply to a comment
+ * @route   POST /api/v1/comments/:commentId/replies
+ * @access  Private
+ */
 exports.replyToComment = async (req, res, next) => {
   const client = await req.app.locals.pool.connect();
   try {
@@ -477,6 +487,11 @@ exports.replyToComment = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get comments with access control (30-day / premium rules)
+ * @route   GET /api/v1/comments/post/:postId?sort=popular|latest|oldest|ratio
+ * @access  Public (optionalAuth)
+ */
 exports.getCommentsAccessControlled = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
