@@ -7,17 +7,17 @@ interface Props {
 
 function mapApiToPostData(api: any): DedicatedPostData {
   return {
-    post_id: api.id,
-    title: api.postTitle,
-    description: api.body,
-    post_image: api.imageUrl,
+    post_id: api.post_id,
+    title: api.title,
+    description: api.description,
+    post_image: api.post_image,
     is_solved: api.solved,
-    created_at: api.createdAt,
+    created_at: api.created_at,
     tags: api.tagList,
     author: {
-      user_id: api.authorInfo.id,
-      display_name: api.authorInfo.name,
-      profile_picture: api.authorInfo.avatar,
+      user_id: api.user_id,
+      display_name: api.username,
+      profile_picture: api.user_profile_picture,
     },
     stats: {
       likes: api.likesCount,
@@ -51,7 +51,7 @@ export default async function PostPage({ params }: PostPageProps) {
     </div>
   )
 }
-  */
+*/
 
 // Mock data for development/testing
  const mockPostData: DedicatedPostData = {
