@@ -1,5 +1,5 @@
 import BookmarkIcon from '@mui/icons-material/Bookmark';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+// import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import FlagIcon from '@mui/icons-material/Flag';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
@@ -44,7 +44,7 @@ const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
           className="text-gray-500 hover:text-yellow-400 cursor-pointer transition-colors"
           aria-label="Bookmark post"
         >
-          <BookmarkBorderIcon />
+          {/* <BookmarkBorderIcon /> */}
         </button>
 
         <button 

@@ -2,6 +2,7 @@ import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostAuthor from './PostAuthor';
 import TopComment from './TopComment';
+
 import { slugify } from '@/utils/slugify';
 import Link from 'next/link';
 
@@ -47,6 +48,7 @@ const Post = ({ postData }: PostProps) => {
   const href = `/post/${postData.post_id}/${slugify(postData.title)}`
 
   return (
+
     <Link href={href} className="block">
       <div className="w-full min-h-[30vh] bg-white cursor-pointer hover:shadow-2xl/15 rounded-2xl shadow-lg p-6 flex flex-col font-display">
         <div className="flex-grow">
@@ -68,6 +70,7 @@ const Post = ({ postData }: PostProps) => {
         )}
       </div>
     </Link>
+
   );
 };
 
