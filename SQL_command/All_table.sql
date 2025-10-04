@@ -80,6 +80,8 @@ CREATE TABLE IF NOT EXISTS comments (
     parent_comment BIGINT REFERENCES comments(comment_id) ON DELETE SET NULL,
     text           TEXT NOT NULL,
     comment_image  TEXT, 
+    is_solution    BOOLEAN DEFAULT FALSE,
+    is_updated     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
