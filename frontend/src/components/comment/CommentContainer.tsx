@@ -87,7 +87,7 @@ const MOCK_MAPPED_COMMENT_DATA: CommentData[] = [
         text: "This is a fantastic explanation! The Next.js fix was spot on. 👍",
         created_at: DATE_C1,
         likes: 45,
-        dislikes: 2,
+        dislikes: 0,
         Replies: 3,
     },
     {
@@ -128,9 +128,9 @@ export default async function CommentPostPage({ postId }: Props) {
   const initialComments = MOCK_MAPPED_COMMENT_DATA; // Using mock data for now
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-display mt-20 ">
+    <div className="min-h-screen  flex flex-col font-display mt-20 ">
       
-          {/* 2. The fetched data is passed as a prop to the Client Component */}
+
           <CommentSection initialComments={initialComments} />
      
     </div>

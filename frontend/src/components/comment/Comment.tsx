@@ -1,6 +1,17 @@
 
 import React, { useState } from 'react'; 
 
+import RecommendIcon from '@mui/icons-material/Recommend';
+import IconButton from '@mui/material/IconButton';
+import ReplyIcon from '@mui/icons-material/Reply';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import EditIcon from '@mui/icons-material/Edit';
+// import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
+
+
 export interface CommentData{
     id: string; // data type ไม่แน่ใจ
     author: {
@@ -33,6 +44,7 @@ const useCommentActions = (
     
     const [isRepliesOpen, setIsRepliesOpen] = useState(false);
     const [isReplying, setIsReplying] = useState(false); 
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const handleLike = () => {
         if (userLikeStatus === 'liked') {
@@ -74,21 +86,56 @@ const useCommentActions = (
         }
     };
 
-    // ฟังก์ชันหลักสำหรับการจัดการ Reply (เปิด Reply Input เสมอ และสลับ Replies ถ้ามี)
-    const handleMainReplyAction = (hasReplies: boolean) => {
-        
-        // 1. สลับการเปิด/ปิดช่องกรอก Reply ใหม่ เสมอ
-        setIsReplying(prev => !prev);
-        console.log(`[ACTION] Toggle New Reply Input for ID: ${commentId}`);
-        
-        // 2. ถ้ามี Replies อยู่แล้ว: สลับการแสดงผลรายการ Replies
-        if (hasReplies) {
-            setIsRepliesOpen(prev => !prev);
-            if (!isRepliesOpen) {
-                 console.log(`[ACTION] Fetching replies for comment ID: ${commentId}`);
-            }
+
+    const handleToggleReplies = () => {
+        setIsRepliesOpen(prev => !prev);
+        if (!isRepliesOpen) {
+            console.log(`[ACTION] Fetching replies for comment ID: ${commentId}`);
         }
     };
+
+    // ฟังก์ชันสำหรับเปิด/ปิดช่องกรอกเพื่อตอบกลับใหม่
+    const handleToggleNewReply = () => {
+        setIsReplying(prev => !prev);
+    };
+
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleEdit = () => {
+        handleMenuClose();
+        console.log(`[ACTION] Editing comment ID: ${commentId}`);
+    };
+
+    const handleDelete = () => {
+        handleMenuClose();
+        console.log(`[ACTION] Deleting comment ID: ${commentId}`);
+    };
+
+    const handleSetSolution = () => {
+        handleMenuClose();
+        console.log(`[ACTION] Setting solution for comment ID: ${commentId}`);
+    };
+
+    // const handleMainReplyAction = (hasReplies: boolean) => {
+        
+    //     // 1. สลับการเปิด/ปิดช่องกรอก Reply ใหม่ เสมอ
+    //     setIsReplying(prev => !prev);
+    //     console.log(`[ACTION] Toggle New Reply Input for ID: ${commentId}`);
+        
+    //     // 2. ถ้ามี Replies อยู่แล้ว: สลับการแสดงผลรายการ Replies
+    //     if (hasReplies) {
+    //         setIsRepliesOpen(prev => !prev);
+    //         if (!isRepliesOpen) {
+    //              console.log(`[ACTION] Fetching replies for comment ID: ${commentId}`);
+    //         }
+    //     }
+    // };
 
     const handleCancelReply = () => {
         // ฟังก์ชันสำหรับปุ่มยกเลิกในช่องกรอก (ปิดช่องกรอก)
@@ -100,10 +147,17 @@ const useCommentActions = (
         userLikeStatus, // สถานะใหม่
         isRepliesOpen, 
         isReplying,
+        anchorEl,
         handleLike, 
         handleDislike, 
-        handleMainReplyAction,
-        handleCancelReply 
+        handleToggleReplies,
+        handleToggleNewReply,
+        handleCancelReply,
+        handleMenuOpen,
+        handleMenuClose,
+        handleEdit,
+        handleDelete,
+        handleSetSolution,
     };
 }
 
@@ -131,7 +185,7 @@ const formatTimeAgo = (dateString: string) => {
 
         if(count >= 1){
             const unitName = count === 1 ? unit : unit + 's';
-            return '${count} ${unitName} ago';
+            return `${count} ${unitName} ago`;
         }
     }
 
@@ -150,10 +204,17 @@ const Comment= ({ commentData }: CommentProps) => {
         userLikeStatus, // ดึงสถานะใหม่
         isRepliesOpen, 
         isReplying,
+        anchorEl,
         handleLike, 
         handleDislike, 
-        handleMainReplyAction,
-        handleCancelReply 
+        handleToggleReplies,
+        handleToggleNewReply,
+        handleCancelReply, 
+        handleMenuOpen,
+        handleMenuClose,
+        handleEdit,
+        handleDelete,
+        handleSetSolution,
     } = useCommentActions(commentData.id, commentData.likes, commentData.dislikes);
 
     // กำหนดข้อความสำหรับปุ่ม Reply/View Replies
@@ -171,40 +232,41 @@ const Comment= ({ commentData }: CommentProps) => {
     return (
         <div>
             <div className="flex items-start gap-3">
-                <img src={commentData.author.profile_picture} alt={`${commentData.author.display_name}'s avatar`} className="w-8 h-8 rounded-full" />
+                <img src={commentData.author.profile_picture} alt={`${commentData.author.display_name}'s avatar`} className="w-10 h-10 rounded-full" />
                 
                 <div className="flex-grow">
                     {/* Header และ Text Content */}
-                    <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-dark-900">{commentData.author.display_name}</span>
-                        <span className="text-xs text-gray-400">{formatTimeAgo(commentData.created_at)}</span>
+                    <div className="flex items-baseline gap-3">
+                        <span className="font-semibold text-xl"style={{ color: '#865DFF' }}>{commentData.author.display_name}</span>
+                        <span className="text-base text-gray-400">{formatTimeAgo(commentData.created_at)}</span>
                     </div>
-                    <p className="text-gray-600 mt-1 mb-2">{commentData.text}</p>
+                    <p className="text-gray-600 my-1 text-base">{commentData.text}</p>
                     
                     {/* ACTION ROW */}
                     <div className="flex items-center justify-between text-gray-500">
-                        
-                        {/* === LEFT SIDE GROUP: ปุ่ม Reply / View Replies === */}
-                        <div className="flex items-center gap-4 text-sm font-medium">
-                            
-                            <button 
-                                className="text-blue-500 hover:text-blue-700 font-normal" 
-                                onClick={() => handleMainReplyAction(hasReplies)}
-                            >
-                                {replyButtonLabel}
-                            </button>
-                            
-                        </div>
-                        
-                        {/* === RIGHT SIDE GROUP: Like/Dislike Buttons and Count === */}
-                        <div className="flex items-center gap-2 text-gray-500">
+                        <div className="flex items-center gap-3 text-gray-500">
                             {/* Like Button */}
                             <button 
-                                className="p-1 rounded-full hover:bg-gray-100"
+                                className=" rounded-full hover:bg-gray-100"
                                 onClick={handleLike}
                                 aria-label="Like comment"
                             >
-                                <svg 
+                                <IconButton  
+                                    // 2. Set the color on the IconButton
+                                    color={userLikeStatus === 'liked' ? 'primary' : 'default'}
+                                    
+                                    aria-label="like button"
+                                    size="small"
+                                    >
+                                    {userLikeStatus === 'liked' ? (
+                                        // 3. Show the solid icon when liked
+                                        <RecommendIcon/>
+                                    ) : (
+                                        // 4. Show the outlined icon when not liked
+                                        <RecommendIcon/>
+                                    )}
+                                    </IconButton>
+                                {/* <svg 
                                     // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Like ที่ทำงานอยู่
                                     className={`w-4 h-4 cursor-pointer ${likeIconStyle}`} 
                                     xmlns="http://www.w3.org/2000/svg" 
@@ -216,9 +278,9 @@ const Comment= ({ commentData }: CommentProps) => {
                                     strokeLinejoin="round"
                                 >
                                     <path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a2 2 0 0 1 1.79 1.11L15 5.88Z" />
-                                </svg>
+                                </svg> */}
                             </button>
-                            <span className="text-sm font-bold">{likes}</span>
+                            <span className="text-base font-bold min-w-[1.25rem]">{likes > 0 ? likes : ''}</span>
                             
                             {/* Dislike Button */}
                             <button 
@@ -226,7 +288,16 @@ const Comment= ({ commentData }: CommentProps) => {
                                 onClick={handleDislike}
                                 aria-label="Dislike comment"
                             >
-                                <svg 
+                                  <IconButton
+
+                                    color={userLikeStatus === 'disliked' ? 'primary' : 'default'}
+                                    aria-label="Dislike comment"
+                                    size="small"
+                                    style={{ transform: 'scaleY(-1) scaleX(-1)' }}
+                                >
+                                    {userLikeStatus === 'disliked' ? <RecommendIcon/>: <RecommendIcon/>}
+                                </IconButton>
+                                {/* <svg 
                                     // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Dislike ที่ทำงานอยู่
                                     className={`w-4 h-4 cursor-pointer ${dislikeIconStyle}`} 
                                     xmlns="http://www.w3.org/2000/svg" 
@@ -238,12 +309,86 @@ const Comment= ({ commentData }: CommentProps) => {
                                     strokeLinejoin="round"
                                 >
                                     <path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a2 2 0 0 1-1.79-1.11L9 18.12Z" />
-                                </svg>
+                                </svg> */}
                             </button>
-                            <span className="text-sm font-bold">{dislikes}</span>
-                        </div>
-                    </div>
+                            <span className="text-base font-bold min-w-[1.25rem]">{dislikes > 0 ? dislikes : ''}</span>
 
+                            {/* Reply Button */}
+                            
+                            <button 
+                                className=" rounded-full hover:bg-gray-100"
+                                onClick={handleToggleNewReply}
+                                aria-label="New Reply"
+                            >
+                                  <IconButton
+
+                                    color={isReplying ? 'primary' : 'default'}
+                                    aria-label="Reply comment"
+                                    size="small"
+                                    style={isReplying ? { backgroundColor: '#1976d2', color: 'white' } : {}}
+    
+                                >
+                                    {isReplying ? <ReplyIcon/>: <ReplyIcon/>}
+                                </IconButton>
+                                {/* <svg 
+                                    // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Dislike ที่ทำงานอยู่
+                                    className={`w-4 h-4 cursor-pointer ${dislikeIconStyle}`} 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    viewBox="0 0 24 24" 
+                                    fill={userLikeStatus === 'disliked' ? 'currentColor' : 'none'} // ถ้า disliked ให้ fill
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                >
+                                    <path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a2 2 0 0 1-1.79-1.11L9 18.12Z" />
+                                </svg> */}
+                            </button>
+
+                            <IconButton
+                                aria-label="display more actions"
+                                onClick={handleMenuOpen}
+                                size="small"
+                            >
+                                <MoreHorizIcon fontSize="small" />
+                            </IconButton>
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl)}
+                                onClose={handleMenuClose}
+                            >
+                                <MenuItem onClick={handleEdit}>
+                                    <EditIcon sx={{ mr: 1 }} fontSize="small" />
+                                    Edit
+                                </MenuItem>
+                                <MenuItem onClick={handleDelete}>
+                                    {/* <DeleteForeverIcon sx={{ mr: 1 }} fontSize="small" /> */}
+                                    Delete
+                                </MenuItem>
+                                <MenuItem onClick={handleSetSolution}>
+                                    <LightbulbOutlinedIcon sx={{ mr: 1 }} fontSize="small" />
+                                    Solution
+                                </MenuItem>
+                            </Menu>
+
+
+                        </div>
+                     
+                        
+                        
+                        
+                        
+                    </div>
+                    {hasReplies && (
+                        <div className="mt-2">
+                             <button 
+                                className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
+                                onClick={handleToggleReplies}
+                             >
+                                {isRepliesOpen ? 'Hide replies' : `View ${commentData.Replies} replies`}
+                            </button>
+                        </div>
+                    )}
                     {/* Reply Input Section: เปิด/ปิด ด้วย isReplying */}
                     {isReplying && (
                         <div className="mt-4">
