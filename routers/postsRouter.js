@@ -13,7 +13,7 @@ router.post("/bookmarks", requireAuth, postsCtrl.addBookmark);
 router.post("/", requireAuth,postsCtrl.createPost);
 
 //PUT
-router.put('/:postId', requireAuth, postsCtrl.editPost);
+router.put('/:postId', requireAuth, postsCtrl.editPost)
 
 //DELETE
 router.delete("/:postId", requireAuth, postsCtrl.deletePost);
