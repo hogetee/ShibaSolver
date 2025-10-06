@@ -140,3 +140,13 @@ CREATE TABLE IF NOT EXISTS admin_actions (
     target_id   BIGINT NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-----------------------------------------------------------------------------------
+-- === Indexes ===
+CREATE UNIQUE INDEX IF NOT EXISTS ratings_user_post_unique
+    ON ratings(user_id, post_id)
+    WHERE post_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ratings_user_comment_unique
+    ON ratings(user_id, comment_id)
+    WHERE comment_id IS NOT NULL;
