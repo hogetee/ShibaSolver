@@ -108,11 +108,18 @@ const Comment = ({ commentData }: CommentProps) => {
                             </div>
                         </div>
                     )}
+                    {/* Replies Section: Opened by View Replies Toggle */}
+                    {isRepliesOpen && (
+                        <div className="mt-4 relative pl-8 ">
+                            {isRepliesOpen && (<div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>)}
+                            <p className="text-gray-500 italic">...Replies will be displayed here...</p>
+                        </div>
+                    )}
 
                     {/* View Replies Toggle */}
                     {hasReplies && (
                         <div className="mt-4 relative pl-8">
-                            <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>
+                            {!isRepliesOpen && (<div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>)}
                             <button
                                 className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
                                 onClick={handleToggleReplies}
@@ -124,12 +131,7 @@ const Comment = ({ commentData }: CommentProps) => {
                     
                     
 
-                    {/* Replies Section: Opened by View Replies Toggle */}
-                    {isRepliesOpen && (
-                        <div className="mt-4 ">
-                            <p className="text-gray-500 italic">...Replies will be displayed here...</p>
-                        </div>
-                    )}
+                    
                 </div>
             </div>
         </div>
