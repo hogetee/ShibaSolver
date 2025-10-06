@@ -1,5 +1,5 @@
 
-import Comment, { CommentData } from "@/components/comment/Comment";
+import { CommentData } from "@/components/comment/types";
 import CommentSection from "@/components/comment/CommentSection";
 
 
@@ -20,6 +20,7 @@ export function mapApiToCommentData(api: any): CommentData {
         likes: Number(api.likesCount || api.likes || 0),
         dislikes: Number(api.dislikesCount || api.dislikes || 0),
         Replies: Number(api.repliesCount || api.Replies || 0),
+        is_solution :Boolean(api.isSolution || 0),
     };
 }
 async function getComment(postId: string): Promise<CommentData[]> {
@@ -36,6 +37,85 @@ async function getComment(postId: string): Promise<CommentData[]> {
 
   return data.map(mapApiToCommentData)
 }
+
+
+
+
+// MOCK DATA
+const DATE_C1 = new Date(Date.now() - 1000 * 60 * 5).toISOString();
+const DATE_C2 = new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString();
+const DATE_C3 = new Date(Date.now() - 1000 * 60 * 1).toISOString();
+
+const MOCK_MAPPED_COMMENT_DATA: CommentData[] = [
+    {
+        id: "api_c101",
+        author: {
+            display_name: "CoderGuru_99",
+            profile_picture: "https://i.pravatar.cc/40?img=21",
+        },
+        text: "This is a fantastic explanation! The Next.js fix was spot on. 👍",
+        created_at: DATE_C1,
+        likes: 45,
+        dislikes: 0,
+        Replies: 3,
+        is_solution : true,
+    },
+    {
+        id: "api_c102",
+        author: {
+            display_name: "ReactFanatic",
+            profile_picture: "https://i.pravatar.cc/40?img=15",
+        },
+        text: "I disagree with using Client Components here. This could have been entirely server-rendered with a little more thought.",
+        created_at: DATE_C2,
+        likes: 18,
+        dislikes: 10,
+        Replies: 0,
+        is_solution : false,
+    },
+    {
+        id: "api_c103",
+        author: {
+            display_name: "NewbieDev",
+            profile_picture: "https://i.pravatar.cc/40?img=50",
+        },
+        text: "First time here. Love this community!",
+        created_at: DATE_C3,
+        likes: 0, // Mapped from missing fields using || 0
+        dislikes: 0, // Mapped from missing fields using || 0
+        Replies: 0, // Mapped from missing fields using || 0
+        is_solution : false,
+    },
+];
+
+
+
+export default async function CommentPostPage({ postId }: Props) {
+
+
+
+  // For a real app
+  // const initialComments = await getComment(postId); 
+
+  const initialComments = MOCK_MAPPED_COMMENT_DATA; // Using mock data for now
+
+  return (
+    <div className="min-h-screen  flex flex-col font-display mt-10 ">
+      
+
+          <CommentSection initialComments={initialComments} />
+     
+    </div>
+  );
+}
+
+
+
+
+
+
+
+
 
 
 // async function getCommentData(postId: string): Promise<CommentData[]> {
@@ -72,70 +152,8 @@ async function getComment(postId: string): Promise<CommentData[]> {
 // }
 // You can use the exact date strings from the mock API response for accurate comparison in tests.
 
-// MOCK DATA
-const DATE_C1 = new Date(Date.now() - 1000 * 60 * 5).toISOString();
-const DATE_C2 = new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString();
-const DATE_C3 = new Date(Date.now() - 1000 * 60 * 1).toISOString();
-
-const MOCK_MAPPED_COMMENT_DATA: CommentData[] = [
-    {
-        id: "api_c101",
-        author: {
-            display_name: "CoderGuru_99",
-            profile_picture: "https://i.pravatar.cc/40?img=21",
-        },
-        text: "This is a fantastic explanation! The Next.js fix was spot on. 👍",
-        created_at: DATE_C1,
-        likes: 45,
-        dislikes: 0,
-        Replies: 3,
-    },
-    {
-        id: "api_c102",
-        author: {
-            display_name: "ReactFanatic",
-            profile_picture: "https://i.pravatar.cc/40?img=15",
-        },
-        text: "I disagree with using Client Components here. This could have been entirely server-rendered with a little more thought.",
-        created_at: DATE_C2,
-        likes: 18,
-        dislikes: 10,
-        Replies: 0,
-    },
-    {
-        id: "api_c103",
-        author: {
-            display_name: "NewbieDev",
-            profile_picture: "https://i.pravatar.cc/40?img=50",
-        },
-        text: "First time here. Love this community!",
-        created_at: DATE_C3,
-        likes: 0, // Mapped from missing fields using || 0
-        dislikes: 0, // Mapped from missing fields using || 0
-        Replies: 0, // Mapped from missing fields using || 0
-    },
-];
 
 
-
-export default async function CommentPostPage({ postId }: Props) {
-
-
-
-  // For a real app
-  // const initialComments = await getComment(postId); 
-
-  const initialComments = MOCK_MAPPED_COMMENT_DATA; // Using mock data for now
-
-  return (
-    <div className="min-h-screen  flex flex-col font-display mt-20 ">
-      
-
-          <CommentSection initialComments={initialComments} />
-     
-    </div>
-  );
-}
 // export default async function CommentPostPage({ postId }: Props) {
 //   const [comments, setComments] = useState<CommentData[]>([]);
 //   // State to handle loading status

@@ -1,8 +1,8 @@
 "use client"; 
 
 import { useState } from 'react';
-import Comment,{ CommentData } from "@/components/comment/Comment";
-
+import Comment from "@/components/comment/Comment";
+import { CommentData } from '@/components/comment/types';
 
 interface Props {
   initialComments: CommentData[];
