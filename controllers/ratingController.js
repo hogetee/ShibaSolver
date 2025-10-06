@@ -168,7 +168,11 @@ exports.getSummaryBatch = async (req, res) => {
     }
 };
 
-
+/**
+ * @desc    get ShibaMeter (trust ratio) for a user based on their solution comments
+ * @route   GET /api/v1/users/:username/shibameter
+ * @access  Public
+ */
 exports.getShibaMeter = async (req, res) => {
     try {
         const pool = req.app.locals.pool;
