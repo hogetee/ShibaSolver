@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import MultiSelectSubject from './MultiSelectSubject'; //  <--- 1. Import component ใหม่
+import MultiSelectSubject from './MultiSelectSubject';
 
-//  <--- 2. อัปเดต Interface
 export interface NewPostData {
   title: string;
-  subjects: string[]; // เปลี่ยนจาก subject (string) เป็น subjects (array of strings)
+  subjects: string[];
   details: string;
 }
 
@@ -13,7 +12,6 @@ interface CreatePostModalProps {
   onPostSubmit: (data: NewPostData) => void;
 }
 
-//  <--- 3. สร้าง Array ของวิชา
 const subjectOptions = [
   "Math", "Physics", "Chemistry", "Biology", "History", "Geography", 
   "Economics", "Law", "Thai", "English", "Chinese", "Programming", "Others"
@@ -21,18 +19,18 @@ const subjectOptions = [
 
 const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
   const [title, setTitle] = useState('');
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]); //  <--- 4. เปลี่ยน State
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedSubjects.length === 0) { //  <--- 5. อัปเดตเงื่อนไข
+    if (selectedSubjects.length === 0) {
       alert("Please select at least one subject.");
       return;
     }
     setIsSubmitting(true);
-    const newPostData: NewPostData = { title, subjects: selectedSubjects, details }; //  <--- 6. อัปเดตข้อมูลที่จะส่ง
+    const newPostData: NewPostData = { title, subjects: selectedSubjects, details };
     await new Promise(resolve => setTimeout(resolve, 1000));
     onPostSubmit(newPostData);
     setIsSubmitting(false);
@@ -40,14 +38,27 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
   };
 
   return (
+    // Backdrop (พื้นหลัง) - ไม่มี onClick แล้ว
     <div 
-      onClick={onClose} 
       className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm backdrop-brightness-30"
     >
+      {/* Modal Panel (กล่อง Pop-up สีขาว) */}
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-xl bg-white p-8 shadow-xl"
       >
+        {/* ปุ่มกากบาท (X) ที่เพิ่มเข้ามาใหม่ */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+          aria-label="Close modal"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         <h2 className="text-3xl font-bold mb-6">Create Post</h2>
         
         <form onSubmit={handleSubmit}>
@@ -67,9 +78,8 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
           </div>
 
-          {/* Subject Select (ส่วนที่แก้ไข) */}
-          <div className="mb-4">
-             {/* <--- 7. แทนที่ <select> ด้วย Component ใหม่ */}
+          {/* Subject Select */}
+          <div className="mb-9">
             <MultiSelectSubject
               options={subjectOptions}
               selected={selectedSubjects}
@@ -78,7 +88,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
             />
           </div>
 
-          {/* ... Details Textarea and Buttons ... */}
+          {/* Details Textarea */}
           <div className="mb-6">
             <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">Details</label>
             <textarea
@@ -93,6 +103,8 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
             />
             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
           </div>
+          
+          {/* Buttons */}
           <div className="flex items-center justify-between">
             <button 
               type="button" 
