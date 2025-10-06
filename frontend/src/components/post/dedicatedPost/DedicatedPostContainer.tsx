@@ -23,6 +23,8 @@ function mapApiToPostData(api: any): DedicatedPostData {
       likes: api.likesCount,
       dislikes: api.dislikesCount,
     },
+    liked_by_user: api.liked_by_user,
+    disliked_by_user: api.disliked_by_user,
   }
 }
 
@@ -71,12 +73,14 @@ export default async function PostPage({ params }: PostPageProps) {
     likes: 120,
     dislikes: 5,
   },
+  liked_by_user: false,
+  disliked_by_user: true,
 }
 
 export default async function PostPage({ postId }: Props) {
   // const postData = await getPost(postId)
   const postData = mockPostData
 
-  return <DedicatedPost postData={postData} />
+  return <DedicatedPost dedicatedPostData={postData} />
 }
   
