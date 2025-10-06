@@ -402,9 +402,9 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
 
     const comment = rows[0];
 
-    if (comment.user_id !== userId) {
-      return res.status(403).json({ success: false, error: 'You are not the owner of this comment' });
-    }
+    if (Number(comment.user_id) !== Number(userId)) {
+  return res.status(403).json({ success: false, error: 'You are not the owner of this comment' });
+}
 
     const newValue = !comment.is_solution;
 
@@ -461,7 +461,7 @@ exports.replyToComment = async (req, res, next) => {
     // 2) สร้าง reply (ผูก post เดียวกับ parent)
     const ins = await client.query(
       `INSERT INTO comments (user_id, post_id, parent_comment, text, comment_image, is_updated)
-       VALUES ($1, $2, $3, $4, $5, TRUE)
+       VALUES ($1, $2, $3, $4, $5, FALSE)
        RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, is_solution, is_updated, created_at`,
       [actorUserId, parent.post_id, commentId, text.trim(), comment_image || null]
     );
@@ -517,19 +517,16 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
     if (postQ.rowCount === 0) {
       return res.status(404).json({ success:false, message:'Post not found' });
     }
-    const post = postQ.rows[0];
-    const isRecent = !!post.is_recent_bkk;
+const post = postQ.rows[0];
+const isRecent = !!post.is_recent;   // ← alias ตรงกับ SQL
 
-    let currentUserId = null;
-    let isPremium = false;
+let currentUserId = req.user?.uid ?? null;
+let isPremium = false;
 
-    if (req.user?.id) {
-      currentUserId = req.user.uid;
-      const u = await pool.query(
-        `SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]
-      );
-      if (u.rowCount === 1) isPremium = !!u.rows[0].is_premium;
-    }
+if (currentUserId) {
+  const u = await pool.query(`SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]);
+  if (u.rowCount === 1) isPremium = !!u.rows[0].is_premium;
+}
 
     if (!currentUserId && !isRecent) {
       return res.status(200).json({
