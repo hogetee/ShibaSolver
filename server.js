@@ -10,6 +10,7 @@ const postsRouter = require("./routers/postsRouter");
 const feedRouter = require("./routers/feedRouter");
 const authRouter = require("./routers/authRouter");
 const commentsRouter = require("./routers/commentsRouter");
+const ratingRouter = require("./routers/ratingRouter");
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -39,6 +40,7 @@ app.use(
   app.use("/api/v1/posts", postsRouter);
   app.use("/api/v1/feeds", feedRouter);
   app.use("/api/v1/comments", commentsRouter);
+  app.use("/api/v1/ratings", ratingRouter);
 
   const PORT = process.env.PORT || 5000;
 
