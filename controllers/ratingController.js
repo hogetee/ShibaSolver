@@ -72,8 +72,14 @@ exports.unrate = async (req, res, next) => {
         const user_id = req.user.uid;
 
         const { target_type, target_id } = req.body;
-        assert(target_type === 'post' || target_type === 'comment', "target_type must be 'post' or 'comment'");
-        assert(Number.isInteger(target_id) && target_id > 0, "target_id must be a positive integer");
+
+        // ----- Validate input -----
+        if (!["post", "comment"].includes(target_type)) {
+            return res.status(400).json({ success: false, message: "target_type must be 'post' or 'comment'" });
+        }
+        if (!Number.isInteger(target_id) || target_id <= 0) {
+            return res.status(400).json({ success: false, message: "Invalid target_id" });
+        }
 
         const isPost = target_type === 'post';
 
@@ -115,7 +121,9 @@ exports.getSummaryBatch = async (req, res) => {
     try {
         const pool = req.app.locals.pool;
         const { target_type, ids } = req.query;
-        const user_id = req.user.uid
+        const user_id = req.user?.uid || null;
+
+        // ----- Validate input -----
 
         if (!["post", "comment"].includes(target_type)) {
         return res.status(400).json({ success: false, message: "target_type must be 'post' or 'comment'" });
@@ -154,6 +162,48 @@ exports.getSummaryBatch = async (req, res) => {
 
         const { rows } = await pool.query(sql, [idList, user_id]);
         return res.status(200).json({ success: true, target_type, data: rows });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+
+exports.getShibaMeter = async (req, res) => {
+    try {
+        const pool = req.app.locals.pool;
+        const {username} = req.params;
+        if (!/^[\w-]+$/.test(username)) return res.status(400).json({ success:false, message:'Invalid username' });
+
+        const userID = await pool.query(
+            `SELECT user_id FROM public.users WHERE user_name = $1`, [username]
+        );
+        if (userID.rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
+        
+        const sql = `SELECT
+            COUNT(DISTINCT c.comment_id) AS solution_comment_count,
+            COALESCE(SUM(CASE WHEN r.rating_type = 'like'    THEN 1 ELSE 0 END), 0) AS likes,
+            COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
+            COALESCE(SUM(CASE WHEN r.rating_type IN ('like','dislike') THEN 1 ELSE 0 END), 0) AS total_ratings,
+            -- ratio 0..1 (NULL if no ratings)
+            CASE
+            WHEN COALESCE(SUM(CASE WHEN r.rating_type IN ('like','dislike') THEN 1 END), 0) = 0
+                THEN NULL
+            ELSE ROUND(
+                COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0)::numeric
+                / NULLIF(
+                    COALESCE(SUM(CASE WHEN r.rating_type IN ('like','dislike') THEN 1 ELSE 0 END), 0), 0
+                ),
+                4
+            )
+            END AS trust_ratio
+        FROM comments c
+        LEFT JOIN ratings r ON r.comment_id = c.comment_id
+        WHERE c.user_id = $1 AND c.is_solution = TRUE;
+        `;
+        const { rows } = await pool.query(sql, [userID.rows[0].user_id]);
+        const trust_percentage = rows[0].trust_ratio === null ? 0 : Number((Number(rows[0].trust_ratio) * 100).toFixed(2));
+        return res.status(200).json({ success: true, username, shibaMeter: trust_percentage });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ success: false, message: "Server error" });
