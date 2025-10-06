@@ -1,6 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Sarabun&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Afacad&display=swap");
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -31,4 +34,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .select-placeholder {
+    color: theme('colors.gray.400');
+  }
+  .select-placeholder option {
+    color: theme('colors.gray.900');
+  }
 }

@@ -6,6 +6,9 @@ import Link from 'next/link';
 import React, {useEffect, useState} from "react";
 import { Notifications } from '@mui/icons-material';
 
+import CreatePostButton from '@/components/post/CreatePostButton';
+import CreatePostModal, { NewPostData } from '@/components/post/CreatePostModal'; 
+
 // ใน sprint ถัดๆไป ส่วนนี้จะเป็นการ fetch จาก API 
 async function getPostData(): Promise<PostData[]> {
   const mockData: PostData[] = [
@@ -109,6 +112,7 @@ export default function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [posts, setPosts] = useState<PostData[]>([]);
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // const posts = await getPostData();
   // const notifications = await getNotificationData();
@@ -122,8 +126,31 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // --- ฟังก์ชันสำหรับเพิ่ม Post ใหม่เข้าไปใน State ---
+  const handleCreatePost = (newPostData: NewPostData) => {
+    const newPost: PostData = {
+      // สร้างข้อมูล Post ใหม่จากข้อมูลที่ได้จากฟอร์ม
+      post_id: `post-${Date.now()}`, // สร้าง ID ชั่วคราว
+      title: newPostData.title,
+      description: newPostData.details,
+      tags: newPostData.subjects,
+      is_solved: false,
+      created_at: new Date().toISOString(),
+      author: { // ข้อมูลผู้ใช้จำลอง (ในอนาคตจะมาจากข้อมูลผู้ใช้ที่ล็อกอิน)
+        user_id: "current-user",
+        display_name: "Me",
+        profile_picture: "/image/DefaultAvatar.png",
+      },
+      stats: { likes: 0, dislikes: 0 },
+      topComment: undefined,
+    };
+
+    // เพิ่มโพสต์ใหม่เข้าไปด้านบนสุดของ Array
+    setPosts(prevPosts => [newPost, ...prevPosts]);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-display">
+    <div className="relative min-h-screen bg-gray-50 flex flex-col font-display">
         
       {/* Notification toggle Button */}
       <button
@@ -172,6 +199,18 @@ export default function Home() {
           </Link>
         </aside>
       </div>
+            {/* --- ส่วนที่เพิ่มเข้ามา --- */}
+      {/* ปุ่มสำหรับเปิด Modal */}
+      <CreatePostButton onClick={() => setIsModalOpen(true)} />
+
+      {/* Modal จะแสดงก็ต่อเมื่อ isModalOpen เป็น true */}
+      {isModalOpen && (
+        <CreatePostModal 
+          onClose={() => setIsModalOpen(false)}
+          onPostSubmit={handleCreatePost} 
+        />
+      )}
+
     </div>
   );
 }
