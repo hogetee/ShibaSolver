@@ -18,7 +18,7 @@ async function getPostData(): Promise<PostData[]> {
       description: "I need help with these chemical equations. I'm stuck on balancing the atoms.",
       is_solved: true,
       created_at: new Date().toISOString(),
-      tags: ["Science"],
+      tags: ["Chemistry"],
       post_image: "/image/mock-chemical-equation.png",
       author: {
         user_id: "Nano109",
