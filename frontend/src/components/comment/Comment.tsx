@@ -9,6 +9,7 @@ import { DislikeButton } from '@/components/comment/DislikeButton';
 import { ReplyButton } from '@/components/comment/ReplyButton';
 import { MoreActionsMenu } from '@/components/comment/MoreActionsMenu';
 import { SolutionTag } from './SolutionTag';
+import CreateComment from './CreateComment';
 
 const Comment = ({ commentData }: CommentProps) => {
 
@@ -93,8 +94,8 @@ const Comment = ({ commentData }: CommentProps) => {
                     {/* Reply Input Section: Opened by ReplyButton */}
                     {isReplying && (
                         <div className="mt-4 ">
-                            <div className="flex items-start gap-2">
-                                {/* Placeholder for user avatar */}
+                            {/* <div className="flex items-start gap-2">
+                                //user avatar
                                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
                                 <input
                                     type="text"
@@ -105,7 +106,8 @@ const Comment = ({ commentData }: CommentProps) => {
                             <div className="flex justify-end gap-2 mt-2">
                                 <button onClick={handleCancelReply} className="text-sm px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-full">Cancel</button>
                                 <button onClick={handleCreateNewReply} disabled className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full opacity-50">Reply</button>
-                            </div>
+                            </div> */}
+                            <CreateComment placeholder="Write your reply..." />
                         </div>
                     )}
                     {/* Replies Section: Opened by View Replies Toggle */}
