@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import MultiSelectSubject from './MultiSelectSubject';
+import { PostData } from '@/components/post/Post';
 
 export interface NewPostData {
   title: string;
@@ -9,7 +10,7 @@ export interface NewPostData {
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onPostSubmit: (data: NewPostData) => void;
+  onPostSubmit: (newPost: PostData) => void;
 }
 
 const subjectOptions = [
@@ -30,24 +31,57 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
       return;
     }
     setIsSubmitting(true);
-    const newPostData: NewPostData = { title, subjects: selectedSubjects, details };
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    onPostSubmit(newPostData);
-    setIsSubmitting(false);
-    onClose(); 
+
+    const payload = {
+      title: title,
+      description: details,
+      tags: selectedSubjects,
+      post_image: null 
+    };
+
+    try {
+      const response = await fetch('/api/v1/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': `Bearer YOUR_AUTH_TOKEN` 
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Something went wrong');
+      }
+
+      const responseData = await response.json();
+
+      const createdPost: PostData = {
+        ...responseData.data,
+        tags: responseData.tags,
+      };
+      
+      onPostSubmit(createdPost);
+      onClose();
+
+    } catch (error) {
+  console.error("Failed to create post:", error);
+  let errorMessage = "An unexpected error occurred.";
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  }
+  alert(`Failed to create post: ${errorMessage}`);
+    }finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    // Backdrop (พื้นหลัง) - ไม่มี onClick แล้ว
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm backdrop-brightness-30"
-    >
-      {/* Modal Panel (กล่อง Pop-up สีขาว) */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm backdrop-brightness-30">
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-xl bg-white p-8 shadow-xl"
       >
-        {/* ปุ่มกากบาท (X) ที่เพิ่มเข้ามาใหม่ */}
         <button
           type="button"
           onClick={onClose}
@@ -58,9 +92,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-
         <h2 className="text-3xl font-bold mb-6">Create Post</h2>
-        
         <form onSubmit={handleSubmit}>
           {/* Title Input */}
           <div className="mb-4">
@@ -79,7 +111,8 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
           </div>
 
           {/* Subject Select */}
-          <div className="mb-9">
+          <div className="mb-4">
+            <label htmlFor="subject-multiselect" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
             <MultiSelectSubject
               options={subjectOptions}
               selected={selectedSubjects}
@@ -89,7 +122,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
           </div>
 
           {/* Details Textarea */}
-          <div className="mb-6">
+          <div className="mb-4">
             <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">Details</label>
             <textarea
               id="details"
@@ -105,7 +138,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
           </div>
           
           {/* Buttons */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-6">
             <button 
               type="button" 
               className="flex items-center gap-2 rounded-md border border-gray-400 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
