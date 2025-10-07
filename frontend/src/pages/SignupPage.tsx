@@ -1,6 +1,3 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
 import ShibaIcon from '@/components/auth/ShibaIcon';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import GuestContinueButton from '@/components/auth/GuestContinueButton';
