@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from "react";
 
-import { useRouter } from 'next/navigation';
 
 // Reuse existing building blocks from the edit_profile set
-import TextInput from '@/components/edit_profile/TextInput';
-import TextArea from '@/components/edit_profile/TextArea';
-import SelectDropdown from '@/components/edit_profile/SelectDropdown';
-import Checkbox from '@/components/edit_profile/CheckBox';
-import ProfilePicture from '@/components/edit_profile/ProfilePicture';
+import TextInput from "@/components/edit_profile/TextInput";
+import TextArea from "@/components/edit_profile/TextArea";
+import SelectDropdown from "@/components/edit_profile/SelectDropdown";
+import Checkbox from "@/components/edit_profile/CheckBox";
+import ProfilePicture from "@/components/edit_profile/ProfilePicture";
+
+import { useRegisterForm } from "@/hooks/useRegisterForm";
 
 type Initial = {
   username?: string;
@@ -26,137 +27,51 @@ type Props = {
 
 // Example options (match styling of existing components)
 const subjects = [
-  { name: 'Math', color: 'blue' },
-  { name: 'Physics', color: 'green' },
-  { name: 'Chemistry', color: 'purple' },
-  { name: 'Biology', color: 'red' },
-  { name: 'English', color: 'orange' },
-  { name: 'History', color: 'gray' },
+  { name: "Math", color: "blue" },
+  { name: "Physics", color: "green" },
+  { name: "Chemistry", color: "purple" },
+  { name: "Biology", color: "red" },
+  { name: "English", color: "orange" },
+  { name: "History", color: "gray" },
 ];
 
-const educationLevels = ['High School', 'Undergraduate', 'Graduate', 'Other'];
+const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
 function apiBase(): string {
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
 }
 
 export default function RegisterForm({ initial = {} }: Props) {
-  const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    username: initial.username || '',
-    displayName: initial.displayName || '',
-    bio: initial.bio || '',
-    education: initial.education || '',
-    subjects: initial.subjects || ([] as any[]),
-    agree: false,
-    profilePic: initial.profilePic || null as null | string,
-  });
-
-
-  const [errors, setErrors] = useState<{ username: boolean; displayName: boolean; submit: string; agree?: boolean }>({ username: false, displayName: false, submit: '', agree: false });
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target as any;
-    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-
-    if (name === 'agree') {
-      setErrors((prev) => ({ ...prev, agree: false, submit: '' }));
-    }
-    if (name === 'username') {
-      setUsernameStatus(value.trim() ? 'checking' : 'idle');
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        checkUsername(value.trim());
-      }, 500);
-    }
-  };
-
-  const checkUsername = async (username: string) => {
-    if (!username) { setUsernameStatus('idle'); return; }
-    // Client-side pattern check to match backend validation
-    const valid = /^[\w-]{3,20}$/.test(username);
-    if (!valid) { setUsernameStatus('error'); return; }
-    try {
-      const res = await fetch(`${apiBase()}/api/v1/users/${encodeURIComponent(username)}`);
-      if (res.status === 404) setUsernameStatus('available');
-      else if (res.ok) setUsernameStatus('taken');
-      else setUsernameStatus('error');
-    } catch {
-      setUsernameStatus('error');
-    }
-
-  };
-
-  const handleSubjectsChange = (selected: any[]) => {
-    setFormData((prev) => ({ ...prev, subjects: selected }));
-  };
-
-  const handleProfilePicChange = (fileOrUrl: any) => {
-    setFormData((prev) => ({ ...prev, profilePic: fileOrUrl }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors = {
-
-      username: !formData.username.trim() || usernameStatus === 'taken' || usernameStatus === 'error' || usernameStatus === 'checking',
-      displayName: !formData.displayName.trim(),
-      submit: '',
-      agree: !formData.agree,
-    };
-    setErrors(newErrors);
-    if (newErrors.username || newErrors.displayName || newErrors.agree) return;
-
-
-    const payload = {
-      user_name: formData.username.trim(),
-      display_name: formData.displayName.trim(),
-      bio: formData.bio || null,
-      education_level: formData.education || null,
-      interested_subjects: (formData.subjects || []).map((s: any) =>
-        typeof s === 'string' ? s : s?.name
-      ),
-      profile_picture: typeof formData.profilePic === 'string' ? formData.profilePic : null,
-    };
-
-    try {
-      const res = await fetch(`${apiBase()}/api/v1/users`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ new_data: payload }),
-      });
-      const json = await res.json();
-
-      if (!json.success) {
-        const msg = (json?.error?.message as string) || (json?.message as string) || 'Could not save profile';
-        setErrors((prev) => ({ ...prev, submit: msg }));
-        return;
-      }
-
-      const username = json.data?.user_name || payload.user_name;
-      if (username) localStorage.setItem('username', username);
-      router.push(`/user/${username}`);
-    } catch (err) {
-      setErrors((prev) => ({ ...prev, submit: 'Network error. Please try again.' }));
-    }
-  };
+  const {
+    formData,
+    errors,
+    usernameStatus,
+    handleChange,
+    handleSubjectsChange,
+    handleProfilePicChange,
+    handleEducationChange,
+    handleSubmit,
+  } = useRegisterForm({ initial });
 
   return (
     <div className="p-5 rounded-2xl w-[65%] flex flex-col gap-6 font-display">
-      <div className="text-center text-6xl font-medium text-dark-900">Set up your profile</div>
+      <div className="text-center text-6xl font-medium text-dark-900">
+        Set up your profile
+      </div>
 
-      <form onSubmit={handleSubmit} className="bg-[var(--color-accent-200)] p-5 rounded-3xl min-h-[700px] flex flex-col gap-5">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-[var(--color-accent-200)] p-5 rounded-3xl min-h-[700px] flex flex-col gap-5"
+      >
         <TextInput
-          label={<>
-            Username
-            <span className="ml-2 text-sm font-normal text-gray-600">3–20 chars (A-Z, a-z, 1234567890, _ or -)</span>
-          </>}
-
+          label={
+            <>
+              Username
+              <span className="ml-2 text-sm font-normal text-gray-600">
+                3–20 chars (A-Z, a-z, 1234567890, _ or -)
+              </span>
+            </>
+          }
           name="username"
           value={formData.username}
           onChange={handleChange}
@@ -168,13 +83,22 @@ export default function RegisterForm({ initial = {} }: Props) {
         {/* Username availability feedback */}
         {formData.username && (
           <div className="text-sm">
-            {usernameStatus === 'checking' && <span className="text-gray-500">Checking availability…</span>}
-            {usernameStatus === 'available' && <span className="text-green-600">Username is available</span>}
-            {usernameStatus === 'taken' && <span className="text-red-600">Username is already taken</span>}
-            {usernameStatus === 'error' && <span className="text-red-600">Use 3–20 letters, numbers, _ or -</span>}
+            {usernameStatus === "checking" && (
+              <span className="text-gray-500">Checking availability…</span>
+            )}
+            {usernameStatus === "available" && (
+              <span className="text-green-600">Username is available</span>
+            )}
+            {usernameStatus === "taken" && (
+              <span className="text-red-600">Username is already taken</span>
+            )}
+            {usernameStatus === "error" && (
+              <span className="text-red-600">
+                Use 3–20 letters, numbers, _ or -
+              </span>
+            )}
           </div>
         )}
-
 
         <TextInput
           label="Display Name"
@@ -197,20 +121,22 @@ export default function RegisterForm({ initial = {} }: Props) {
         <div className="flex gap-6">
           <div className="flex flex-col gap-5 w-2/3">
             <div className="flex flex-col">
-
-              <label className="font-semibold text-dark-900">Education level</label>
+              <label className="font-semibold text-dark-900">
+                Education level
+              </label>
 
               <SelectDropdown
                 options={educationLevels}
                 value={formData.education as any}
-                onChange={(val: string) => setFormData((prev) => ({ ...prev, education: val }))}
+                onChange={handleEducationChange}
                 placeholder="Select your education level"
               />
             </div>
 
             <div className="flex flex-col">
-
-              <label className="font-semibold text-dark-900">Interested Subject(s)</label>
+              <label className="font-semibold text-dark-900">
+                Interested Subject(s)
+              </label>
 
               <SelectDropdown
                 options={subjects}
@@ -224,7 +150,10 @@ export default function RegisterForm({ initial = {} }: Props) {
 
           {/* Right side - Profile Picture */}
           <div className="w-1/3 flex justify-center mt-5">
-            <ProfilePicture value={formData.profilePic as any} onChange={handleProfilePicChange} />
+            <ProfilePicture
+              value={formData.profilePic as any}
+              onChange={handleProfilePicChange}
+            />
           </div>
         </div>
 
@@ -234,26 +163,44 @@ export default function RegisterForm({ initial = {} }: Props) {
               name="agree"
               checked={formData.agree as any}
               onChange={handleChange as any}
-              label={<>Agree to <a href="#" className="text-blue-600 underline">Terms & Agreements</a></>}
+              label={
+                <>
+                  Agree to{" "}
+                  <a href="#" className="text-blue-600 underline">
+                    Terms & Agreements
+                  </a>
+                </>
+              }
             />
             {errors.agree && (
-              <div className="text-red-600 text-sm mt-1">You Must Agree to Terms & Agreements to Signup</div>
+              <div className="text-red-600 text-sm mt-1">
+                You Must Agree to Terms & Agreements to Signup
+              </div>
             )}
           </div>
 
           <button
             type="submit"
-            disabled={usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error'}
+            disabled={
+              usernameStatus === "taken" ||
+              usernameStatus === "checking" ||
+              usernameStatus === "error"
+            }
             className={`bg-accent-600 text-white px-4 py-2 rounded cursor-pointer ${
-              usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'error' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent-600/80'
+              usernameStatus === "taken" ||
+              usernameStatus === "checking" ||
+              usernameStatus === "error"
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-accent-600/80"
             }`}
           >
             Submit
           </button>
-
         </div>
 
-        {errors.submit && <div className="text-red-600 text-sm mt-2">{errors.submit}</div>}
+        {errors.submit && (
+          <div className="text-red-600 text-sm mt-2">{errors.submit}</div>
+        )}
       </form>
     </div>
   );
