@@ -15,8 +15,18 @@ exports.getPost = async (req, res, next) => {
 
     // Get post with author info
     const postSql = `
-      SELECT p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,
-      u.user_id AS poster_id
+      SELECT 
+        p.post_id,
+        p.title,
+        p.description,
+        p.post_image,
+        p.is_solved,
+        p.created_at,
+        json_build_object(
+          'user_id', u.user_id,
+          'display_name', u.display_name,
+          'profile_picture', u.profile_picture
+        ) AS author
       FROM posts p
       JOIN users u ON u.user_id = p.user_id
       WHERE p.post_id = $1
