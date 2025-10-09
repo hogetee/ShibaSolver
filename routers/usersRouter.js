@@ -1,12 +1,14 @@
 const express = require("express");
 const usersCtrl = require("../controllers/usersController");
 const { requireAuth } = require("../middleware/auth");
+const { getShibaMeter } = require("../controllers/ratingController");
 
 const router = express.Router();
 
 //GET
 router.get("/", usersCtrl.getAllUsers);
 router.get("/:username", usersCtrl.getUser);
+router.get("/:username/shibameter", getShibaMeter);
 //POST
 
 //PUT
