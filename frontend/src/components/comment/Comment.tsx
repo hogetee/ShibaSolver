@@ -9,6 +9,7 @@ import { DislikeButton } from '@/components/comment/DislikeButton';
 import { ReplyButton } from '@/components/comment/ReplyButton';
 import { MoreActionsMenu } from '@/components/comment/MoreActionsMenu';
 import { SolutionTag } from './SolutionTag';
+import CommentContent from './CommentContent';
 
 const Comment = ({ commentData }: CommentProps) => {
 
@@ -22,6 +23,9 @@ const Comment = ({ commentData }: CommentProps) => {
         isReplying,
         anchorEl,
         isSolution,
+        isEditing,
+        draftContent,
+        displayContent,
         handleLike,
         handleDislike,
         handleToggleReplies,
@@ -53,7 +57,11 @@ const Comment = ({ commentData }: CommentProps) => {
                         </div>
                         {isSolution && <SolutionTag />}
                     </div>
-                    <p className="text-gray-600 my-1 text-base">{commentData.text}</p>
+                    {!isEditing ? (
+                        <CommentContent content={displayContent ? displayContent : { text: commentData.text }} />
+                    ) : (
+                        <CommentContent content={draftContent ? draftContent : { text: commentData.text }} />
+                    )} // turn the other one into input
                     {/* ACTION ROW (Using individual imported components) */}
                     <div className="flex items-center justify-between text-gray-500">
                         <div className="flex items-center gap-3 text-gray-500">

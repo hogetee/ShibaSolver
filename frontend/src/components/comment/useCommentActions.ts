@@ -1,28 +1,6 @@
 import { useState } from 'react';
-import { UserLikeStatus } from '@/components/comment/types'; 
-
-
-
-interface CommentActions {
-    likes: number;
-    dislikes: number;
-    userLikeStatus: UserLikeStatus;
-    isRepliesOpen: boolean;
-    isReplying: boolean;
-    anchorEl: null | HTMLElement;
-    isSolution: boolean;
-    handleLike: () => void;
-    handleDislike: () => void;
-    handleToggleReplies: () => void;
-    handleToggleNewReply: () => void;
-    handleCancelReply: () => void;
-    handleCreateNewReply : () => void;
-    handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
-    handleMenuClose: () => void;
-    handleEdit: () => void;
-    handleDelete: () => void;
-    handleSetSolution: () => void;
-}
+import { CommentContent, UserLikeStatus } from '@/components/comment/types'; 
+import { CommentActions } from '@/components/comment/types';
 
 export const useCommentActions = (
     commentId: string,
@@ -39,6 +17,10 @@ export const useCommentActions = (
     const [isReplying, setIsReplying] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [isSolution, setIsSolution] = useState(initialSolution);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [draftContent, setDraftContent] = useState<CommentContent | null>(null);
+    const [displayContent, setDisplayContent] = useState<CommentContent | null>(null);
 
     const handleLike = () => {
         if (userLikeStatus === 'liked') {
@@ -108,6 +90,7 @@ export const useCommentActions = (
     const handleEdit = () => {
         handleMenuClose();
         console.log(`[ACTION] Editing comment ID: ${commentId}`);
+        setIsEditing(true);
     };
 
     const handleDelete = () => {
@@ -132,6 +115,9 @@ export const useCommentActions = (
         isReplying,
         anchorEl,
         isSolution,
+        isEditing,
+        draftContent,
+        displayContent,
         handleLike,
         handleDislike,
         handleToggleReplies,

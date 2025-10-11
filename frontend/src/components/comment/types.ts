@@ -13,6 +13,11 @@ export interface CommentData {
     is_solution : boolean;
 }
 
+export interface CommentContent {
+    text: string;
+    // possibly more field in the future such as imgs
+}
+
 export type UserLikeStatus = 'none' | 'liked' | 'disliked';
 
 export interface CommentProps {
@@ -33,6 +38,30 @@ export interface ReplyButtonProps {
 
 export interface MoreActionsButtonProps {
     anchorEl: null | HTMLElement;
+    handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
+    handleMenuClose: () => void;
+    handleEdit: () => void;
+    handleDelete: () => void;
+    handleSetSolution: () => void;
+}
+
+export interface CommentActions {
+    likes: number;
+    dislikes: number;
+    userLikeStatus: UserLikeStatus;
+    isRepliesOpen: boolean;
+    isReplying: boolean;
+    anchorEl: null | HTMLElement;
+    isSolution: boolean;
+    isEditing: boolean;
+    draftContent: CommentContent | null;
+    displayContent: CommentContent | null;
+    handleLike: () => void;
+    handleDislike: () => void;
+    handleToggleReplies: () => void;
+    handleToggleNewReply: () => void;
+    handleCancelReply: () => void;
+    handleCreateNewReply : () => void;
     handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
     handleMenuClose: () => void;
     handleEdit: () => void;
