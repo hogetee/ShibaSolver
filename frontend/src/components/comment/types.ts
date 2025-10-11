@@ -65,6 +65,8 @@ export interface CommentActions {
     handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
     handleMenuClose: () => void;
     handleEdit: () => void;
+    handleSaveEdit: (newContent: CommentContent) => void;
+    handleCancelEdit: () => void;
     handleDelete: () => void;
     handleSetSolution: () => void;
 }

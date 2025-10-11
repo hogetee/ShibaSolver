@@ -93,6 +93,18 @@ export const useCommentActions = (
         setIsEditing(true);
     };
 
+    const handleSaveEdit = (newContent: CommentContent) => {
+        setDisplayContent(newContent);
+        setDraftContent(newContent);
+        setIsEditing(false);
+        console.log(`[ACTION] Saved edited content for comment ID: ${commentId}`, newContent);
+        // TODO: API call to save edited content
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+    };
+    
     const handleDelete = () => {
         handleMenuClose();
         console.log(`[ACTION] Deleting comment ID: ${commentId}`);
@@ -127,8 +139,9 @@ export const useCommentActions = (
         handleMenuOpen,
         handleMenuClose,
         handleEdit,
+        handleSaveEdit,
+        handleCancelEdit,
         handleDelete,
         handleSetSolution,
-        
     };
 }
