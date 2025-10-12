@@ -80,6 +80,8 @@ CREATE TABLE IF NOT EXISTS comments (
     parent_comment BIGINT REFERENCES comments(comment_id) ON DELETE SET NULL,
     text           TEXT NOT NULL,
     comment_image  TEXT, 
+    is_solution    BOOLEAN DEFAULT FALSE,
+    is_updated     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -138,3 +140,13 @@ CREATE TABLE IF NOT EXISTS admin_actions (
     target_id   BIGINT NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-----------------------------------------------------------------------------------
+-- === Indexes ===
+CREATE UNIQUE INDEX IF NOT EXISTS ratings_user_post_unique
+    ON ratings(user_id, post_id)
+    WHERE post_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ratings_user_comment_unique
+    ON ratings(user_id, comment_id)
+    WHERE comment_id IS NOT NULL;

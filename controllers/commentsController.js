@@ -11,7 +11,8 @@ function isNonEmptyString(s) {
 exports.getMyComments = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
-    const userId = req.user.uid; // มาจาก JWT middleware
+    const userId = req.user.uid; // จาก JWT middleware
+
 
     const sql = `
       SELECT 

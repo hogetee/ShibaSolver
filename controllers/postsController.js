@@ -2,10 +2,9 @@
  * @desc    Get a single post by ID
  * @route   GET /api/v1/posts/:id
  * @access  Private
- * @return {post_id, title, description, post_image, is_solved, created_at, poster_id}
- * }
+ * @return {post_id, title, description, post_image, is_solved, created_at, poster_id, tags: []}
  */
-exports.getPost = async (req, res,next) => {
+exports.getPost = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const postId = Number(req.params.postId);
@@ -14,10 +13,20 @@ exports.getPost = async (req, res,next) => {
       return res.status(400).json({ success: false, message: "Invalid postId" });
     }
 
-    //request the post with author info
+    // Get post with author info
     const postSql = `
-      SELECT p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,
-      u.user_id AS poster_id
+      SELECT 
+        p.post_id,
+        p.title,
+        p.description,
+        p.post_image,
+        p.is_solved,
+        p.created_at,
+        json_build_object(
+          'user_id', u.user_id,
+          'display_name', u.display_name,
+          'profile_picture', u.profile_picture
+        ) AS author
       FROM posts p
       JOIN users u ON u.user_id = p.user_id
       WHERE p.post_id = $1
@@ -29,9 +38,17 @@ exports.getPost = async (req, res,next) => {
     }
     const post = postRes.rows[0];
 
-    return res.status(200).json({ success: true, data: post});
+    // Get tags
+    const tagSql = `
+      SELECT t.tag_name FROM post_tags pt
+      JOIN tags t ON t.tag_id = pt.tag_id
+      WHERE pt.post_id = $1
+    `;
+    const tagRes = await pool.query(tagSql, [postId]);
+    post.tags = tagRes.rows.map(row => row.tag_name);
 
-  }catch (e) {
+    return res.status(200).json({ success: true, data: post });
+  } catch (e) {
     next(e);
   }
 };
@@ -41,73 +58,157 @@ exports.getPost = async (req, res,next) => {
  * @desc    Create a new post
  * @route   POST /api/v1/posts
  * @access  Private
- * @request {user_id, title, description, post_image}
+ * @request {user_id, title, description, post_image, tags: [tag1, tag2, ...]}
  */
 exports.createPost = async (req, res, next) => {
+  const pool = req.app.locals.pool;
+  const client = await pool.connect();
   try {
-    const user_id = req.user.uid; // user ID is from token
-    const { title, description, post_image } = req.body;
+    const user_id = req.user.uid;
+    const { title, description, post_image, tags } = req.body;
 
     if (!title || !description) {
       return res.status(400).json({ success: false, message: "Title and description are required" });
     }
+    if (!Array.isArray(tags) || tags.length === 0) {
+      return res.status(400).json({ success: false, message: "Tags must be a non-empty array" });
+    }
 
-    const pool = req.app.locals.pool;
+    await client.query("BEGIN");
+
+    // Check if all tags exist
+    const tagCheckSql = `SELECT tag_name FROM public.tags WHERE tag_name = ANY($1)`;
+    const { rows: foundTags } = await client.query(tagCheckSql, [tags]);
+    const foundTagNames = foundTags.map(row => row.tag_name);
+    const missingTags = tags.filter(tag => !foundTagNames.includes(tag));
+    if (missingTags.length > 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        success: false,
+        message: `Tag(s) do not exist: ${missingTags.join(", ")}`
+      });
+    }
+
+    // Insert post
     const sql = `
       INSERT INTO public.posts (user_id, title, description, post_image)
       VALUES ($1, $2, $3, $4)
       RETURNING post_id, user_id, title, description, post_image, created_at
     `;
-    const { rows } = await pool.query(sql, [user_id, title, description, post_image || null]);
+    const { rows } = await client.query(sql, [user_id, title, description, post_image || null]);
+    const post = rows[0];
 
-    return res.status(201).json({ success: true, data: rows[0] });
+    // Insert tags
+    const tagInsertSql = `
+      INSERT INTO public.post_tags (post_id, tag_id)
+      SELECT $1, tag_id FROM public.tags WHERE tag_name = ANY($2)
+      ON CONFLICT (post_id, tag_id) DO NOTHING
+    `;
+    await client.query(tagInsertSql, [post.post_id, tags]);
+
+    await client.query("COMMIT");
+    return res.status(201).json({ success: true, data: post, tags: tags });
   } catch (e) {
+    await client.query("ROLLBACK");
     next(e);
+  } finally {
+    client.release();
   }
 };
 
 /**
- * @desc    Edit a post
+ * @desc    Edit a post and update its tags
  * @route   PUT /api/v1/posts/:id
  * @access  Private
- * @request {title, description, post_image, is_solved}
+ * @request {title, description, post_image, is_solved, tags: [tag1, tag2, ...]}
  */
 exports.editPost = async (req, res, next) => {
   try {
     const user_id = req.user.uid; // user ID is from token
     const postId = Number(req.params.postId);
-    const { title, description, post_image, is_solved } = req.body;
+    const { title, description, post_image, is_solved, tags } = req.body;
     if (!Number.isInteger(postId) || postId <= 0) {
       return res.status(400).json({ success: false, message: "Invalid postId" });
     }
-    const pool = req.app.locals.pool;
-    const sql = `
-      UPDATE public.posts
-      SET 
-        title = COALESCE($2, title),
-        description = COALESCE($3, description),
-        post_image = COALESCE($4, post_image),
-        is_solved = COALESCE($5, is_solved)
-      WHERE post_id = $1 AND user_id = $6
-      RETURNING post_id, user_id, title, description, post_image, is_solved, created_at
-    `;
-    const { rows } = await pool.query(sql, [postId, 
-                                            title ?? null, 
-                                            description ?? null, 
-                                            post_image ?? null, 
-                                            is_solved ?? false, 
-                                            user_id]
-                                      );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Post not found or not authorized" });
+    if (!Array.isArray(tags) || tags.length === 0) {
+      return res.status(400).json({ success: false, message: "Tags must be a non-empty array" });
     }
-    return res.status(200).json({ success: true, data: rows[0] });
+    const pool = req.app.locals.pool;
+
+    // Start transaction
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      // Update post fields
+      const sql = `
+        UPDATE public.posts
+        SET 
+          title = COALESCE($2, title),
+          description = COALESCE($3, description),
+          post_image = COALESCE($4, post_image),
+          is_solved = COALESCE($5, is_solved)
+        WHERE post_id = $1 AND user_id = $6
+        RETURNING post_id, user_id, title, description, post_image, is_solved, created_at
+      `;
+      const { rows } = await client.query(sql, [
+        postId,
+        title ?? null,
+        description ?? null,
+        post_image ?? null,
+        is_solved ?? false,
+        user_id,
+      ]);
+      if (rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ success: false, message: "Post not found or not authorized" });
+      }
+
+      
+      // Check if all tags exist
+      const tagCheckSql = `
+        SELECT tag_name FROM public.tags WHERE tag_name = ANY($1)
+      `;
+      const { rows: foundTags } = await client.query(tagCheckSql, [tags]);
+      const foundTagNames = foundTags.map(row => row.tag_name);
+      const missingTags = tags.filter(tag => !foundTagNames.includes(tag));
+
+      if (missingTags.length > 0) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          success: false,
+          message: `Tag(s) do not exist: ${missingTags.join(", ")}`
+        });
+      }
+
+      // Delete old tags
+      await client.query(
+        `DELETE FROM public.post_tags WHERE post_id = $1`,
+        [postId]
+      );
+
+      // Insert new tags (if any)
+      if (tags.length > 0) {
+        const tagInsertSql = `
+          INSERT INTO public.post_tags (post_id, tag_id)
+          SELECT $1, tag_id FROM public.tags WHERE tag_name = ANY($2)
+          ON CONFLICT (post_id, tag_id) DO NOTHING
+        `;
+        await client.query(tagInsertSql, [postId, tags]);
+      }
+
+      await client.query("COMMIT");
+      return res.status(200).json({ success: true, data: rows[0], tags: tags });
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (e) {
     next(e);
   }
-}
-
+};
 
 /**
  * @desc    delete own post
