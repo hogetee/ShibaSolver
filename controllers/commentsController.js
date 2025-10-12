@@ -377,3 +377,238 @@ exports.deleteComment = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * @desc    Toggle flag/unflag solution on a comment
+ * @route   PATCH /api/v1/comments/:commentId/solution
+ * @access  Private
+ */
+exports.toggleMyCommentSolution = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const userId = req.user.uid;
+    const { commentId } = req.params;
+
+    const { rows } = await pool.query(
+      `SELECT comment_id, user_id, is_solution
+       FROM comments
+       WHERE comment_id = $1`,
+      [commentId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Comment not found' });
+    }
+
+    const comment = rows[0];
+
+    if (Number(comment.user_id) !== Number(userId)) {
+  return res.status(403).json({ success: false, error: 'You are not the owner of this comment' });
+}
+
+    const newValue = !comment.is_solution;
+
+    const update = await pool.query(
+      `UPDATE comments
+       SET is_solution = $1,
+           is_updated  = TRUE
+       WHERE comment_id = $2
+       RETURNING comment_id, user_id, is_solution, is_updated, created_at`,
+      [newValue, commentId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: update.rows[0]
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc    Reply to a comment
+ * @route   POST /api/v1/comments/:commentId/replies
+ * @access  Private
+ */
+exports.replyToComment = async (req, res, next) => {
+  const client = await req.app.locals.pool.connect();
+  try {
+    const actorUserId = req.user.uid;
+    const { commentId } = req.params;         // parent comment id
+    const { text, comment_image } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ success:false, error:'Text is required' });
+    }
+
+    await client.query('BEGIN');
+
+    // 1) หา parent (ถ้า hard delete ไปแล้ว จะไม่พบ)
+    const par = await client.query(
+      `SELECT comment_id, user_id AS parent_user_id, post_id
+       FROM comments
+       WHERE comment_id = $1`,
+      [commentId]
+    );
+    if (par.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success:false, error:'Parent comment not found' });
+    }
+    const parent = par.rows[0];
+
+    // 2) สร้าง reply (ผูก post เดียวกับ parent)
+    const ins = await client.query(
+      `INSERT INTO comments (user_id, post_id, parent_comment, text, comment_image, is_updated)
+       VALUES ($1, $2, $3, $4, $5, FALSE)
+       RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, is_solution, is_updated, created_at`,
+      [actorUserId, parent.post_id, commentId, text.trim(), comment_image || null]
+    );
+    const reply = ins.rows[0];
+
+    // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
+    if (parent.parent_user_id !== actorUserId) {
+      await client.query(
+        `INSERT INTO notifications
+         (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
+         VALUES ($1, $2, $3, $4, $5, 'reply')`,
+        [parent.parent_user_id, actorUserId, parent.post_id, reply.comment_id, parent.comment_id]
+      );
+    }
+
+    await client.query('COMMIT');
+    return res.status(201).json({ success:true, data: reply });
+  } catch (err) {
+    try { await client.query('ROLLBACK'); } catch (_) {}
+    next(err);
+  } finally {
+    client.release();
+  }
+};
+
+/**
+ * @desc    Get comments with access control (30-day / premium rules)
+ * @route   GET /api/v1/comments/post/:postId?sort=popular|latest|oldest|ratio
+ * @access  Public (optionalAuth)
+ */
+exports.getCommentsAccessControlled = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const postId = Number(req.params.postId);
+    const sort = (req.query.sort || 'latest').toLowerCase();
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success:false, message:'Invalid postId' });
+    }
+
+    const postQ = await pool.query(
+      `SELECT 
+         p.post_id,
+         p.created_at,
+         CASE 
+            WHEN p.created_at >= (now() - interval '30 days')
+            THEN TRUE ELSE FALSE
+            END AS is_recent
+       FROM posts p
+       WHERE p.post_id = $1
+       LIMIT 1`,
+      [postId]
+    );
+    if (postQ.rowCount === 0) {
+      return res.status(404).json({ success:false, message:'Post not found' });
+    }
+const post = postQ.rows[0];
+const isRecent = !!post.is_recent;   // ← alias ตรงกับ SQL
+
+let currentUserId = req.user?.uid ?? null;
+let isPremium = false;
+
+if (currentUserId) {
+  const u = await pool.query(`SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]);
+  if (u.rowCount === 1) isPremium = !!u.rows[0].is_premium;
+}
+
+    if (!currentUserId && !isRecent) {
+      return res.status(200).json({
+        success: true,
+        restricted: true,
+        reason: 'LOGIN_REQUIRED',
+        data: []
+      });
+    }
+    if (currentUserId && !isRecent && !isPremium) {
+      return res.status(200).json({
+        success: true,
+        restricted: true,
+        reason: 'PREMIUM_REQUIRED',
+        data: []
+      });
+    }
+
+    let orderBy = `created_at DESC, comment_id DESC`;
+  switch (sort) {
+    case 'popular':
+      orderBy = `total_votes DESC, created_at ASC, comment_id ASC`;
+      break;
+    case 'oldest':
+      orderBy = `created_at ASC, comment_id ASC`;
+      break;
+    case 'ratio':
+      orderBy = `ratio DESC NULLS LAST, total_votes DESC, created_at ASC`;
+      break;
+    case 'latest':
+    default:
+      orderBy = `created_at DESC, comment_id DESC`;
+      break;
+  }
+
+    const filterSolutionsForAnonymous = (!currentUserId && isRecent);
+
+    const sql = `
+      WITH agg AS (
+        SELECT 
+          c.comment_id,
+          c.user_id,
+          c.post_id,
+          c.parent_comment,
+          c.text,
+          c.comment_image,
+          c.is_solution,
+          c.is_updated,
+          c.created_at,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
+          COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
+        FROM comments c
+        LEFT JOIN ratings r ON c.comment_id = r.comment_id
+        WHERE c.post_id = $1
+        GROUP BY c.comment_id
+      )
+      SELECT
+        comment_id, user_id, post_id, parent_comment, text, comment_image,
+        is_solution, is_updated, created_at,
+        likes, dislikes,
+        (likes + dislikes) AS total_votes,
+        CASE WHEN (likes + dislikes) > 0 THEN (likes::decimal / (likes + dislikes)) ELSE NULL END AS ratio
+      FROM agg
+      ${filterSolutionsForAnonymous ? `WHERE is_solution = FALSE` : ``}
+      ORDER BY ${orderBy};
+    `;
+
+    const { rows } = await pool.query(sql, [postId]);
+
+    return res.status(200).json({
+      success: true,
+      restricted: false,
+      reason: null,
+      post: {
+        post_id: post.post_id,
+        created_at: post.created_at,
+        is_recent_30d_bangkok: isRecent
+      },
+      count: rows.length,
+      data: rows
+    });
+  } catch (err) {
+    next(err);
+  }
+};
