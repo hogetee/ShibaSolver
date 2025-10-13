@@ -22,6 +22,8 @@ export const useCommentActions = (
     const [draftContent, setDraftContent] = useState<CommentContent | null>(null);
     const [displayContent, setDisplayContent] = useState<CommentContent | null>(null);
 
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const handleLike = () => {
         if (userLikeStatus === 'liked') {
             setLikes(prev => prev - 1);
@@ -104,6 +106,15 @@ export const useCommentActions = (
     const handleCancelEdit = () => {
         setIsEditing(false);
     };
+
+    const handleDeleteModalOpen = () => {
+        setIsDeleteModalOpen(true);
+        handleMenuClose();
+    }
+
+    const handleDeleteModalClose = () => {
+        setIsDeleteModalOpen(false);
+    }
     
     const handleDelete = () => {
         handleMenuClose();
@@ -130,6 +141,7 @@ export const useCommentActions = (
         isEditing,
         draftContent,
         displayContent,
+        isDeleteModalOpen,
         handleLike,
         handleDislike,
         handleToggleReplies,
@@ -141,6 +153,8 @@ export const useCommentActions = (
         handleEdit,
         handleSaveEdit,
         handleCancelEdit,
+        handleDeleteModalOpen,
+        handleDeleteModalClose,
         handleDelete,
         handleSetSolution,
     };

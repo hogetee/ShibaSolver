@@ -43,6 +43,8 @@ export interface MoreActionsButtonProps {
     handleEdit: () => void;
     handleDelete: () => void;
     handleSetSolution: () => void;
+    handleDeleteModalOpen: () => void;
+    handleDeleteModalClose: () => void;
 }
 
 export interface CommentActions {
@@ -56,6 +58,7 @@ export interface CommentActions {
     isEditing: boolean;
     draftContent: CommentContent | null;
     displayContent: CommentContent | null;
+    isDeleteModalOpen: boolean;
     handleLike: () => void;
     handleDislike: () => void;
     handleToggleReplies: () => void;
@@ -67,6 +70,8 @@ export interface CommentActions {
     handleEdit: () => void;
     handleSaveEdit: (newContent: CommentContent) => void;
     handleCancelEdit: () => void;
+    handleDeleteModalOpen: () => void;
+    handleDeleteModalClose: () => void;
     handleDelete: () => void;
     handleSetSolution: () => void;
 }

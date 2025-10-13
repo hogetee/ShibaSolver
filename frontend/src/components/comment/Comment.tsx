@@ -1,193 +1,247 @@
+import React from "react";
+import { CommentProps } from "./types";
+import { useCommentActions } from "@/components/comment/useCommentActions";
+import { formatTimeAgo } from "@/components/comment/utils";
 
-import React from 'react';
-import { CommentProps } from './types'; 
-import { useCommentActions } from '@/components/comment/useCommentActions';
-import { formatTimeAgo } from '@/components/comment/utils';
+import { LikeButton } from "@/components/comment/LikeButton";
+import { DislikeButton } from "@/components/comment/DislikeButton";
+import { ReplyButton } from "@/components/comment/ReplyButton";
+import { MoreActionsMenu } from "@/components/comment/MoreActionsMenu";
+import { SolutionTag } from "./SolutionTag";
+import CommentContent from "./CommentContent";
+import CommentEditor from "./CommentEditor";
 
-import { LikeButton } from '@/components/comment/LikeButton';
-import { DislikeButton } from '@/components/comment/DislikeButton';
-import { ReplyButton } from '@/components/comment/ReplyButton';
-import { MoreActionsMenu } from '@/components/comment/MoreActionsMenu';
-import { SolutionTag } from './SolutionTag';
-import CommentContent from './CommentContent';
-import CommentEditor from './CommentEditor';
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "@/theme/theme";
 
 const Comment = ({ commentData }: CommentProps) => {
+  const hasReplies = commentData.Replies > 0;
 
-    const hasReplies = commentData.Replies > 0;
+  const {
+    likes,
+    dislikes,
+    userLikeStatus,
+    isRepliesOpen,
+    isReplying,
+    anchorEl,
+    isSolution,
+    isEditing,
+    draftContent,
+    displayContent,
+    isDeleteModalOpen,
+    handleLike,
+    handleDislike,
+    handleToggleReplies,
+    handleToggleNewReply,
+    handleCancelReply,
+    handleCreateNewReply,
+    handleMenuOpen,
+    handleMenuClose,
+    handleEdit,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleDeleteModalOpen,
+    handleDeleteModalClose,
+    handleDelete,
+    handleSetSolution,
+  } = useCommentActions(
+    commentData.id,
+    commentData.likes,
+    commentData.dislikes,
+    commentData.is_solution
+  );
 
-    const {
-        likes,
-        dislikes,
-        userLikeStatus,
-        isRepliesOpen,
-        isReplying,
-        anchorEl,
-        isSolution,
-        isEditing,
-        draftContent,
-        displayContent,
-        handleLike,
-        handleDislike,
-        handleToggleReplies,
-        handleToggleNewReply,
-        handleCancelReply,
-        handleCreateNewReply,
-        handleMenuOpen,
-        handleMenuClose,
-        handleEdit,
-        handleSaveEdit,
-        handleCancelEdit,
-        handleDelete,
-        handleSetSolution,
-    } = useCommentActions(commentData.id, commentData.likes, commentData.dislikes, commentData.is_solution);
+  return (
+    <div>
+      <div className="flex items-start gap-3 relative">
+        {hasReplies && (
+          <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
+        )}
+        <img
+          src={commentData.author.profile_picture}
+          alt={`${commentData.author.display_name}'s avatar`}
+          className="w-10 h-10 rounded-full"
+        />
 
-    return (
-        <div>
-            <div className="flex items-start gap-3 relative">
-                {hasReplies && (
-                    <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
-                )}
-                <img src={commentData.author.profile_picture} alt={`${commentData.author.display_name}'s avatar`} className="w-10 h-10 rounded-full" />
-
-                <div className="flex-grow">
-                    {/* Header and Text Content */}
-                    <div className = "flex items-baseline justify-between">
-                        <div className="flex items-baseline  gap-3">
-                            <span className="font-semibold text-xl" style={{ color: '#865DFF' }}>{commentData.author.display_name}</span>
-                            <span className="text-base text-gray-400">{formatTimeAgo(commentData.created_at)}</span>
-                            
-                        </div>
-                        {isSolution && <SolutionTag />}
-                    </div>
-                    {isEditing ? (
-                        <CommentEditor
-                            initialContent={displayContent ? displayContent : { text: commentData.text }}
-                            onSave={handleSaveEdit}
-                            onCancel={handleCancelEdit}
-                        />
-                    ) : (
-                        <CommentContent content={draftContent ? draftContent : { text: commentData.text }} />
-                    )} 
-                    {/* turn the other one into input */}
-                    {/* ACTION ROW (Using individual imported components) */}
-                    <div className="flex items-center justify-between text-gray-500">
-                        <div className="flex items-center gap-3 text-gray-500">
-                            
-                            {/* 1. Like Button */}
-                            <LikeButton 
-                                count={likes} 
-                                userStatus={userLikeStatus} 
-                                onClick={handleLike} 
-                            />
-
-                            {/* 2. Dislike Button */}
-                            <DislikeButton 
-                                count={dislikes} 
-                                userStatus={userLikeStatus} 
-                                onClick={handleDislike} 
-                            />
-                            <div className="flex items-center gap-7">
-                            {/* 3. Reply Button */}
-                                <ReplyButton 
-                                    isReplying={isReplying} 
-                                    onClick={handleToggleNewReply} 
-                                />
-
-                                {/* 4. More Actions Menu */}
-                                <MoreActionsMenu
-                                    anchorEl={anchorEl}
-                                    handleMenuOpen={handleMenuOpen}
-                                    handleMenuClose={handleMenuClose}
-                                    handleEdit={handleEdit}
-                                    handleDelete={handleDelete}
-                                    handleSetSolution={handleSetSolution}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    {/* Reply Input Section: Opened by ReplyButton */}
-                    {isReplying && (
-                        <div className="mt-4 ">
-                            <div className="flex items-start gap-2">
-                                {/* Placeholder for user avatar */}
-                                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
-                                <input
-                                    type="text"
-                                    placeholder="Write your reply..."
-                                    className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
-                                />
-                            </div>
-                            <div className="flex justify-end gap-2 mt-2">
-                                <button onClick={handleCancelReply} className="text-sm px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-full">Cancel</button>
-                                <button onClick={handleCreateNewReply} disabled className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full opacity-50">Reply</button>
-                            </div>
-                        </div>
-                    )}
-                    {/* Replies Section: Opened by View Replies Toggle */}
-                    {isRepliesOpen && (
-                        <div className="mt-4 relative pl-8 ">
-                            {isRepliesOpen && (<div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>)}
-                            <p className="text-gray-500 italic">...Replies will be displayed here...</p>
-                        </div>
-                    )}
-
-                    {/* View Replies Toggle */}
-                    {hasReplies && (
-                        <div className="mt-4 relative pl-8">
-                            {!isRepliesOpen && (<div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>)}
-                            <button
-                                className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
-                                onClick={handleToggleReplies}
-                            >
-                                {isRepliesOpen ? 'Hide replies' : `View ${commentData.Replies} replies`}
-                            </button>
-                        </div>
-                    )}
-                    
-                    
-
-                    
-                </div>
+        <div className="flex-grow">
+          {/* Header and Text Content */}
+          <div className="flex items-baseline justify-between">
+            <div className="flex items-baseline  gap-3">
+              <span
+                className="font-semibold text-xl"
+                style={{ color: "#865DFF" }}
+              >
+                {commentData.author.display_name}
+              </span>
+              <span className="text-base text-gray-400">
+                {formatTimeAgo(commentData.created_at)}
+              </span>
             </div>
+            {isSolution && <SolutionTag />}
+          </div>
+          {isEditing ? (
+            <CommentEditor
+              initialContent={
+                displayContent ? displayContent : { text: commentData.text }
+              }
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+            />
+          ) : (
+            <CommentContent
+              content={draftContent ? draftContent : { text: commentData.text }}
+            />
+          )}
+          {/* turn the other one into input */}
+          {/* ACTION ROW (Using individual imported components) */}
+          <div className="flex items-center justify-between text-gray-500">
+            <div className="flex items-center gap-3 text-gray-500">
+              {/* 1. Like Button */}
+              <LikeButton
+                count={likes}
+                userStatus={userLikeStatus}
+                onClick={handleLike}
+              />
+
+              {/* 2. Dislike Button */}
+              <DislikeButton
+                count={dislikes}
+                userStatus={userLikeStatus}
+                onClick={handleDislike}
+              />
+              <div className="flex items-center gap-7">
+                {/* 3. Reply Button */}
+                <ReplyButton
+                  isReplying={isReplying}
+                  onClick={handleToggleNewReply}
+                />
+
+                {/* 4. More Actions Menu */}
+                <MoreActionsMenu
+                  anchorEl={anchorEl}
+                  handleMenuOpen={handleMenuOpen}
+                  handleMenuClose={handleMenuClose}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                  handleSetSolution={handleSetSolution}
+                  handleDeleteModalOpen={handleDeleteModalOpen}
+                  handleDeleteModalClose={handleDeleteModalClose}
+                />
+              </div>
+            </div>
+          </div>
+          {/* Reply Input Section: Opened by ReplyButton */}
+          {isReplying && (
+            <div className="mt-4 ">
+              <div className="flex items-start gap-2">
+                {/* Placeholder for user avatar */}
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <input
+                  type="text"
+                  placeholder="Write your reply..."
+                  className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  onClick={handleCancelReply}
+                  className="text-sm px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-full"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateNewReply}
+                  disabled
+                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full opacity-50"
+                >
+                  Reply
+                </button>
+              </div>
+            </div>
+          )}
+          {/* Replies Section: Opened by View Replies Toggle */}
+          {isRepliesOpen && (
+            <div className="mt-4 relative pl-8 ">
+              {isRepliesOpen && (
+                <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>
+              )}
+              <p className="text-gray-500 italic">
+                ...Replies will be displayed here...
+              </p>
+            </div>
+          )}
+
+          {/* View Replies Toggle */}
+          {hasReplies && (
+            <div className="mt-4 relative pl-8">
+              {!isRepliesOpen && (
+                <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>
+              )}
+              <button
+                className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
+                onClick={handleToggleReplies}
+              >
+                {isRepliesOpen
+                  ? "Hide replies"
+                  : `View ${commentData.Replies} replies`}
+              </button>
+            </div>
+          )}
         </div>
-    );
+      </div>
+
+      {isDeleteModalOpen && (
+        <ThemeProvider theme={theme}>
+          <Dialog
+            open={isDeleteModalOpen}
+            onClose={handleDeleteModalClose}
+            aria-labelledby="delete-dialog-title"
+            aria-describedby="delete-dialog-description"
+          >
+            <DialogTitle id="delete-dialog-title">Delete Comment</DialogTitle>
+            <DialogContent>
+              <p
+                id="delete-dialog-description"
+                className="text-center font-display text-xl"
+              >
+                Are you sure you want to delete this comment? This action cannot
+                be undone.
+              </p>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={handleDeleteModalClose}
+                color="primary"
+                size="large"
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDelete}
+                color="error"
+                autoFocus
+                size="large"
+                variant="outlined"
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </ThemeProvider>
+      )}
+    </div>
+  );
 };
 
 export default Comment;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState } from 'react'; 
+// import React, { useState } from 'react';
 
 // import RecommendIcon from '@mui/icons-material/Recommend';
 // import IconButton from '@mui/material/IconButton';
@@ -198,7 +252,6 @@ export default Comment;
 // import EditIcon from '@mui/icons-material/Edit';
 // // import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 // import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
-
 
 // export interface CommentData{
 //     id: string; // data type ไม่แน่ใจ
@@ -219,19 +272,19 @@ export default Comment;
 // }
 
 // const useCommentActions = (
-//     commentId: string, 
-//     initialLikes: number, 
+//     commentId: string,
+//     initialLikes: number,
 //     initialDislikes: number,
 //     // สมมติสถานะเริ่มต้นของผู้ใช้ (none, liked, disliked)
-//     initialUserStatus: 'none' | 'liked' | 'disliked' = 'none' 
+//     initialUserStatus: 'none' | 'liked' | 'disliked' = 'none'
 // ) => {
 //    const [likes, setLikes] = useState(initialLikes);
 //     const [dislikes, setDislikes] = useState(initialDislikes);
 //     // สถานะใหม่: ติดตามว่าผู้ใช้ Like หรือ Dislike คอมเมนต์นี้อยู่หรือไม่
 //     const [userLikeStatus, setUserLikeStatus] = useState(initialUserStatus);
-    
+
 //     const [isRepliesOpen, setIsRepliesOpen] = useState(false);
-//     const [isReplying, setIsReplying] = useState(false); 
+//     const [isReplying, setIsReplying] = useState(false);
 //     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
 //     const handleLike = () => {
@@ -274,7 +327,6 @@ export default Comment;
 //         }
 //     };
 
-
 //     const handleToggleReplies = () => {
 //         setIsRepliesOpen(prev => !prev);
 //         if (!isRepliesOpen) {
@@ -311,11 +363,11 @@ export default Comment;
 //     };
 
 //     // const handleMainReplyAction = (hasReplies: boolean) => {
-        
+
 //     //     // 1. สลับการเปิด/ปิดช่องกรอก Reply ใหม่ เสมอ
 //     //     setIsReplying(prev => !prev);
 //     //     console.log(`[ACTION] Toggle New Reply Input for ID: ${commentId}`);
-        
+
 //     //     // 2. ถ้ามี Replies อยู่แล้ว: สลับการแสดงผลรายการ Replies
 //     //     if (hasReplies) {
 //     //         setIsRepliesOpen(prev => !prev);
@@ -329,15 +381,15 @@ export default Comment;
 //         // ฟังก์ชันสำหรับปุ่มยกเลิกในช่องกรอก (ปิดช่องกรอก)
 //         setIsReplying(false);
 //     };
-//      return { 
-//         likes, 
-//         dislikes, 
+//      return {
+//         likes,
+//         dislikes,
 //         userLikeStatus, // สถานะใหม่
-//         isRepliesOpen, 
+//         isRepliesOpen,
 //         isReplying,
 //         anchorEl,
-//         handleLike, 
-//         handleDislike, 
+//         handleLike,
+//         handleDislike,
 //         handleToggleReplies,
 //         handleToggleNewReply,
 //         handleCancelReply,
@@ -377,27 +429,25 @@ export default Comment;
 //         }
 //     }
 
-//     return "just now"; 
+//     return "just now";
 // };
 
-
-
 // const Comment= ({ commentData }: CommentProps) => {
-    
+
 //     const hasReplies = commentData.Replies > 0;
-    
-//     const { 
-//         likes, 
-//         dislikes, 
+
+//     const {
+//         likes,
+//         dislikes,
 //         userLikeStatus, // ดึงสถานะใหม่
-//         isRepliesOpen, 
+//         isRepliesOpen,
 //         isReplying,
 //         anchorEl,
-//         handleLike, 
-//         handleDislike, 
+//         handleLike,
+//         handleDislike,
 //         handleToggleReplies,
 //         handleToggleNewReply,
-//         handleCancelReply, 
+//         handleCancelReply,
 //         handleMenuOpen,
 //         handleMenuClose,
 //         handleEdit,
@@ -411,7 +461,7 @@ export default Comment;
 //         replyButtonLabel = 'Hide replies';
 //     } else if (hasReplies) {
 //         replyButtonLabel = `View ${commentData.Replies} replies`;
-//     } 
+//     }
 
 //     // กำหนดสีของ SVG icon ตามสถานะของผู้ใช้
 //     const likeIconStyle = userLikeStatus === 'liked' ? 'text-blue-600 fill-blue-600' : 'text-gray-500 hover:text-dark-900';
@@ -421,7 +471,7 @@ export default Comment;
 //         <div>
 //             <div className="flex items-start gap-3">
 //                 <img src={commentData.author.profile_picture} alt={`${commentData.author.display_name}'s avatar`} className="w-10 h-10 rounded-full" />
-                
+
 //                 <div className="flex-grow">
 //                     {/* Header และ Text Content */}
 //                     <div className="flex items-baseline gap-3">
@@ -429,20 +479,20 @@ export default Comment;
 //                         <span className="text-base text-gray-400">{formatTimeAgo(commentData.created_at)}</span>
 //                     </div>
 //                     <p className="text-gray-600 my-1 text-base">{commentData.text}</p>
-                    
+
 //                     {/* ACTION ROW */}
 //                     <div className="flex items-center justify-between text-gray-500">
 //                         <div className="flex items-center gap-3 text-gray-500">
 //                             {/* Like Button */}
-//                             <button 
+//                             <button
 //                                 className=" rounded-full hover:bg-gray-100"
 //                                 onClick={handleLike}
 //                                 aria-label="Like comment"
 //                             >
-//                                 <IconButton  
+//                                 <IconButton
 //                                     // 2. Set the color on the IconButton
 //                                     color={userLikeStatus === 'liked' ? 'primary' : 'default'}
-                                    
+
 //                                     aria-label="like button"
 //                                     size="small"
 //                                     >
@@ -454,24 +504,24 @@ export default Comment;
 //                                         <RecommendIcon/>
 //                                     )}
 //                                     </IconButton>
-//                                 {/* <svg 
+//                                 {/* <svg
 //                                     // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Like ที่ทำงานอยู่
-//                                     className={`w-4 h-4 cursor-pointer ${likeIconStyle}`} 
-//                                     xmlns="http://www.w3.org/2000/svg" 
-//                                     viewBox="0 0 24 24" 
+//                                     className={`w-4 h-4 cursor-pointer ${likeIconStyle}`}
+//                                     xmlns="http://www.w3.org/2000/svg"
+//                                     viewBox="0 0 24 24"
 //                                     fill={userLikeStatus === 'liked' ? 'currentColor' : 'none'} // ถ้า liked ให้ fill
-//                                     stroke="currentColor" 
-//                                     strokeWidth="2" 
-//                                     strokeLinecap="round" 
+//                                     stroke="currentColor"
+//                                     strokeWidth="2"
+//                                     strokeLinecap="round"
 //                                     strokeLinejoin="round"
 //                                 >
 //                                     <path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a2 2 0 0 1 1.79 1.11L15 5.88Z" />
 //                                 </svg> */}
 //                             </button>
 //                             <span className="text-base font-bold min-w-[1.25rem]">{likes > 0 ? likes : ''}</span>
-                            
+
 //                             {/* Dislike Button */}
-//                             <button 
+//                             <button
 //                                 className="p-1 rounded-full hover:bg-gray-100"
 //                                 onClick={handleDislike}
 //                                 aria-label="Dislike comment"
@@ -485,15 +535,15 @@ export default Comment;
 //                                 >
 //                                     {userLikeStatus === 'disliked' ? <RecommendIcon/>: <RecommendIcon/>}
 //                                 </IconButton>
-//                                 {/* <svg 
+//                                 {/* <svg
 //                                     // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Dislike ที่ทำงานอยู่
-//                                     className={`w-4 h-4 cursor-pointer ${dislikeIconStyle}`} 
-//                                     xmlns="http://www.w3.org/2000/svg" 
-//                                     viewBox="0 0 24 24" 
+//                                     className={`w-4 h-4 cursor-pointer ${dislikeIconStyle}`}
+//                                     xmlns="http://www.w3.org/2000/svg"
+//                                     viewBox="0 0 24 24"
 //                                     fill={userLikeStatus === 'disliked' ? 'currentColor' : 'none'} // ถ้า disliked ให้ fill
-//                                     stroke="currentColor" 
-//                                     strokeWidth="2" 
-//                                     strokeLinecap="round" 
+//                                     stroke="currentColor"
+//                                     strokeWidth="2"
+//                                     strokeLinecap="round"
 //                                     strokeLinejoin="round"
 //                                 >
 //                                     <path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a2 2 0 0 1-1.79-1.11L9 18.12Z" />
@@ -502,8 +552,8 @@ export default Comment;
 //                             <span className="text-base font-bold min-w-[1.25rem]">{dislikes > 0 ? dislikes : ''}</span>
 
 //                             {/* Reply Button */}
-                            
-//                             <button 
+
+//                             <button
 //                                 className=" rounded-full hover:bg-gray-100"
 //                                 onClick={handleToggleNewReply}
 //                                 aria-label="New Reply"
@@ -514,19 +564,19 @@ export default Comment;
 //                                     aria-label="Reply comment"
 //                                     size="small"
 //                                     style={isReplying ? { backgroundColor: '#1976d2', color: 'white' } : {}}
-    
+
 //                                 >
 //                                     {isReplying ? <ReplyIcon/>: <ReplyIcon/>}
 //                                 </IconButton>
-//                                 {/* <svg 
+//                                 {/* <svg
 //                                     // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Dislike ที่ทำงานอยู่
-//                                     className={`w-4 h-4 cursor-pointer ${dislikeIconStyle}`} 
-//                                     xmlns="http://www.w3.org/2000/svg" 
-//                                     viewBox="0 0 24 24" 
+//                                     className={`w-4 h-4 cursor-pointer ${dislikeIconStyle}`}
+//                                     xmlns="http://www.w3.org/2000/svg"
+//                                     viewBox="0 0 24 24"
 //                                     fill={userLikeStatus === 'disliked' ? 'currentColor' : 'none'} // ถ้า disliked ให้ fill
-//                                     stroke="currentColor" 
-//                                     strokeWidth="2" 
-//                                     strokeLinecap="round" 
+//                                     stroke="currentColor"
+//                                     strokeWidth="2"
+//                                     strokeLinecap="round"
 //                                     strokeLinejoin="round"
 //                                 >
 //                                     <path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a2 2 0 0 1-1.79-1.11L9 18.12Z" />
@@ -559,17 +609,12 @@ export default Comment;
 //                                 </MenuItem>
 //                             </Menu>
 
-
 //                         </div>
-                     
-                        
-                        
-                        
-                        
+
 //                     </div>
 //                     {hasReplies && (
 //                         <div className="mt-2">
-//                              <button 
+//                              <button
 //                                 className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
 //                                 onClick={handleToggleReplies}
 //                              >
@@ -582,10 +627,10 @@ export default Comment;
 //                         <div className="mt-4">
 //                              <div className="flex items-start gap-2">
 //                                 {/* Placeholder for user avatar */}
-//                                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div> 
-//                                 <input 
-//                                     type="text" 
-//                                     placeholder="Write your reply..." 
+//                                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+//                                 <input
+//                                     type="text"
+//                                     placeholder="Write your reply..."
 //                                     className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
 //                                 />
 //                             </div>
