@@ -488,6 +488,55 @@ exports.replyToComment = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get all comments from a specific post with sorting and optional solution filtering.
+ * @access  Internal
+ */
+exports.fetchCommentsByPost = async (pool, postId, sort = "latest", filterSolutionsForAnonymous = false) => {
+  let orderBy = `c.created_at DESC, c.comment_id DESC`;
+  switch (sort) {
+    case "popular":
+      orderBy = `total_votes DESC, c.created_at ASC, c.comment_id ASC`;
+      break;
+    case "oldest":
+      orderBy = `c.created_at ASC, c.comment_id ASC`;
+      break;
+    case "ratio":
+      orderBy = `ratio DESC NULLS LAST, total_votes DESC, c.created_at ASC`;
+      break;
+  }
+
+  const sql = `
+    WITH agg AS (
+      SELECT 
+        c.comment_id,
+        c.user_id,
+        c.post_id,
+        c.parent_comment,
+        c.text,
+        c.comment_image,
+        c.is_solution,
+        c.is_updated,
+        c.created_at,
+        COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
+        COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
+      FROM comments c
+      LEFT JOIN ratings r ON c.comment_id = r.comment_id
+      WHERE c.post_id = $1
+      GROUP BY c.comment_id
+    )
+    SELECT *,
+      (likes + dislikes) AS total_votes,
+      CASE WHEN (likes + dislikes) > 0 THEN (likes::decimal / (likes + dislikes)) ELSE NULL END AS ratio
+    FROM agg
+    ${filterSolutionsForAnonymous ? `WHERE is_solution = FALSE` : ``}
+    ORDER BY ${orderBy};
+  `;
+
+  const { rows } = await pool.query(sql, [postId]);
+  return rows;
+};
+
+/**
  * @desc    Get comments with access control (30-day / premium rules)
  * @route   GET /api/v1/comments/post/:postId?sort=popular|latest|oldest|ratio
  * @access  Public (optionalAuth)
@@ -612,3 +661,4 @@ if (currentUserId) {
     next(err);
   }
 };
+
