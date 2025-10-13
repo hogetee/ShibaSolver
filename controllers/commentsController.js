@@ -508,104 +508,41 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
     const pool = req.app.locals.pool;
     const postId = Number(req.params.postId);
     const sort = (req.query.sort || 'latest').toLowerCase();
+
     if (!Number.isInteger(postId) || postId <= 0) {
       return res.status(400).json({ success:false, message:'Invalid postId' });
     }
 
-    const postQ = await pool.query(
-      `SELECT 
-         p.post_id,
-         p.created_at,
-         CASE 
-            WHEN p.created_at >= (now() - interval '30 days')
-            THEN TRUE ELSE FALSE
-            END AS is_recent
-       FROM posts p
-       WHERE p.post_id = $1
-       LIMIT 1`,
-      [postId]
-    );
-    if (postQ.rowCount === 0) {
+    // ตรวจ post อายุ
+    const postQ = await pool.query(`
+      SELECT post_id, created_at,
+             CASE WHEN created_at >= (now() - interval '30 days') THEN TRUE ELSE FALSE END AS is_recent
+      FROM posts WHERE post_id = $1 LIMIT 1`, [postId]);
+
+    if (postQ.rowCount === 0)
       return res.status(404).json({ success:false, message:'Post not found' });
-    }
-const post = postQ.rows[0];
-const isRecent = !!post.is_recent;   // ← alias ตรงกับ SQL
 
-let currentUserId = req.user?.uid ?? null;
-let isPremium = false;
+    const post = postQ.rows[0];
+    const isRecent = !!post.is_recent;
 
-if (currentUserId) {
-  const u = await pool.query(`SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]);
-  if (u.rowCount === 1) isPremium = !!u.rows[0].is_premium;
-}
-
-    if (!currentUserId && !isRecent) {
-      return res.status(200).json({
-        success: true,
-        restricted: true,
-        reason: 'LOGIN_REQUIRED',
-        data: []
-      });
-    }
-    if (currentUserId && !isRecent && !isPremium) {
-      return res.status(200).json({
-        success: true,
-        restricted: true,
-        reason: 'PREMIUM_REQUIRED',
-        data: []
-      });
+    // ตรวจ user/premium
+    let currentUserId = req.user?.uid ?? null;
+    let isPremium = false;
+    if (currentUserId) {
+      const u = await pool.query(`SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]);
+      if (u.rowCount === 1) isPremium = !!u.rows[0].is_premium;
     }
 
-    let orderBy = `created_at DESC, comment_id DESC`;
-  switch (sort) {
-    case 'popular':
-      orderBy = `total_votes DESC, created_at ASC, comment_id ASC`;
-      break;
-    case 'oldest':
-      orderBy = `created_at ASC, comment_id ASC`;
-      break;
-    case 'ratio':
-      orderBy = `ratio DESC NULLS LAST, total_votes DESC, created_at ASC`;
-      break;
-    case 'latest':
-    default:
-      orderBy = `created_at DESC, comment_id DESC`;
-      break;
-  }
+    // เงื่อนไข access
+    if (!currentUserId && !isRecent)
+      return res.status(200).json({ success:true, restricted:true, reason:'LOGIN_REQUIRED', data:[] });
 
+    if (currentUserId && !isRecent && !isPremium)
+      return res.status(200).json({ success:true, restricted:true, reason:'PREMIUM_REQUIRED', data:[] });
+
+    // ดึง comment data โดย reuse getComments logic
     const filterSolutionsForAnonymous = (!currentUserId && isRecent);
-
-    const sql = `
-      WITH agg AS (
-        SELECT 
-          c.comment_id,
-          c.user_id,
-          c.post_id,
-          c.parent_comment,
-          c.text,
-          c.comment_image,
-          c.is_solution,
-          c.is_updated,
-          c.created_at,
-          COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
-          COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
-        FROM comments c
-        LEFT JOIN ratings r ON c.comment_id = r.comment_id
-        WHERE c.post_id = $1
-        GROUP BY c.comment_id
-      )
-      SELECT
-        comment_id, user_id, post_id, parent_comment, text, comment_image,
-        is_solution, is_updated, created_at,
-        likes, dislikes,
-        (likes + dislikes) AS total_votes,
-        CASE WHEN (likes + dislikes) > 0 THEN (likes::decimal / (likes + dislikes)) ELSE NULL END AS ratio
-      FROM agg
-      ${filterSolutionsForAnonymous ? `WHERE is_solution = FALSE` : ``}
-      ORDER BY ${orderBy};
-    `;
-
-    const { rows } = await pool.query(sql, [postId]);
+    const rows = await fetchCommentsByPost(pool, postId, sort, filterSolutionsForAnonymous);
 
     return res.status(200).json({
       success: true,
@@ -614,7 +551,7 @@ if (currentUserId) {
       post: {
         post_id: post.post_id,
         created_at: post.created_at,
-        is_recent_30d_bangkok: isRecent
+        is_recent_30d: isRecent
       },
       count: rows.length,
       data: rows
@@ -623,4 +560,3 @@ if (currentUserId) {
     next(err);
   }
 };
-
