@@ -88,66 +88,6 @@ exports.getTopComment = async (req, res, next) => {
   }
 };
 
-
-/**
- * @desc    Get all comments from post with sort option
- * @route   GET /api/v1/comments/post/:postId?sort=popular|latest|oldest
- * @access  Private
- */
-exports.getComments = async (req, res, next) => {
-  try {
-    const pool = req.app.locals.pool;
-    const postId = Number(req.params.postId);
-    const sort = req.query.sort || "latest"; // default latest
-
-    if (!Number.isInteger(postId) || postId <= 0) {
-      return res.status(400).json({ success: false, message: "Invalid postId" });
-    }
-
-    let orderBy = "c.created_at DESC, c.comment_id DESC"; // default = latest
-
-    switch (sort) {
-      case "popular":
-        orderBy = "total_votes DESC, c.created_at ASC, c.comment_id ASC";
-        break;
-      case "oldest":
-        orderBy = "c.created_at ASC, c.comment_id ASC";
-        break;
-      case "latest":
-      default:
-        orderBy = "c.created_at DESC, c.comment_id DESC";
-        break;
-    }
-
-    const sql = `
-      SELECT 
-          c.comment_id,
-          c.user_id,
-          c.post_id,
-          c.parent_comment,
-          c.text,
-          c.comment_image,
-          c.is_solution,
-          c.is_updated,
-          c.created_at,
-          COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
-          COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
-          COALESCE(COUNT(r.rating_id), 0) AS total_votes
-      FROM comments c
-      LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.post_id = $1
-      GROUP BY c.comment_id
-      ORDER BY ${orderBy};
-    `;
-
-    const { rows } = await pool.query(sql, [postId]);
-
-    return res.status(200).json({ success: true, count: rows.length, data: rows });
-  } catch (err) {
-    next(err);
-  }
-};
-
 /**
  * @desc    Get a single comment by ID
  * @route   GET /api/v1/comments/:id
@@ -534,6 +474,28 @@ exports.fetchCommentsByPost = async (pool, postId, sort = "latest", filterSoluti
 
   const { rows } = await pool.query(sql, [postId]);
   return rows;
+};
+
+/**
+ * @desc    Get all comments from post with sort option
+ * @route   GET /api/v1/comments/post/:postId?sort=popular|latest|oldest
+ * @access  Private
+ */
+exports.getComments = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const postId = Number(req.params.postId);
+    const sort = (req.query.sort || "latest").toLowerCase();
+
+    if (!Number.isInteger(postId) || postId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid postId" });
+    }
+
+    const rows = await fetchCommentsByPost(pool, postId, sort);
+    return res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (err) {
+    next(err);
+  }
 };
 
 /**
