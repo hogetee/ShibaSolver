@@ -4,8 +4,7 @@ interface Props {
   postId: string;
 }
 
-
-function mapApiToPostData(api: any): DedicatedPostData {
+function mapApiToPostData(api: any, rating: any): DedicatedPostData {
   return {
     post_id: api.post_id,
     title: api.title,
@@ -20,40 +19,42 @@ function mapApiToPostData(api: any): DedicatedPostData {
       profile_picture: api.user_profile_picture,
     },
     stats: {
-      likes: api.likesCount,
-      dislikes: api.dislikesCount,
+      likes: rating.likes,
+      dislikes: rating.dislikes,
     },
-    liked_by_user: api.liked_by_user,
-    disliked_by_user: api.disliked_by_user,
+    liked_by_user: rating.my_rating === 'like',
+    disliked_by_user: rating.my_rating === 'dislike',
+  };
+}
+
+async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
+  const [postRes, ratingRes] = await Promise.all([
+    fetch(`https://your-api.com/api/posts/${postId}`, { cache: 'no-store' }),
+    fetch(`https://your-api.com/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
+      cache: 'no-store',
+      credentials: 'include', // needed for cookie-based auth
+    }),
+  ]);
+
+  if (!postRes.ok) {
+    throw new Error('Failed to fetch post');
   }
-}
-
-async function getPost(postId: string): Promise<DedicatedPostData> {
-  const res = await fetch(`https://your-api.com/api/posts/${postId}`, {
-    cache: 'no-store', 
-  })
-
-  if (!res.ok) {
-    throw new Error('Failed to fetch post')
+  if (!ratingRes.ok) {
+    throw new Error('Failed to fetch rating summary');
   }
 
-  const data = await res.json()
-  return mapApiToPostData(data)
+  const postData = await postRes.json();
+  const ratingData = await ratingRes.json();
+
+  const rating = ratingData.data.find((r: any) => r.id === Number(postId)) || {
+    likes: 0,
+    dislikes: 0,
+    my_rating: null,
+  };
+
+  return mapApiToPostData(postData, rating);
 }
 
-
-
-/*
-export default async function PostPage({ params }: PostPageProps) {
-  const postData = await getPost(params.postId)
-
-  return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <DedicatedPost postData={postData} />
-    </div>
-  )
-}
-*/
 
 // Mock data for development/testing
  const mockPostData: DedicatedPostData = {

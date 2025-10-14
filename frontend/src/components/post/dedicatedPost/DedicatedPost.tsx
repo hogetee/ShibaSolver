@@ -2,8 +2,7 @@ import PostHeader from '../PostHeader';
 import PostContent from '../PostContent';
 import PostAuthor from './DedicatedPostAuthor';
 
-
-
+// --- Interface for post data ---
 export interface DedicatedPostData {
   post_id: string;
   title: string;
@@ -17,7 +16,6 @@ export interface DedicatedPostData {
     display_name: string;
     profile_picture: string;
   };
-  
   stats: {
     likes: number;
     dislikes: number;
@@ -30,27 +28,43 @@ interface PostProps {
   dedicatedPostData: DedicatedPostData;
 }
 
+// --- Main Post Component ---
 const DedicatedPost = ({ dedicatedPostData }: PostProps) => {
+  const {
+    post_id,
+    title,
+    description,
+    post_image,
+    is_solved,
+    tags,
+    author,
+    stats,
+    liked_by_user,
+    disliked_by_user,
+  } = dedicatedPostData;
+
   return (
     <div className="w-full min-h-[30vh] bg-white cursor-pointer hover:shadow-2xl/15 rounded-2xl shadow-lg p-6 flex flex-col font-display">
       <div className="flex-grow">
-        <PostHeader isSolved={dedicatedPostData.is_solved} tags={dedicatedPostData.tags} />
-        <PostContent 
-          title={dedicatedPostData.title} 
-          description={dedicatedPostData.description}
-          postImage={dedicatedPostData.post_image} 
+        {/* --- Header section (tags + solved indicator) --- */}
+        <PostHeader isSolved={is_solved} tags={tags} />
+
+        {/* --- Main content (title, body, optional image) --- */}
+        <PostContent
+          title={title}
+          description={description}
+          postImage={post_image}
         />
-      <PostAuthor
-        author={dedicatedPostData.author}
-        stats={dedicatedPostData.stats}
-        liked_by_user={dedicatedPostData.liked_by_user}
-        disliked_by_user={dedicatedPostData.disliked_by_user}
-      />
+
+        {/* --- Author + Like/Dislike --- */}
+        <PostAuthor
+          postId={post_id}                 
+          author={author}
+          stats={stats}
+          liked_by_user={liked_by_user}
+          disliked_by_user={disliked_by_user}
+        />
       </div>
-      
-      
-      
-      
     </div>
   );
 };
