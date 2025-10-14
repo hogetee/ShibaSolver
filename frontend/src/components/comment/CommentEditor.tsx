@@ -32,7 +32,7 @@ export default function CommentEditor({
       <div className="flex justify-end mt-2 gap-2">
         <ThemeProvider theme={theme}>
           <Button
-            onClick={handleSubmit}
+            onClick={onCancel}
             variant="outlined"
             color="error"
             size="large"
