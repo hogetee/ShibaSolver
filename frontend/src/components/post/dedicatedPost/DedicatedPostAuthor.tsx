@@ -6,7 +6,6 @@ type Author = {
   display_name: string;
   profile_picture: string;
 };
-
 type Stats = {
   likes: number;
   dislikes: number;
@@ -220,7 +219,7 @@ const PostAuthor = ({
           >
             <svg
               className={`w-5 h-5 cursor-pointer ${
-                liked ? 'text-red-500 fill-red-500' : 'text-gray-700'
+                liked ? 'text-dark-900 fill-dark-900' : 'text-dark-900'
               }`}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -248,7 +247,7 @@ const PostAuthor = ({
           >
             <svg
               className={`w-5 h-5 cursor-pointer ${
-                disliked ? 'text-blue-500 fill-blue-500' : 'text-gray-700'
+                disliked ? 'text-dark-900 fill-dark-900' : 'text-dark-900'
               }`}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
