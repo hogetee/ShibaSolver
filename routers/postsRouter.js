@@ -1,11 +1,11 @@
 const express = require("express");
 const postsCtrl = require("../controllers/postsController");
-const { requireAuth } = require("../middleware/auth");
+const { requireAuth, optionalAuth } = require("../middleware/auth");
 const router = express.Router();
 
 //GET
 router.get("/", postsCtrl.refreshFeed);
-router.get('/:postId', postsCtrl.getPost);
+router.get('/:postId',optionalAuth, postsCtrl.getPost);
 router.get("/bookmarks/:user_id", requireAuth, postsCtrl.getBookmarks);
 
 //POST
