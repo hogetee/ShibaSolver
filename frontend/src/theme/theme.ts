@@ -129,7 +129,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           textAlign: 'center',
-          fontSize: '1.5rem',
+          fontSize: '2rem',
           fontWeight: 600,
           fontFamily: 'Afacad',
         },

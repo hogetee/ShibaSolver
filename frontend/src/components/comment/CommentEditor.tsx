@@ -1,5 +1,8 @@
 import type { CommentContent } from "./types";
 import { useState } from "react";
+import Button from "@mui/material/Button";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "@/theme/theme";
 
 interface CommentEditorProps {
   initialContent: CommentContent;
@@ -27,18 +30,24 @@ export default function CommentEditor({
         rows={4}
       />
       <div className="flex justify-end mt-2 gap-2">
-        <button
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md cursor-pointer transition duration-200"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSubmit}
-          className="px-4 py-2 bg-accent-200/75 hover:bg-accent-200 text-gray-700 rounded-md cursor-pointer transition duration-200"
-        >
-          Save
-        </button>
+        <ThemeProvider theme={theme}>
+          <Button
+            onClick={handleSubmit}
+            variant="outlined"
+            color="error"
+            size="large"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="outlined"
+            color="primary"
+            size="large"
+          >
+            Save
+          </Button>
+        </ThemeProvider>
       </div>
     </div>
   );
