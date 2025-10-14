@@ -25,41 +25,98 @@ export const useCommentActions = (
     const [displayContent, setDisplayContent] = useState<CommentContent | null>(null);
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const BASE_URL = process.env.BACKEND_URL || "http://localhost:5000";
 
-    const handleLike = () => {
-        if (userLikeStatus === 'liked') {
-            setLikes(prev => prev - 1);
-            setUserLikeStatus('none');
-            console.log(`[ACTION] Unliking comment ID: ${commentId}`);
-        } else if (userLikeStatus === 'disliked') {
-            setLikes(prev => prev + 1);
-            setDislikes(prev => prev - 1);
-            setUserLikeStatus('liked');
-            console.log(`[ACTION] Changing Dislike to Like for ID: ${commentId}`);
-        } else {
-            setLikes(prev => prev + 1);
-            setUserLikeStatus('liked');
-            console.log(`[ACTION] Liking comment ID: ${commentId}`);
+
+    const handleLike = async () => {
+        const commentNumericId = Number(commentId);
+        const prev = { likes, dislikes, userLikeStatus };
+    
+        try {
+            if (userLikeStatus === 'liked') {
+                // unrate
+                setLikes(prev => prev - 1);
+                setUserLikeStatus('none');
+    
+                const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId })
+                });
+                if (!res.ok) throw new Error('Failed to unrate');
+                const payload = await res.json();
+                setLikes(Number(payload?.summary?.likes ?? likes));
+                setDislikes(Number(payload?.summary?.dislikes ?? dislikes));
+            } else {
+                // rate like
+                if (userLikeStatus === 'disliked') setDislikes(d => d - 1);
+                setLikes(l => l + 1);
+                setUserLikeStatus('liked');
+    
+                const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId, rating_type: 'like' })
+                });
+                if (!res.ok) throw new Error('Failed to like');
+                const payload = await res.json();
+                setLikes(Number(payload?.data?.summary?.likes ?? likes));
+                setDislikes(Number(payload?.data?.summary?.dislikes ?? dislikes));
+            }
+        } catch (e) {
+            setLikes(prev.likes);
+            setDislikes(prev.dislikes);
+            setUserLikeStatus(prev.userLikeStatus);
+            console.error(e);
         }
         // In a real app, you'd send an API request here
     };
 
-    const handleDislike = () => {
+    const handleDislike = async () => {
+       const commentNumericId = Number(commentId);
+    const prev = { likes, dislikes, userLikeStatus };
+
+    try {
         if (userLikeStatus === 'disliked') {
-            setDislikes(prev => prev - 1);
+            // unrate
+            setDislikes(d => d - 1);
             setUserLikeStatus('none');
-            console.log(`[ACTION] Undisliking comment ID: ${commentId}`);
-        } else if (userLikeStatus === 'liked') {
-            setDislikes(prev => prev + 1);
-            setLikes(prev => prev - 1);
-            setUserLikeStatus('disliked');
-            console.log(`[ACTION] Changing Like to Dislike for ID: ${commentId}`);
+
+            const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId })
+            });
+            if (!res.ok) throw new Error('Failed to unrate');
+            const payload = await res.json();
+            setLikes(Number(payload?.summary?.likes ?? likes));
+            setDislikes(Number(payload?.summary?.dislikes ?? dislikes));
         } else {
-            setDislikes(prev => prev + 1);
+            // rate dislike
+            if (userLikeStatus === 'liked') setLikes(l => l - 1);
+            setDislikes(d => d + 1);
             setUserLikeStatus('disliked');
-            console.log(`[ACTION] Disliking comment ID: ${commentId}`);
+
+            const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId, rating_type: 'dislike' })
+            });
+            if (!res.ok) throw new Error('Failed to dislike');
+            const payload = await res.json();
+            setLikes(Number(payload?.data?.summary?.likes ?? likes));
+            setDislikes(Number(payload?.data?.summary?.dislikes ?? dislikes));
         }
-         // In a real app, you'd send an API request here
+    } catch (e) {
+        setLikes(prev.likes);
+        setDislikes(prev.dislikes);
+        setUserLikeStatus(prev.userLikeStatus);
+        console.error(e);
+    }
     };
 
 
@@ -75,12 +132,16 @@ export const useCommentActions = (
     };
 
     const handleCreateNewReply = async (replyText: string) => {
-        // Simulate creating a reply. In a real app you'd POST to an API.
+        const commentNumericId = Number(commentId);
         try {
-            console.log(`[ACTION] create reply for ${commentId}:`, replyText);
-            // Simulate network latency
-            await new Promise((r) => setTimeout(r, 200));
-            // Close reply input and open replies
+            const res = await fetch(`${BASE_URL}/api/v1/comments/${commentNumericId}/replies`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: replyText })
+            });
+            if (!res.ok) throw new Error('Failed to create reply');
+            // Optionally update local UI or refetch replies here
             setIsReplying(false);
             if (!isRepliesOpen) setIsRepliesOpen(true);
             return true;
@@ -143,14 +204,34 @@ export const useCommentActions = (
         setIsDeleteModalOpen(false);
     }
     
-    const handleDelete = () => {
+   const handleDelete = async () => {
         handleMenuClose();
-        console.log(`[ACTION] Deleting comment ID: ${commentId}`);
+        try {
+            const res = await fetch(`${BASE_URL}/api/v1/comments/${Number(commentId)}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (!res.ok) throw new Error('Failed to delete comment');
+            // Optionally: notify parent to remove this comment from the list
+            setIsDeleteModalOpen(false);
+        } catch (e) {
+            console.error(e);
+        }
     };
-
-    const handleSetSolution = () => {
+    const handleSetSolution = async () => {
         handleMenuClose();
-        console.log(`[ACTION] Setting solution for comment ID: ${commentId}`);
+        try {
+            const res = await fetch(`${BASE_URL}/api/v1/comments/${Number(commentId)}/solution`, {
+                method: 'PATCH',
+                credentials: 'include'
+            });
+            if (!res.ok) throw new Error('Failed to toggle solution');
+            const payload = await res.json();
+            const newVal = Boolean(payload?.data?.is_solution);
+            setIsSolution(newVal);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleCancelReply = () => {

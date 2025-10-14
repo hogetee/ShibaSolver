@@ -92,6 +92,8 @@ export default function useUserComments(username?: string | null): UseUserCommen
     };
   }, [username, nonce]);
 
+
+
   return { comments, isLoading: loading, error, refetch };
 }
 

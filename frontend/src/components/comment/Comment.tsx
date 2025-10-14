@@ -58,7 +58,7 @@ const Comment = ({ commentData }: CommentProps) => {
     commentData.dislikes,
     commentData.is_solution
   );
-
+  const [replyText, setReplyText] = React.useState("");
   return (
     <div>
       <div className="flex items-start gap-3 relative">
@@ -143,25 +143,29 @@ const Comment = ({ commentData }: CommentProps) => {
           {isReplying && (
             <div className="mt-4 ">
               <div className="flex items-start gap-2">
-                {/* Placeholder for user avatar */}
                 <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
                 <input
                   type="text"
                   placeholder="Write your reply..."
                   className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
                 />
               </div>
               <div className="flex justify-end gap-2 mt-2">
                 <button
-                  onClick={handleCancelReply}
+                  onClick={() => { setReplyText(""); handleCancelReply(); }}
                   className="text-sm px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-full"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleCreateNewReply}
-                  disabled
-                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full opacity-50"
+                  onClick={async () => {
+                    const ok = await handleCreateNewReply(replyText);
+                    if (ok) setReplyText("");
+                  }}
+                  disabled={!replyText.trim()}
+                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full"
                 >
                   Reply
                 </button>

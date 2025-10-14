@@ -1,14 +1,16 @@
-
+import { useMemo } from "react";
 import { CommentData } from "@/components/comment/types";
 import CommentSection from "@/components/comment/CommentSection";
+import usePostComments from "@/hooks/userPostComments";
 
 
 interface Props {
   postId: string;
+  sort?: "latest" | "popular" | "oldest" | "ratio";
 }
 
 
-export function mapApiToCommentData(api: any): CommentData {
+export function mapPostCommentToCommentData(api: any): CommentData {
     return {
         id: String(api.id || api.comment_id), 
         author: {
@@ -23,91 +25,121 @@ export function mapApiToCommentData(api: any): CommentData {
         is_solution :Boolean(api.isSolution || 0),
     };
 }
-async function getComment(postId: string): Promise<CommentData[]> {
-  const res = await fetch(`https://your-api.com/api/comments/${postId}`, {
-    cache: 'no-store', 
-  })
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch post')
+export default function CommentContainer({ postId, sort = "latest" }: Props) {
+  const { comments, isLoading, error, restricted, reason } = usePostComments(postId, sort);
+
+  const mapped = useMemo<CommentData[]>(
+    () => comments.map(mapPostCommentToCommentData),
+    [comments]
+  );
+
+  if (isLoading) {
+    return <div className="mt-5 pt-4">Loading comments…</div>;
   }
+
+  if (error) {
+    return <div className="mt-5 pt-4 text-red-600">Failed to load comments: {error}</div>;
+  }
+
+  if (restricted) {
+    return (
+      <div className="mt-5 pt-4 text-gray-700">
+        {reason === "LOGIN_REQUIRED" && "Please log in to view comments on older posts."}
+        {reason === "PREMIUM_REQUIRED" && "Upgrade to premium to view comments on older posts."}
+      </div>
+    );
+  }
+
+  return <CommentSection initialComments={mapped} />;
+}
+
+
+// async function getComment(postId: string): Promise<CommentData[]> {
+//   const res = await fetch(`https://your-api.com/api/comments/${postId}`, {
+//     cache: 'no-store', 
+//   })
+
+//   if (!res.ok) {
+//     throw new Error('Failed to fetch post')
+//   }
   
 
-  const data: any[] = await res.json()
+//   const data: any[] = await res.json()
 
-  return data.map(mapApiToCommentData)
-}
-
-
-
-
-// MOCK DATA
-const DATE_C1 = new Date(Date.now() - 1000 * 60 * 5).toISOString();
-const DATE_C2 = new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString();
-const DATE_C3 = new Date(Date.now() - 1000 * 60 * 1).toISOString();
-
-const MOCK_MAPPED_COMMENT_DATA: CommentData[] = [
-    {
-        id: "api_c101",
-        author: {
-            display_name: "CoderGuru_99",
-            profile_picture: "https://i.pravatar.cc/40?img=21",
-        },
-        text: "This is a fantastic explanation! The Next.js fix was spot on. 👍",
-        created_at: DATE_C1,
-        likes: 45,
-        dislikes: 0,
-        Replies: 3,
-        is_solution : true,
-    },
-    {
-        id: "api_c102",
-        author: {
-            display_name: "ReactFanatic",
-            profile_picture: "https://i.pravatar.cc/40?img=15",
-        },
-        text: "I disagree with using Client Components here. This could have been entirely server-rendered with a little more thought.",
-        created_at: DATE_C2,
-        likes: 18,
-        dislikes: 10,
-        Replies: 0,
-        is_solution : false,
-    },
-    {
-        id: "api_c103",
-        author: {
-            display_name: "NewbieDev",
-            profile_picture: "https://i.pravatar.cc/40?img=50",
-        },
-        text: "First time here. Love this community!",
-        created_at: DATE_C3,
-        likes: 0, // Mapped from missing fields using || 0
-        dislikes: 0, // Mapped from missing fields using || 0
-        Replies: 0, // Mapped from missing fields using || 0
-        is_solution : false,
-    },
-];
+//   return data.map(mapApiToCommentData)
+// }
 
 
 
-export default async function CommentPostPage({ postId }: Props) {
+
+// // MOCK DATA
+// const DATE_C1 = new Date(Date.now() - 1000 * 60 * 5).toISOString();
+// const DATE_C2 = new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString();
+// const DATE_C3 = new Date(Date.now() - 1000 * 60 * 1).toISOString();
+
+// const MOCK_MAPPED_COMMENT_DATA: CommentData[] = [
+//     {
+//         id: "api_c101",
+//         author: {
+//             display_name: "CoderGuru_99",
+//             profile_picture: "https://i.pravatar.cc/40?img=21",
+//         },
+//         text: "This is a fantastic explanation! The Next.js fix was spot on. 👍",
+//         created_at: DATE_C1,
+//         likes: 45,
+//         dislikes: 0,
+//         Replies: 3,
+//         is_solution : true,
+//     },
+//     {
+//         id: "api_c102",
+//         author: {
+//             display_name: "ReactFanatic",
+//             profile_picture: "https://i.pravatar.cc/40?img=15",
+//         },
+//         text: "I disagree with using Client Components here. This could have been entirely server-rendered with a little more thought.",
+//         created_at: DATE_C2,
+//         likes: 18,
+//         dislikes: 10,
+//         Replies: 0,
+//         is_solution : false,
+//     },
+//     {
+//         id: "api_c103",
+//         author: {
+//             display_name: "NewbieDev",
+//             profile_picture: "https://i.pravatar.cc/40?img=50",
+//         },
+//         text: "First time here. Love this community!",
+//         created_at: DATE_C3,
+//         likes: 0, // Mapped from missing fields using || 0
+//         dislikes: 0, // Mapped from missing fields using || 0
+//         Replies: 0, // Mapped from missing fields using || 0
+//         is_solution : false,
+//     },
+// ];
 
 
 
-  // For a real app
-  // const initialComments = await getComment(postId); 
+// export default async function CommentPostPage({ postId }: Props) {
 
-  const initialComments = MOCK_MAPPED_COMMENT_DATA; // Using mock data for now
 
-  return (
-    <div className="min-h-screen  flex flex-col font-display mt-10 ">
+
+//   // For a real app
+//   // const initialComments = await getComment(postId); 
+
+//   const initialComments = MOCK_MAPPED_COMMENT_DATA; // Using mock data for now
+
+//   return (
+//     <div className="min-h-screen  flex flex-col font-display mt-10 ">
       
 
-          <CommentSection initialComments={initialComments} />
+//           <CommentSection initialComments={initialComments} />
      
-    </div>
-  );
-}
+//     </div>
+//   );
+// }
 
 
 

@@ -64,7 +64,8 @@ export interface CommentActions {
     handleToggleReplies: () => void;
     handleToggleNewReply: () => void;
     handleCancelReply: () => void;
-    handleCreateNewReply : () => void;
+    handleCreateNewReply : (replyText: string) => Promise<boolean>;
+    handleCreateNewComment: (commentText: string) => Promise<boolean>;
     handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
     handleMenuClose: () => void;
     handleEdit: () => void;
