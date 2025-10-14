@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS users (
     interested_subjects TEXT[],                  -- array of subjects the user is interested in
     profile_picture     TEXT,                    -- URL to profile picture
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    
 );
 
 CREATE TABLE IF NOT EXISTS admins (
@@ -61,6 +62,7 @@ CREATE TABLE IF NOT EXISTS posts (
     post_id     BIGSERIAL PRIMARY KEY,
     user_id     BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     is_solved   BOOLEAN NOT NULL DEFAULT FALSE,
+    is_deleted  BOOLEAN NOT NULL DEFAULT FALSE,
     description TEXT NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     title       TEXT NOT NULL,
@@ -82,6 +84,7 @@ CREATE TABLE IF NOT EXISTS comments (
     comment_image  TEXT, 
     is_solution    BOOLEAN DEFAULT FALSE,
     is_updated     BOOLEAN NOT NULL DEFAULT FALSE,
+    is_deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

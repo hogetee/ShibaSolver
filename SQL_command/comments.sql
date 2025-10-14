@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS comments (
     comment_image  TEXT, 
     is_solution    BOOLEAN DEFAULT FALSE,
     is_updated     BOOLEAN NOT NULL DEFAULT FALSE,
+    is_deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
