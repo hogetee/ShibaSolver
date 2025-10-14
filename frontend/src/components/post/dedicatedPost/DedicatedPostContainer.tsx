@@ -1,32 +1,9 @@
 import DedicatedPost, { DedicatedPostData } from '@/components/post/dedicatedPost/DedicatedPost'
 
+
 interface Props {
   postId: string;
 }
-
-function mapApiToPostData(api: any, rating: any): DedicatedPostData {
-  return {
-    post_id: api.post_id,
-    title: api.title,
-    description: api.description,
-    post_image: api.post_image,
-    is_solved: api.is_solved,
-    created_at: api.created_at,
-    tags: api.tags ?? [], 
-    author: {
-      user_id: api.author.user_id,
-      display_name: api.author.display_name,
-      profile_picture: api.author.profile_picture,
-    },
-    stats: {
-      likes: rating.likes ?? 0,
-      dislikes: rating.dislikes ?? 0,
-    },
-    liked_by_user: rating.my_rating === 'like',
-    disliked_by_user: rating.my_rating === 'dislike',
-  };
-}
-
 async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
   const [postRes, ratingRes] = await Promise.all([
     fetch(`http://localhost:5003/api/v1/posts/${postId}`, { cache: 'no-store' }),
@@ -37,19 +14,41 @@ async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
   ]);
 
   if (!postRes.ok) throw new Error('Failed to fetch post');
-  if (!ratingRes.ok) throw new Error('Failed to fetch rating summary');
 
   const postJson = await postRes.json();
-  const ratingJson = await ratingRes.json();
+  const postData = postJson.data ?? postJson;
 
-  const postData = postJson.data;
-  const rating = ratingJson.data.find((r: any) => r.id === Number(postId)) || {
-    likes: 0,
-    dislikes: 0,
-    my_rating: null,
+  // --- Default rating object ---
+  let rating = { likes: 0, dislikes: 0, my_rating: null };
+
+  // --- Handle rating response gracefully ---
+  if (ratingRes.ok) {
+    const ratingJson = await ratingRes.json();
+    const found = ratingJson.data?.find((r: any) => r.id === Number(postId));
+    if (found) rating = found;
+  } else if (ratingRes.status === 401) {
+    console.warn('User not logged in, skipping rating summary');
+  } else {
+    throw new Error('Failed to fetch rating summary');
+  }
+
+  // --- Map both into DedicatedPostData ---
+  return {
+    post_id: postData.post_id,
+    title: postData.title,
+    description: postData.description,
+    post_image: postData.post_image,
+    is_solved: postData.is_solved,
+    created_at: postData.created_at,
+    tags: postData.tags,
+    author: postData.author,
+    stats: {
+      likes: postData.likes,
+      dislikes: postData.dislikes,
+    },
+    liked_by_user: rating.my_rating === 'like',
+    disliked_by_user: rating.my_rating === 'dislike',
   };
-
-  return mapApiToPostData(postData, rating);
 }
 
 
