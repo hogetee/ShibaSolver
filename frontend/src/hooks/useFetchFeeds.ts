@@ -1,17 +1,32 @@
 import { useState, useEffect } from 'react';
 import { PostData } from '@/components/post/Post';
 
-// กำหนด Type ของข้อมูลดิบที่ได้จาก API (ตรงกับ SQL query)
+// 1. กำหนด Type ของข้อมูลดิบที่ได้จาก API ใหม่ให้ตรงเป๊ะ
 interface RawFeedData {
   post_id: string;
   title: string;
   description: string;
-  post_created_at: string;
-  comment_id: string | null;
-  top_comment_text: string | null;
-  comment_created_at: string | null;
-  total_ratings: number;
-  // 🚨 ข้อมูลที่ขาดหายไปจาก API: author, post stats, tags
+  post_image: string | null;
+  is_solved: boolean;
+  created_at: string;
+  // ข้อมูล Author และ Stats ไม่ได้ซ้อนกันมา
+  user_id: string;
+  display_name: string;
+  profile_picture: string;
+  likes: number;
+  dislikes: number;
+  tags: string[];
+  // top_comment กลายเป็น object ที่ซ้อนอยู่
+  top_comment: {
+    comment_id: string;
+    text: string;
+    created_at: string;
+    user_id: string;
+    display_name: string;
+    profile_picture: string;
+    likes: number;
+    dislikes: number;
+  } | null;
 }
 
 export const useFetchFeeds = () => {
@@ -26,7 +41,7 @@ export const useFetchFeeds = () => {
       try {
         const response = await fetch('http://localhost:5003/api/v1/feeds', {
           method: 'GET',
-          credentials: 'include', // สำคัญมาก! สำหรับ Private route
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -35,21 +50,20 @@ export const useFetchFeeds = () => {
 
         const responseData = await response.json();
         
-        // --- 🪄 การแปลงข้อมูล (Transformation) ---
-        // แปลงข้อมูลดิบ (flat) ที่ได้จาก API ให้เป็นโครงสร้าง PostData (nested)
-        const transformedFeeds: PostData[] = responseData.rows.map((row: RawFeedData) => {
+        // 2. ปรับแก้ส่วน Transformation ให้ตรงกับข้อมูลใหม่
+        const transformedFeeds: PostData[] = responseData.data.map((row: RawFeedData) => {
           
-          // ประกอบร่าง Top Comment (ถ้ามี)
-          const topComment = row.comment_id ? {
-            comment_id: row.comment_id,
-            text: row.top_comment_text || '',
-            created_at: row.comment_created_at || '',
-            likes: row.total_ratings, // API ส่งมาเป็น total_ratings
-            dislikes: 0, // 🚨 API ไม่ได้ส่ง dislikes มา
-            author: { // 🚨 API ไม่ได้ส่ง author ของ comment มา, ต้องใช้ข้อมูลจำลอง
-              user_id: "comment-author-mock",
-              display_name: "Top Commenter",
-              profile_picture: "/image/DefaultAvatar.png",
+          // ประกอบร่าง Top Comment (ตอนนี้ข้อมูลสมบูรณ์แล้ว)
+          const topComment = row.top_comment ? {
+            comment_id: row.top_comment.comment_id,
+            text: row.top_comment.text,
+            created_at: row.top_comment.created_at,
+            likes: row.top_comment.likes,
+            dislikes: row.top_comment.dislikes,
+            author: { // สร้าง author object ที่ซ้อนกัน
+              user_id: row.top_comment.user_id,
+              display_name: row.top_comment.display_name,
+              profile_picture: row.top_comment.profile_picture,
             }
           } : undefined;
 
@@ -58,18 +72,18 @@ export const useFetchFeeds = () => {
             post_id: row.post_id,
             title: row.title,
             description: row.description,
-            created_at: row.post_created_at,
-            is_solved: false, // 🚨 API ไม่ได้ส่ง is_solved มา
-            tags: ["Mock Tag"], // 🚨 API ไม่ได้ส่ง tags มา
-            post_image: undefined, // 🚨 API ไม่ได้ส่ง post_image มา
-            author: { // 🚨 API ไม่ได้ส่ง author ของ post มา, ต้องใช้ข้อมูลจำลอง
-              user_id: "post-author-mock",
-              display_name: "Post Author",
-              profile_picture: "/image/DefaultAvatar.png",
+            created_at: row.created_at,
+            is_solved: row.is_solved,
+            tags: row.tags,
+            post_image: row.post_image || undefined,
+            author: { // สร้าง author object ที่ซ้อนกัน
+              user_id: row.user_id,
+              display_name: row.display_name,
+              profile_picture: row.profile_picture,
             },
-            stats: { // 🚨 API ไม่ได้ส่ง stats ของ post มา
-              likes: 0,
-              dislikes: 0,
+            stats: { // สร้าง stats object ที่ซ้อนกัน
+              likes: Number(row.likes), // แปลงเป็น Number เพื่อความปลอดภัย
+              dislikes: Number(row.dislikes),
             },
             topComment: topComment,
           };
@@ -85,8 +99,7 @@ export const useFetchFeeds = () => {
     };
 
     fetchFeeds();
-  }, []); // `[]` หมายถึงให้ทำงานแค่ครั้งแรกครั้งเดียว
+  }, []);
 
-  // ส่งค่าและฟังก์ชัน setPosts ออกไปให้ Component ใช้
   return { posts, setPosts, isLoading, error };
 };
