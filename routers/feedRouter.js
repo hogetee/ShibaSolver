@@ -4,7 +4,7 @@ const feedCtrl = require('../controllers/feedsController');
 const router = express.Router();
 
 //GET
-router.get('/', feedCtrl.getAllFeeds);
+router.get('/', feedCtrl.getFeed);
 
 //POST
 

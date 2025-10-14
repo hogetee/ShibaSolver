@@ -241,7 +241,7 @@ exports.deletePost = async (req, res, next) => {
 
 /**
  * @desc    Refresh the feed
- * @route   GET /api/v1/posts/feed
+ * @route   GET /api/v1/posts
  * @access  Private
  */
 exports.refreshFeed = async (req, res, next) => {
