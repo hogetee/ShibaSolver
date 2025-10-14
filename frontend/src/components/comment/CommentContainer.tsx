@@ -1,47 +1,37 @@
+"use client";
+
 import { useMemo } from "react";
 import { CommentData } from "@/components/comment/types";
 import CommentSection from "@/components/comment/CommentSection";
 import usePostComments from "@/hooks/userPostComments";
 
-
 interface Props {
-  postId: string;
+  postId: string | number;
   sort?: "latest" | "popular" | "oldest" | "ratio";
 }
 
-
-export function mapPostCommentToCommentData(api: any): CommentData {
-    return {
-        id: String(api.id || api.comment_id), 
-        author: {
-            display_name: api.username || api.author_name,
-            profile_picture: api.user_profile_picture || "default-profile-url", 
-        },
-        text: api.text || api.comment_body,
-        created_at: api.created_at, 
-        likes: Number(api.likesCount || api.likes || 0),
-        dislikes: Number(api.dislikesCount || api.dislikes || 0),
-        Replies: Number(api.repliesCount || api.Replies || 0),
-        is_solution :Boolean(api.isSolution || 0),
-    };
+function mapPostCommentToCommentData(api: any): CommentData {
+  return {
+    id: String(api.comment_id),
+    author: {
+      display_name: api.author_name || api.username || "Anonymous",
+      profile_picture: api.user_profile_picture || "/assets/image/DefaultAvatar.png",
+    },
+    text: String(api.text ?? ""),
+    created_at: api.created_at,
+    likes: Number(api.likes ?? 0),
+    dislikes: Number(api.dislikes ?? 0),
+    Replies: Number(api.replies ?? 0),
+    is_solution: Boolean(api.is_solution),
+  };
 }
 
 export default function CommentContainer({ postId, sort = "latest" }: Props) {
   const { comments, isLoading, error, restricted, reason } = usePostComments(postId, sort);
+  const mapped = useMemo<CommentData[]>(() => comments.map(mapPostCommentToCommentData), [comments]);
 
-  const mapped = useMemo<CommentData[]>(
-    () => comments.map(mapPostCommentToCommentData),
-    [comments]
-  );
-
-  if (isLoading) {
-    return <div className="mt-5 pt-4">Loading comments…</div>;
-  }
-
-  if (error) {
-    return <div className="mt-5 pt-4 text-red-600">Failed to load comments: {error}</div>;
-  }
-
+  if (isLoading) return <div className="mt-5 pt-4">Loading comments…</div>;
+  if (error) return <div className="mt-5 pt-4 text-red-600">Failed to load comments: {error}</div>;
   if (restricted) {
     return (
       <div className="mt-5 pt-4 text-gray-700">
@@ -53,7 +43,6 @@ export default function CommentContainer({ postId, sort = "latest" }: Props) {
 
   return <CommentSection initialComments={mapped} />;
 }
-
 
 // async function getComment(postId: string): Promise<CommentData[]> {
 //   const res = await fetch(`https://your-api.com/api/comments/${postId}`, {

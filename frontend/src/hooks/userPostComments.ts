@@ -96,20 +96,29 @@ export default function usePostComments(
           return;
         }
 
-        const BASE_URL = process.env.BACKEND_URL || "http://localhost:5000";
+        const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
         const url = new URL(`/api/v1/comments/post/${encodeURIComponent(String(postId))}`, BASE_URL);
         url.searchParams.set("sort", sort);
 
-        const res = await fetch(url.toString(), {
-          signal: controller.signal,
-          credentials: "include"
-        });
 
-        const payload: AccessControlledResponse = await res.json().catch(() => ({ success: false } as any));
-
+        // inside usePostComments, replace the fetch error handling
+        const res = await fetch(url.toString(), { signal: controller.signal, credentials: "include" });
+        let payload: any = null;
+        try { payload = await res.json(); } catch {}
         if (!res.ok) {
-          throw new Error(payload?.message || `Request failed (${res.status})`);
+        const msg = payload?.message || payload?.error || `Request failed (${res.status})`;
+        throw new Error(msg);
         }
+        // const res = await fetch(url.toString(), {
+        //   signal: controller.signal,
+        //   credentials: "include"
+        // });
+
+        // const payload: AccessControlledResponse = await res.json().catch(() => ({ success: false } as any));
+
+        // if (!res.ok) {
+        //   throw new Error(payload?.message || `Request failed (${res.status})`);
+        // }
 
         if (payload.restricted) {
           if (!aborted) {
