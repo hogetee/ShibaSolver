@@ -10,11 +10,13 @@ import { ReplyButton } from '@/components/comment/ReplyButton';
 import { MoreActionsMenu } from '@/components/comment/MoreActionsMenu';
 import { SolutionTag } from './SolutionTag';
 import CreateComment from './CreateComment';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 const Comment = ({ commentData }: CommentProps) => {
 
     const hasReplies = commentData.Replies > 0;
-
+    //current user for creating reply
+    const { user: currentUser } = useCurrentUser();
     const {
         likes,
         dislikes,
@@ -29,6 +31,7 @@ const Comment = ({ commentData }: CommentProps) => {
         handleToggleNewReply,
         handleCancelReply,
         handleCreateNewReply,
+        handleCreateNewComment,
         handleMenuOpen,
         handleMenuClose,
         handleEdit,
@@ -107,7 +110,15 @@ const Comment = ({ commentData }: CommentProps) => {
                                 <button onClick={handleCancelReply} className="text-sm px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-full">Cancel</button>
                                 <button onClick={handleCreateNewReply} disabled className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full opacity-50">Reply</button>
                             </div> */}
-                            <CreateComment placeholder="Write your reply..." />
+                            {/* Reply input uses current user avatar */}
+                            <CreateComment
+                                placeholder="Write your reply..."
+                                author={currentUser ? {
+                                    profile_picture: currentUser.profile_picture ?? undefined,
+                                    display_name: currentUser.display_name ?? undefined,
+                                } : undefined}
+                                onSubmit={(text) => handleCreateNewReply(text)}
+                            />
                         </div>
                     )}
                     {/* Replies Section: Opened by View Replies Toggle */}

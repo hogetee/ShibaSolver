@@ -16,7 +16,8 @@ interface CommentActions {
     handleToggleReplies: () => void;
     handleToggleNewReply: () => void;
     handleCancelReply: () => void;
-    handleCreateNewReply : () => void;
+    handleCreateNewReply : (replyText: string) => Promise<boolean>;
+    handleCreateNewComment : (commentText: string) => Promise<boolean>;
     handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
     handleMenuClose: () => void;
     handleEdit: () => void;
@@ -88,8 +89,33 @@ export const useCommentActions = (
         setIsReplying(prev => !prev);
     };
 
-    const handleCreateNewReply = () => {
-        console.log(`create reply for ${commentId}`);
+    const handleCreateNewReply = async (replyText: string) => {
+        // Simulate creating a reply. In a real app you'd POST to an API.
+        try {
+            console.log(`[ACTION] create reply for ${commentId}:`, replyText);
+            // Simulate network latency
+            await new Promise((r) => setTimeout(r, 200));
+            // Close reply input and open replies
+            setIsReplying(false);
+            if (!isRepliesOpen) setIsRepliesOpen(true);
+            return true;
+        } catch (err) {
+            console.error('Failed to create reply', err);
+            return false;
+        }
+    };
+
+    const handleCreateNewComment = async (commentText: string) => {
+        // Simulate creating a comment. In a real app you'd POST to an API.
+        try {
+            console.log(`[ACTION] create comment for ${commentId}:`, commentText);
+            // Simulate network latency
+            await new Promise((r) => setTimeout(r, 200));
+            return true;
+        } catch (err) {
+            console.error('Failed to create comment', err);
+            return false;
+        }
     };
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -136,6 +162,7 @@ export const useCommentActions = (
         handleDislike,
         handleToggleReplies,
         handleToggleNewReply,
+        handleCreateNewComment,
         handleCancelReply,
         handleCreateNewReply,
         handleMenuOpen,
