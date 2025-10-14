@@ -36,6 +36,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+
 @layer utilities {
   .select-placeholder {
     color: theme('colors.gray.400');
@@ -44,3 +45,10 @@ body {
     color: theme('colors.gray.900');
   }
 }
+
+
+/* Force scrollbar to always be visible to prevent page shift when switching tabs */
+html {
+  overflow-y: scroll;
+}
+

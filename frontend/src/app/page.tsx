@@ -1,7 +1,8 @@
-import FeedPageContent from '@/pages/FeedPageContent';
 import Image from "next/image";
 import Link from "next/link";
 import Post, { PostData } from "@/components/post/Post";
+import FeedPageContent from '@/pages/FeedPageContent';
+
 
 export default function FeedPage() {
   return (
