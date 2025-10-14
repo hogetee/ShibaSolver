@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { NewPostData } from '@/components/post/CreatePostModal'; // Import type จาก Component
+import { NewPostData } from '@/components/post/CreatePostModal';
 import { PostData } from '@/components/post/Post';
 
-// กำหนดหน้าตาของข้อมูลที่ API ตอบกลับมา
+// กำหนด Type ของ Response ที่ได้จาก API ให้ตรง
 interface ApiResponse {
   success: boolean;
   data: PostData;
@@ -10,44 +10,37 @@ interface ApiResponse {
 }
 
 export const useCreatePost = () => {
-  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const createPost = async (postData: NewPostData): Promise<ApiResponse> => {
     setIsCreating(true);
     setError(null);
 
-    // 1. เตรียมข้อมูลให้ตรงกับที่ API ต้องการ
     const payload = {
       title: postData.title,
-      description: postData.details, // แปลง details -> description
-      tags: postData.subjects,     // แปลง subjects -> tags
+      description: postData.details,
+      tags: postData.subjects,
       post_image: null,
     };
 
     try {
-      // 2. เรียก API (อย่าลืมแก้ URL ถ้า Backend อยู่คนละที่)
-      const response = await fetch('/api/v1/posts', {
+      const response = await fetch('http://localhost:5003/api/v1/posts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': `Bearer YOUR_AUTH_TOKEN` // ถ้า API ต้องการ Token
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // ✅ ส่ง cookie ไปด้วย
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create post');
-      }
+      const responseData = await response.json();
+      if (!response.ok) throw new Error(responseData.message || 'Failed to create post');
 
-      const responseData: ApiResponse = await response.json();
-      return responseData;
+      return responseData as ApiResponse;
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setError(errorMessage);
-      throw new Error(errorMessage); // ส่ง Error ออกไปให้ Component จัดการต่อ
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setIsCreating(false);
     }

@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
 import MultiSelectSubject from './MultiSelectSubject';
+import { useCreatePost } from '@/hooks/useCreatePost';
+import { PostData } from './Post'; // Make sure PostData is imported
+
+interface ApiResponse {
+  success: boolean;
+  data: PostData;
+  tags: string[];
+}
 
 export interface NewPostData {
   title: string;
@@ -9,7 +17,7 @@ export interface NewPostData {
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onPostSubmit: (data: NewPostData) => void;
+  onPostSubmit: (apiResponse: ApiResponse) => void; 
 }
 
 const subjectOptions = [
@@ -18,10 +26,10 @@ const subjectOptions = [
 ];
 
 const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
+  const { createPost, isCreating } = useCreatePost();
   const [title, setTitle] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [details, setDetails] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +37,21 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
       alert("Please select at least one subject.");
       return;
     }
-    setIsSubmitting(true);
-    const newPostData: NewPostData = { title, subjects: selectedSubjects, details };
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    onPostSubmit(newPostData);
-    setIsSubmitting(false);
-    onClose(); 
+
+    const formData: NewPostData = { title, subjects: selectedSubjects, details };
+
+    try {
+      // เรียกใช้ Hook เพื่อส่งข้อมูลไปที่ API
+      const responseData = await createPost(formData);
+      
+      // 3. ส่ง response ที่ได้จาก API กลับไปตรงๆ เลย
+      onPostSubmit(responseData); 
+      onClose();
+
+    } catch (error) {
+      // Hook จะจัดการ State ของ error เอง แต่เรายังสามารถแสดง alert ที่นี่ได้
+      alert(`Failed to create post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   return (
@@ -114,10 +131,10 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isCreating} 
               className="rounded-md bg-purple-700 px-8 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit'}
+              {isCreating ? 'Submitting...' : 'Submit'}
             </button>
           </div>
         </form>
