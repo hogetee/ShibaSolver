@@ -29,8 +29,8 @@ function mapApiToPostData(api: any, rating: any): DedicatedPostData {
 
 async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
   const [postRes, ratingRes] = await Promise.all([
-    fetch(`https://localhost:5003/api/v1/posts/${postId}`, { cache: 'no-store' }),
-    fetch(`https://localhost:5003/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
+    fetch(`http://localhost:5003/api/v1/posts/${postId}`, { cache: 'no-store' }),
+    fetch(`http://localhost:5003/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
       cache: 'no-store',
       credentials: 'include',
     }),

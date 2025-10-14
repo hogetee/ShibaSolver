@@ -39,7 +39,7 @@ const PostAuthor = ({
     target_id: number | string,
     rating_type: 'like' | 'dislike'
   ) {
-    const res = await fetch('/api/v1/ratings', {
+    const res = await fetch('http://localhost:5003/api/v1/ratings', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -49,7 +49,7 @@ const PostAuthor = ({
   }
 
   async function deleteRate(target_type: 'post' | 'comment', target_id: number | string) {
-    const res = await fetch('/api/v1/ratings', {
+    const res = await fetch('http://localhost:5003/api/v1/ratings', {
       method: 'DELETE',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
