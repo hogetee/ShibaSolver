@@ -40,6 +40,7 @@ exports.getFeed = async (req, res, next) => {
         c.post_id,
         c.comment_id,
         c.text,
+        c.created_at,
         c.user_id,
         u.display_name,
         u.profile_picture,
