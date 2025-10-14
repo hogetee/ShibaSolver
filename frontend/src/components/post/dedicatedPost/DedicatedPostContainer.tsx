@@ -54,7 +54,8 @@ async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
 
 
 // Mock data for development/testing
- const mockPostData: DedicatedPostData = {
+/*
+const mockPostData: DedicatedPostData = {
   post_id: '123',
   title: 'How to Prove the Riemann Hypothesis',
   description: 'I have been reading about the Riemann Hypothesis and I’m confused about the distribution of non-trivial zeros...',
@@ -74,6 +75,7 @@ async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
   liked_by_user: false,
   disliked_by_user: true,
 }
+*/
 
 export default async function PostPage({ postId }: Props) {
   const postData = await getPostWithRatings(postId)

@@ -39,23 +39,59 @@ const PostAuthor = ({
     target_id: number | string,
     rating_type: 'like' | 'dislike'
   ) {
-    const res = await fetch('http://localhost:5003/api/v1/ratings', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ target_type, target_id: Number(target_id), rating_type }),
-    });
-    return res.json();
+    try {
+      const res = await fetch('http://localhost:5003/api/v1/ratings', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_type,
+          target_id: Number(target_id),
+          rating_type,
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          console.warn('User not authenticated');
+        }
+        throw new Error(`POST /ratings failed: ${res.status}`);
+      }
+
+      return await res.json();
+    } catch (err) {
+      console.error('Error posting rating:', err);
+      throw err;
+    }
   }
 
-  async function deleteRate(target_type: 'post' | 'comment', target_id: number | string) {
-    const res = await fetch('http://localhost:5003/api/v1/ratings', {
-      method: 'DELETE',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ target_type, target_id: Number(target_id) }),
-    });
-    return res.json();
+  async function deleteRate(
+    target_type: 'post' | 'comment',
+    target_id: number | string
+  ) {
+    try {
+      const res = await fetch('http://localhost:5003/api/v1/ratings', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_type,
+          target_id: Number(target_id),
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          console.warn('User not authenticated');
+        }
+        throw new Error(`DELETE /ratings failed: ${res.status}`);
+      }
+
+      return await res.json();
+    } catch (err) {
+      console.error('Error deleting rating:', err);
+      throw err;
+    }
   }
 
   // ---- Optimistic + Accurate Like Toggle ----
@@ -63,19 +99,18 @@ const PostAuthor = ({
     if (loading) return;
     setLoading(true);
 
-    // snapshot previous state
     const prev = { liked, disliked, likes, dislikes };
 
-    // optimistic local update
+    // optimistic UI update
     if (liked) {
       setLiked(false);
-      setLikes(l => Math.max(0, l - 1));
+      setLikes((l) => Math.max(0, l - 1));
     } else {
       setLiked(true);
-      setLikes(l => l + 1);
+      setLikes((l) => l + 1);
       if (disliked) {
         setDisliked(false);
-        setDislikes(d => Math.max(0, d - 1));
+        setDislikes((d) => Math.max(0, d - 1));
       }
     }
 
@@ -84,10 +119,10 @@ const PostAuthor = ({
         ? await deleteRate('post', postId)
         : await postRate('post', postId, 'like');
 
-      // if backend sends updated summary, use it
-      const summary = json.data?.summary ?? json.summary;
-      const rating = json.data?.rating ?? json.rating;
-      const my_rating = rating?.rating_type ?? json.data?.my_rating;
+      // --- sync back with backend response ---
+      const summary = json?.data?.summary ?? json?.summary;
+      const rating = json?.data?.rating ?? json?.rating;
+      const my_rating = rating?.rating_type ?? json?.data?.my_rating;
 
       if (summary) {
         setLikes(Number(summary.likes));
@@ -99,8 +134,7 @@ const PostAuthor = ({
         setDisliked(my_rating === 'dislike');
       }
     } catch (err) {
-      console.error('Like action failed', err);
-      // rollback
+      // rollback on error
       setLiked(prev.liked);
       setDisliked(prev.disliked);
       setLikes(prev.likes);
@@ -117,16 +151,16 @@ const PostAuthor = ({
 
     const prev = { liked, disliked, likes, dislikes };
 
-    // optimistic local update
+    // optimistic UI update
     if (disliked) {
       setDisliked(false);
-      setDislikes(d => Math.max(0, d - 1));
+      setDislikes((d) => Math.max(0, d - 1));
     } else {
       setDisliked(true);
-      setDislikes(d => d + 1);
+      setDislikes((d) => d + 1);
       if (liked) {
         setLiked(false);
-        setLikes(l => Math.max(0, l - 1));
+        setLikes((l) => Math.max(0, l - 1));
       }
     }
 
@@ -135,9 +169,9 @@ const PostAuthor = ({
         ? await deleteRate('post', postId)
         : await postRate('post', postId, 'dislike');
 
-      const summary = json.data?.summary ?? json.summary;
-      const rating = json.data?.rating ?? json.rating;
-      const my_rating = rating?.rating_type ?? json.data?.my_rating;
+      const summary = json?.data?.summary ?? json?.summary;
+      const rating = json?.data?.rating ?? json?.rating;
+      const my_rating = rating?.rating_type ?? json?.data?.my_rating;
 
       if (summary) {
         setLikes(Number(summary.likes));
@@ -149,7 +183,7 @@ const PostAuthor = ({
         setDisliked(my_rating === 'dislike');
       }
     } catch (err) {
-      console.error('Dislike action failed', err);
+      // rollback on error
       setLiked(prev.liked);
       setDisliked(prev.disliked);
       setLikes(prev.likes);
@@ -185,7 +219,9 @@ const PostAuthor = ({
             className="p-2 rounded-full hover:bg-black/5 active:bg-black/10 transition-colors disabled:opacity-60"
           >
             <svg
-              className={`w-5 h-5 cursor-pointer ${liked ? 'text-red-500 fill-red-500' : 'text-gray-700'}`}
+              className={`w-5 h-5 cursor-pointer ${
+                liked ? 'text-red-500 fill-red-500' : 'text-gray-700'
+              }`}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill={liked ? 'currentColor' : 'none'}
@@ -211,7 +247,9 @@ const PostAuthor = ({
             className="p-2 rounded-full hover:bg-black/5 active:bg-black/10 transition-colors disabled:opacity-60"
           >
             <svg
-              className={`w-5 h-5 cursor-pointer ${disliked ? 'text-blue-500 fill-blue-500' : 'text-gray-700'}`}
+              className={`w-5 h-5 cursor-pointer ${
+                disliked ? 'text-blue-500 fill-blue-500' : 'text-gray-700'
+              }`}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill={disliked ? 'currentColor' : 'none'}
