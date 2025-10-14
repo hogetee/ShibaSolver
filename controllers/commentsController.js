@@ -148,7 +148,7 @@ exports.getComment = async (req, res, next) => {
 exports.createComment = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
-    const userId = req.user.uid; // จาก JWT middleware
+    const userId = req.user?.uid; // จาก JWT middleware
     const { post_id, text, parent_comment, comment_image } = req.body || {};
 
     // 1) validate input ขั้นพื้นฐาน
@@ -431,7 +431,7 @@ exports.replyToComment = async (req, res, next) => {
  * @desc    Get all comments from a specific post with sorting and optional solution filtering.
  * @access  Internal
  */
-exports.fetchCommentsByPost = async (pool, postId, sort = "latest", filterSolutionsForAnonymous = false) => {
+async function fetchCommentsByPost(pool, postId, sort = "latest", filterSolutionsForAnonymous = false) {
   let orderBy = `c.created_at DESC, c.comment_id DESC`;
   switch (sort) {
     case "popular":
@@ -475,6 +475,7 @@ exports.fetchCommentsByPost = async (pool, postId, sort = "latest", filterSoluti
   const { rows } = await pool.query(sql, [postId]);
   return rows;
 };
+exports.fetchCommentsByPost = fetchCommentsByPost;
 
 /**
  * @desc    Get all comments from post with sort option
