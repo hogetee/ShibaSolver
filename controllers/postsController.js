@@ -8,47 +8,55 @@ exports.getPost = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const postId = Number(req.params.postId);
+    const userId = req.user?.uid || null;
 
     if (!Number.isInteger(postId) || postId <= 0) {
       return res.status(400).json({ success: false, message: "Invalid postId" });
     }
 
-    // Get post with author info
-    const postSql = `
+    const sql = `
       SELECT 
-        p.post_id,
-        p.title,
-        p.description,
-        p.post_image,
-        p.is_solved,
-        p.created_at,
+        p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,
         json_build_object(
           'user_id', u.user_id,
           'display_name', u.display_name,
           'profile_picture', u.profile_picture
-        ) AS author
+        ) AS author,
+        COALESCE(SUM(CASE WHEN r_all.rating_type = 'like' THEN 1 ELSE 0 END), 0)    AS likes,
+        COALESCE(SUM(CASE WHEN r_all.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
+        CASE 
+          WHEN MAX(CASE WHEN r_me.rating_type = 'like' THEN 1 END) = 1 THEN TRUE
+          WHEN MAX(CASE WHEN r_me.rating_type = 'dislike' THEN 1 END) = 1 THEN FALSE
+          ELSE NULL
+        END AS my_rating
       FROM posts p
       JOIN users u ON u.user_id = p.user_id
+      LEFT JOIN ratings r_all ON r_all.post_id = p.post_id
+      LEFT JOIN ratings r_me ON r_me.post_id = p.post_id AND r_me.user_id = $2
       WHERE p.post_id = $1
+      GROUP BY p.post_id, u.user_id, u.display_name, u.profile_picture
       LIMIT 1;
     `;
-    const postRes = await pool.query(postSql, [postId]);
+
+    const postRes = await pool.query(sql, [postId, userId]);
     if (postRes.rowCount === 0) {
       return res.status(404).json({ success: false, message: "Post not found" });
     }
+
     const post = postRes.rows[0];
 
-    // Get tags
     const tagSql = `
-      SELECT t.tag_name FROM post_tags pt
+      SELECT t.tag_name 
+      FROM post_tags pt
       JOIN tags t ON t.tag_id = pt.tag_id
-      WHERE pt.post_id = $1
+      WHERE pt.post_id = $1;
     `;
     const tagRes = await pool.query(tagSql, [postId]);
     post.tags = tagRes.rows.map(row => row.tag_name);
 
     return res.status(200).json({ success: true, data: post });
   } catch (e) {
+    console.error(e);
     next(e);
   }
 };
