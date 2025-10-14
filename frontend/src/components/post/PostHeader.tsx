@@ -12,9 +12,19 @@ const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
 
   //Object for storing color pairs of each subject
   const tagColorMap: { [key: string]: string } = {
-    "Math": "bg-blue-500",
-    "Science": "bg-teal-400",
-    "English": "bg-pink-500",
+    "Math": "bg-[#2563EB]",
+    "Physics": "bg-[#FF9D00]",
+    "Chemistry": "bg-[#9333EA]",
+    "Biology": "bg-[#467322]",
+    "History": "bg-[#893F07]",
+    "Geography": "bg-[#1E6A91]",
+    "Economics": "bg-[#FA733E]",
+    "Law": "bg-[#000000]",
+    "Thai": "bg-[#83110F]",
+    "English": "bg-[#BE0EA7]",
+    "Chinese": "bg-[#CBC400]",
+    "Programming": "bg-[#6366F1]",
+    "Others": "bg-[#63647A]",
   };
 
   return (
@@ -22,7 +32,7 @@ const PostHeader = ({ isSolved, tags }: PostHeaderProps) => {
       <div className="flex items-center gap-2">
         {/* Tag สถานะ Solved/Unsolved */}
         <span 
-          className={`${isSolved ? 'bg-[#28AF70]' : 'bg-[#FF2428]'} text-white text-b font-bold px-2.5 py-1 rounded-md`}
+          className={`${isSolved ? 'bg-[#16A34A]' : 'bg-[#DC2626]'} text-white text-b font-bold px-2.5 py-1 rounded-md`}
         >
           {isSolved ? 'Solved' : 'Unsolved'}
         </span>
