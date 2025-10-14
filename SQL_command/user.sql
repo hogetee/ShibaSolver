@@ -14,5 +14,4 @@ CREATE TABLE IF NOT EXISTS users (
     profile_picture     TEXT,                    -- URL to profile picture
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    is_deleted         BOOLEAN NOT NULL DEFAULT FALSE
 );
