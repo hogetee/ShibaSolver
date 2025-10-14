@@ -13,5 +13,6 @@ CREATE TABLE IF NOT EXISTS users (
     interested_subjects TEXT[],                  -- array of subjects the user is interested in
     profile_picture     TEXT,                    -- URL to profile picture
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    is_deleted         BOOLEAN NOT NULL DEFAULT FALSE
 );
