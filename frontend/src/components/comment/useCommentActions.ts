@@ -1,29 +1,8 @@
 import { useState } from 'react';
-import { UserLikeStatus } from '@/components/comment/types'; 
 
+import { CommentContent, UserLikeStatus } from '@/components/comment/types'; 
+import { CommentActions } from '@/components/comment/types';
 
-
-interface CommentActions {
-    likes: number;
-    dislikes: number;
-    userLikeStatus: UserLikeStatus;
-    isRepliesOpen: boolean;
-    isReplying: boolean;
-    anchorEl: null | HTMLElement;
-    isSolution: boolean;
-    handleLike: () => void;
-    handleDislike: () => void;
-    handleToggleReplies: () => void;
-    handleToggleNewReply: () => void;
-    handleCancelReply: () => void;
-    handleCreateNewReply : (replyText: string) => Promise<boolean>;
-    handleCreateNewComment : (commentText: string) => Promise<boolean>;
-    handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
-    handleMenuClose: () => void;
-    handleEdit: () => void;
-    handleDelete: () => void;
-    handleSetSolution: () => void;
-}
 
 export const useCommentActions = (
     commentId: string,
@@ -40,6 +19,12 @@ export const useCommentActions = (
     const [isReplying, setIsReplying] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [isSolution, setIsSolution] = useState(initialSolution);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [draftContent, setDraftContent] = useState<CommentContent | null>(null);
+    const [displayContent, setDisplayContent] = useState<CommentContent | null>(null);
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const handleLike = () => {
         if (userLikeStatus === 'liked') {
@@ -134,8 +119,30 @@ export const useCommentActions = (
     const handleEdit = () => {
         handleMenuClose();
         console.log(`[ACTION] Editing comment ID: ${commentId}`);
+        setIsEditing(true);
     };
 
+    const handleSaveEdit = (newContent: CommentContent) => {
+        setDisplayContent(newContent);
+        setDraftContent(newContent);
+        setIsEditing(false);
+        console.log(`[ACTION] Saved edited content for comment ID: ${commentId}`, newContent);
+        // TODO: API call to save edited content
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+    };
+
+    const handleDeleteModalOpen = () => {
+        setIsDeleteModalOpen(true);
+        handleMenuClose();
+    }
+
+    const handleDeleteModalClose = () => {
+        setIsDeleteModalOpen(false);
+    }
+    
     const handleDelete = () => {
         handleMenuClose();
         console.log(`[ACTION] Deleting comment ID: ${commentId}`);
@@ -158,6 +165,10 @@ export const useCommentActions = (
         isReplying,
         anchorEl,
         isSolution,
+        isEditing,
+        draftContent,
+        displayContent,
+        isDeleteModalOpen,
         handleLike,
         handleDislike,
         handleToggleReplies,
@@ -168,8 +179,11 @@ export const useCommentActions = (
         handleMenuOpen,
         handleMenuClose,
         handleEdit,
+        handleSaveEdit,
+        handleCancelEdit,
+        handleDeleteModalOpen,
+        handleDeleteModalClose,
         handleDelete,
         handleSetSolution,
-        
     };
 }
