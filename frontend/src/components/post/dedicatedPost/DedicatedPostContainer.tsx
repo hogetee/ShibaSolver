@@ -10,17 +10,17 @@ function mapApiToPostData(api: any, rating: any): DedicatedPostData {
     title: api.title,
     description: api.description,
     post_image: api.post_image,
-    is_solved: api.solved,
+    is_solved: api.is_solved,
     created_at: api.created_at,
-    tags: api.tagList,
+    tags: api.tags ?? [], 
     author: {
-      user_id: api.user_id,
-      display_name: api.username,
-      profile_picture: api.user_profile_picture,
+      user_id: api.author.user_id,
+      display_name: api.author.display_name,
+      profile_picture: api.author.profile_picture,
     },
     stats: {
-      likes: rating.likes,
-      dislikes: rating.dislikes,
+      likes: rating.likes ?? 0,
+      dislikes: rating.dislikes ?? 0,
     },
     liked_by_user: rating.my_rating === 'like',
     disliked_by_user: rating.my_rating === 'dislike',
@@ -29,24 +29,21 @@ function mapApiToPostData(api: any, rating: any): DedicatedPostData {
 
 async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
   const [postRes, ratingRes] = await Promise.all([
-    fetch(`https://your-api.com/api/posts/${postId}`, { cache: 'no-store' }),
-    fetch(`https://your-api.com/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
+    fetch(`https://localhost:5003/api/v1/posts/${postId}`, { cache: 'no-store' }),
+    fetch(`https://localhost:5003/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
       cache: 'no-store',
-      credentials: 'include', // needed for cookie-based auth
+      credentials: 'include',
     }),
   ]);
 
-  if (!postRes.ok) {
-    throw new Error('Failed to fetch post');
-  }
-  if (!ratingRes.ok) {
-    throw new Error('Failed to fetch rating summary');
-  }
+  if (!postRes.ok) throw new Error('Failed to fetch post');
+  if (!ratingRes.ok) throw new Error('Failed to fetch rating summary');
 
-  const postData = await postRes.json();
-  const ratingData = await ratingRes.json();
+  const postJson = await postRes.json();
+  const ratingJson = await ratingRes.json();
 
-  const rating = ratingData.data.find((r: any) => r.id === Number(postId)) || {
+  const postData = postJson.data;
+  const rating = ratingJson.data.find((r: any) => r.id === Number(postId)) || {
     likes: 0,
     dislikes: 0,
     my_rating: null,
@@ -79,8 +76,8 @@ async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
 }
 
 export default async function PostPage({ postId }: Props) {
-  // const postData = await getPost(postId)
-  const postData = mockPostData
+  const postData = await getPostWithRatings(postId)
+  // const postData = mockPostData
 
   return <DedicatedPost dedicatedPostData={postData} />
 }
