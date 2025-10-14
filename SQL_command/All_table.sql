@@ -153,3 +153,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS ratings_user_post_unique
 CREATE UNIQUE INDEX IF NOT EXISTS ratings_user_comment_unique
     ON ratings(user_id, comment_id)
     WHERE comment_id IS NOT NULL;
+
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+CREATE INDEX idx_comments_post_id ON comments(post_id);
+CREATE INDEX idx_ratings_post_id ON ratings(post_id);
+CREATE INDEX idx_ratings_comment_id ON ratings(comment_id);
+CREATE INDEX idx_post_tags_post_id ON post_tags(post_id);
