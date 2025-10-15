@@ -233,9 +233,11 @@ exports.deletePost = async (req, res, next) => {
     }
     const pool = req.app.locals.pool;
     const sql = `
-      DELETE FROM public.posts
-      WHERE post_id = $1 and user_id = $2 
-      RETURNING post_id`;
+      UPDATE posts
+      SET is_deleted = TRUE
+      WHERE post_id = $1 AND user_id = $2 AND is_deleted = FALSE
+      RETURNING post_id,is_deleted;
+    `;
 
     const { rows } = await pool.query(sql, [postId, user_id]);
     if (rows.length === 0) {
