@@ -19,7 +19,6 @@ exports.getFeed = async (req, res, next) => {
       FROM posts p
       JOIN users u ON u.user_id = p.user_id
       LEFT JOIN ratings r ON r.post_id = p.post_id
-      WHERE p.is_deleted = FALSE
       GROUP BY p.post_id, u.user_id, u.display_name, u.profile_picture
       ORDER BY p.created_at DESC
       LIMIT 20;
