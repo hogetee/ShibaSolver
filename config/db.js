@@ -3,7 +3,6 @@ const { Pool } = require('pg');
 const connectDB = async () => {
   try {
     // test connection
-    // test connection
     const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
