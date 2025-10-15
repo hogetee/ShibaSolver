@@ -139,33 +139,38 @@ const PostHeader = ({
                 Report
               </button>
 
+
+              {isCurrentUserAuthor && ( 
+              <>
               <div className="border-t border-gray-100 my-1" />
 
-              {/* Edit */}
-              <button
-                onClick={(e) => {
-                  stopAll(e);
-                  onEditClick();
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <Pencil className="w-4 h-4 mr-3" />
-                Edit
-              </button>
+                {/* Edit */}
+                <button
+                  onClick={(e) => {
+                    stopAll(e);
+                    onEditClick();
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <Pencil className="w-4 h-4 mr-3" />
+                  Edit
+                </button>
 
-              {/* Delete */}
-              <button
-                onClick={(e) => {
-                  stopAll(e);
-                  onDeleteClick();
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4 mr-3" />
-                Delete
-              </button>
+                {/* Delete */}
+                <button
+                  onClick={(e) => {
+                    stopAll(e);
+                    onDeleteClick();
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-3" />
+                  Delete
+                </button>
+              </>
+              )}
             </div>
           </div>
         )}

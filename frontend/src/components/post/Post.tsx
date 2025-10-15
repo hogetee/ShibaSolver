@@ -8,8 +8,10 @@ import TopComment from './TopComment';
 import { slugify } from '@/utils/slugify';
 import Link from 'next/link';
 import EditPostModal, { UpdatedPostData } from './EditPostModal'; 
+import DeletePostModal from './DeletePostModal'; 
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useUpdatePost } from '@/hooks/useUpdatePost'; // 1. Import Hook ใหม่
+import { useUpdatePost } from '@/hooks/useUpdatePost'; 
+import { useDeletePost } from '@/hooks/useDeletePost';
 
 export interface PostData {
   post_id: string;
@@ -55,14 +57,15 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
 
   const [postData, setPostData] = useState(initialPostData);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   const { user } = useCurrentUser();
   const { updatePost, isUpdating, error: updateError } = useUpdatePost(); 
+  const { deletePost, isDeleting } = useDeletePost();
 
   const isCurrentUserAuthor = user ? String(user.user_id) === postData.author.user_id : false;
   const href = `/post/${postData.post_id}/${slugify(postData.title)}`;
 
-  // ✅ นี่คือเวอร์ชันที่อัปเกรดแล้ว
   const handleSaveEdit = async (dataFromModal: UpdatedPostData) => {
     try {
       // 1. ส่งข้อมูลไปอัปเดตเหมือนเดิม
@@ -99,6 +102,18 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
     }
   };
 
+  // 5. สร้างฟังก์ชันสำหรับยืนยันการลบ
+  const handleConfirmDelete = async () => {
+    try {
+      await deletePost(postData.post_id);
+      setIsDeleteModalOpen(false); // ปิด Modal ก่อน
+      onPostDelete(postData.post_id); // แจ้งหน้า Feed ให้ลบโพสต์นี้ออกจาก UI
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      alert(`Error deleting post: ${errorMessage}`);
+    }
+  };
+
   return (
     <>
     <div className="w-full min-h-[30vh] bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-6 flex flex-col font-display">
@@ -107,7 +122,7 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
           tags={postData.tags}
           isCurrentUserAuthor={isCurrentUserAuthor}
           onEditClick={() => setIsEditModalOpen(true)}
-          onDeleteClick={() => alert('Delete feature coming soon!')} // Placeholder
+          onDeleteClick={() => setIsDeleteModalOpen(true)}
         />
       
       {/* ✅ Only title/description clickable */}
@@ -143,6 +158,14 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
           onClose={() => setIsEditModalOpen(false)}
           onSave={handleSaveEdit}
           isSaving={isUpdating}
+        />
+    )}
+
+    {isDeleteModalOpen && (
+        <DeletePostModal
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          isDeleting={isDeleting}
         />
     )}
 
