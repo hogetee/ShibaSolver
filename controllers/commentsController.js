@@ -261,7 +261,7 @@ exports.editComment = async (req, res, next) => {
     const pool = req.app.locals.pool;
     const commentId = Number(req.params.id);
     const userId = req.user.uid; // จาก JWT middleware
-    const { text, comment_image } = req.body;
+    let { text, comment_image } = req.body;
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
       return res
