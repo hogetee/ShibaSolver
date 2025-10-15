@@ -9,18 +9,21 @@ import {
   Trash2,
 } from 'lucide-react';
 
+// ✅ 1. อัปเดต "คู่มือ" (Interface) ให้รับ Prop ที่จำเป็น
 interface PostHeaderProps {
   isSolved: boolean;
   tags: string[];
-  onEditClick?: () => void;
-  onDeleteClick?: () => void;
+  isCurrentUserAuthor: boolean;
+  onEditClick: () => void;
+  onDeleteClick: () => void;
 }
 
 const PostHeader = ({
   isSolved,
   tags,
-  onEditClick = () => {},
-  onDeleteClick = () => {},
+  isCurrentUserAuthor,
+  onEditClick,
+  onDeleteClick,
 }: PostHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);

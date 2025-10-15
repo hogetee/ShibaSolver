@@ -36,6 +36,22 @@ export default function Home() {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // ✅ 1. สร้าง "คู่มือ" หรือฟังก์ชันสำหรับจัดการการอัปเดต
+  const handlePostUpdateInFeed = (updatedPost: PostData) => {
+    setPosts(currentPosts => 
+      currentPosts.map(p => 
+        p.post_id === updatedPost.post_id ? updatedPost : p
+      )
+    );
+  };
+
+  // ✅ 2. สร้าง "คู่มือ" สำหรับการลบ (เผื่อไว้ในอนาคต)
+  const handlePostDeleteInFeed = (postIdToDelete: string) => {
+    setPosts(currentPosts => 
+      currentPosts.filter(p => p.post_id !== postIdToDelete)
+    );
+  };
+
   // ใช้ useEffect สำหรับดึงข้อมูล Notifications แยกต่างหาก
   useEffect(() => {
     async function fetchNotifications() {
@@ -75,7 +91,11 @@ export default function Home() {
     return (
       <div className="space-y-5">
         {posts.map((post) => (
-          <Post key={post.post_id} postData={post} />
+          <Post key={post.post_id} 
+          postData={post} 
+          onPostUpdate={handlePostUpdateInFeed}
+          onPostDelete={handlePostDeleteInFeed}
+          />
         ))}
       </div>
     );
