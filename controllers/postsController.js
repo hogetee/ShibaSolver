@@ -16,7 +16,7 @@ exports.getPost = async (req, res, next) => {
 
     const sql = `
       SELECT 
-        p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,
+        p.post_id, p.title, p.description, p.post_image, p.is_solved, p.created_at,p.is_deleted,
         json_build_object(
           'user_id', u.user_id,
           'display_name', u.display_name,
@@ -41,6 +41,8 @@ exports.getPost = async (req, res, next) => {
     const postRes = await pool.query(sql, [postId, userId]);
     if (postRes.rowCount === 0) {
       return res.status(404).json({ success: false, message: "Post not found" });
+    }else if (postRes.rows[0].is_deleted) {
+      return res.status(410).json({ success: false, message: "Post has been deleted" });
     }
 
     const post = postRes.rows[0];
@@ -233,9 +235,11 @@ exports.deletePost = async (req, res, next) => {
     }
     const pool = req.app.locals.pool;
     const sql = `
-      DELETE FROM public.posts
-      WHERE post_id = $1 and user_id = $2 
-      RETURNING post_id`;
+      UPDATE posts
+      SET is_deleted = TRUE
+      WHERE post_id = $1 AND user_id = $2 AND is_deleted = FALSE
+      RETURNING post_id,is_deleted;
+    `;
 
     const { rows } = await pool.query(sql, [postId, user_id]);
     if (rows.length === 0) {
@@ -257,6 +261,7 @@ exports.refreshFeed = async (req, res, next) => {
     const pool = req.app.locals.pool;
     const { rows } = await pool.query(
       `SELECT * FROM public.posts
+      where is_deleted=false
       ORDER BY created_at DESC`
     ); //order by creation date desc, might be changed later
 

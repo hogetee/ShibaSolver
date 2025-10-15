@@ -29,14 +29,16 @@ exports.getMyComments = async (req, res, next) => {
           COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.user_id = $1
+      WHERE c.user_id = $1 AND is_deleted = FALSE
       GROUP BY c.comment_id
       ORDER BY c.created_at DESC;
     `;
 
     const { rows } = await pool.query(sql, [userId]);
 
-    return res.status(200).json({ success: true, count: rows.length, data: rows });
+    return res
+      .status(200)
+      .json({ success: true, count: rows.length, data: rows });
   } catch (err) {
     next(err);
   }
@@ -53,7 +55,9 @@ exports.getTopComment = async (req, res, next) => {
     const postId = Number(req.params.postId);
 
     if (!Number.isInteger(postId) || postId <= 0) {
-      return res.status(400).json({ success: false, message: "Invalid postId" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid postId" });
     }
 
     const sql = `
@@ -71,7 +75,7 @@ exports.getTopComment = async (req, res, next) => {
           COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.post_id = $1
+      WHERE c.post_id = $1 AND is_deleted = FALSE
       GROUP BY c.comment_id
       ORDER BY total_votes DESC, c.created_at ASC, c.comment_id ASC
       LIMIT 1;
@@ -79,7 +83,9 @@ exports.getTopComment = async (req, res, next) => {
     const { rows } = await pool.query(sql, [postId]);
 
     if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: "No comments found for this post" });
+      return res
+        .status(404)
+        .json({ success: false, message: "No comments found for this post" });
     }
 
     return res.status(200).json({ success: true, data: rows[0] });
@@ -120,7 +126,7 @@ exports.getComment = async (req, res, next) => {
         COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.comment_id = $1
+      WHERE c.comment_id = $1 AND is_deleted = FALSE
       GROUP BY c.comment_id
       LIMIT 1;
     `;
@@ -197,7 +203,7 @@ exports.createComment = async (req, res) => {
       let parentId = null;
       if (parent_comment != null) {
         const parentRes = await client.query(
-          "SELECT comment_id, post_id FROM comments WHERE comment_id = $1",
+          "SELECT comment_id, post_id FROM comments WHERE comment_id = $1 AND is_deleted = FALSE",
           [parent_comment]
         );
         if (parentRes.rowCount === 0) {
@@ -258,10 +264,15 @@ exports.editComment = async (req, res, next) => {
     const { text, comment_image } = req.body;
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
-      return res.status(400).json({ success: false, message: "Invalid commentId" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid commentId" });
     }
+    if (typeof text === "string") text = text.trim();
     if (!text && !comment_image) {
-      return res.status(400).json({ success: false, message: "Nothing to update" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Nothing to update" });
     }
 
     const sql = `
@@ -270,14 +281,22 @@ exports.editComment = async (req, res, next) => {
         text = COALESCE($2, text),
         comment_image = COALESCE($3, comment_image),
         is_updated = TRUE
-      WHERE comment_id = $1 AND user_id = $4
+      WHERE comment_id = $1 AND user_id = $4 AND is_deleted = FALSE
       RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, 
                 is_solution, is_updated, created_at;
     `;
-    const { rows } = await pool.query(sql, [commentId, text ?? null, comment_image ?? null, userId]);
+    const { rows } = await pool.query(sql, [
+      commentId,
+      text ?? null,
+      comment_image ?? null,
+      userId,
+    ]);
 
     if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Comment not found or not authorized" });
+      return res.status(404).json({
+        success: false,
+        message: "Comment not found or not authorized",
+      });
     }
 
     return res.status(200).json({ success: true, data: rows[0] });
@@ -298,21 +317,29 @@ exports.deleteComment = async (req, res, next) => {
     const userId = req.user.uid; // จาก JWT middleware
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
-      return res.status(400).json({ success: false, message: "Invalid commentId" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid commentId" });
     }
-
+    // เปลี่ยนจาก DELETE -> UPDATE (soft delete)
     const sql = `
-      DELETE FROM comments
-      WHERE comment_id = $1 AND user_id = $2
+      UPDATE comments
+      SET is_deleted = TRUE
+      WHERE comment_id = $1 AND user_id = $2 AND is_deleted = FALSE
       RETURNING comment_id;
     `;
     const { rows } = await pool.query(sql, [commentId, userId]);
 
     if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Comment not found or not authorized" });
+      return res.status(404).json({
+        success: false,
+        message: "Comment not found or not authorized",
+      });
     }
 
-    return res.status(200).json({ success: true, message: "Comment deleted", data: rows[0] });
+    return res
+      .status(200)
+      .json({ success: true, message: "Comment deleted", data: rows[0] });
   } catch (err) {
     next(err);
   }
@@ -332,19 +359,24 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
     const { rows } = await pool.query(
       `SELECT comment_id, user_id, is_solution
        FROM comments
-       WHERE comment_id = $1`,
+       WHERE comment_id = $1 AND is_deleted = FALSE`,
       [commentId]
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Comment not found' });
+      return res
+        .status(404)
+        .json({ success: false, error: "Comment not found" });
     }
 
     const comment = rows[0];
 
     if (Number(comment.user_id) !== Number(userId)) {
-  return res.status(403).json({ success: false, error: 'You are not the owner of this comment' });
-}
+      return res.status(403).json({
+        success: false,
+        error: "You are not the owner of this comment",
+      });
+    }
 
     const newValue = !comment.is_solution;
 
@@ -352,16 +384,15 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
       `UPDATE comments
        SET is_solution = $1,
            is_updated  = TRUE
-       WHERE comment_id = $2
+       WHERE comment_id = $2 AND is_deleted = FALSE
        RETURNING comment_id, user_id, is_solution, is_updated, created_at`,
       [newValue, commentId]
     );
 
     return res.status(200).json({
       success: true,
-      data: update.rows[0]
+      data: update.rows[0],
     });
-
   } catch (err) {
     next(err);
   }
@@ -376,25 +407,29 @@ exports.replyToComment = async (req, res, next) => {
   const client = await req.app.locals.pool.connect();
   try {
     const actorUserId = req.user.uid;
-    const { commentId } = req.params;         // parent comment id
+    const { commentId } = req.params; // parent comment id
     const { text, comment_image } = req.body;
 
     if (!text || !text.trim()) {
-      return res.status(400).json({ success:false, error:'Text is required' });
+      return res
+        .status(400)
+        .json({ success: false, error: "Text is required" });
     }
 
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
-    // 1) หา parent (ถ้า hard delete ไปแล้ว จะไม่พบ)
+    // 1) หา parent (ถ้า delete ไปแล้ว จะไม่พบ)
     const par = await client.query(
       `SELECT comment_id, user_id AS parent_user_id, post_id
        FROM comments
-       WHERE comment_id = $1`,
+       WHERE comment_id = $1 AND is_deleted = FALSE`,
       [commentId]
     );
     if (par.rowCount === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ success:false, error:'Parent comment not found' });
+      await client.query("ROLLBACK");
+      return res
+        .status(404)
+        .json({ success: false, error: "Parent comment not found" });
     }
     const parent = par.rows[0];
 
@@ -403,7 +438,13 @@ exports.replyToComment = async (req, res, next) => {
       `INSERT INTO comments (user_id, post_id, parent_comment, text, comment_image, is_updated)
        VALUES ($1, $2, $3, $4, $5, FALSE)
        RETURNING comment_id, user_id, post_id, parent_comment, text, comment_image, is_solution, is_updated, created_at`,
-      [actorUserId, parent.post_id, commentId, text.trim(), comment_image || null]
+      [
+        actorUserId,
+        parent.post_id,
+        commentId,
+        text.trim(),
+        comment_image || null,
+      ]
     );
     const reply = ins.rows[0];
 
@@ -413,14 +454,22 @@ exports.replyToComment = async (req, res, next) => {
         `INSERT INTO notifications
          (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
          VALUES ($1, $2, $3, $4, $5, 'reply')`,
-        [parent.parent_user_id, actorUserId, parent.post_id, reply.comment_id, parent.comment_id]
+        [
+          parent.parent_user_id,
+          actorUserId,
+          parent.post_id,
+          reply.comment_id,
+          parent.comment_id,
+        ]
       );
     }
 
-    await client.query('COMMIT');
-    return res.status(201).json({ success:true, data: reply });
+    await client.query("COMMIT");
+    return res.status(201).json({ success: true, data: reply });
   } catch (err) {
-    try { await client.query('ROLLBACK'); } catch (_) {}
+    try {
+      await client.query("ROLLBACK");
+    } catch (_) {}
     next(err);
   } finally {
     client.release();
@@ -431,7 +480,12 @@ exports.replyToComment = async (req, res, next) => {
  * @desc    Get all comments from a specific post with sorting and optional solution filtering.
  * @access  Internal
  */
-async function fetchCommentsByPost(pool, postId, sort = "latest", filterSolutionsForAnonymous = false) {
+async function fetchCommentsByPost(
+  pool,
+  postId,
+  sort = "latest",
+  filterSolutionsForAnonymous = false
+) {
   let orderBy = `c.created_at DESC, c.comment_id DESC`;
   switch (sort) {
     case "popular":
@@ -461,7 +515,7 @@ async function fetchCommentsByPost(pool, postId, sort = "latest", filterSolution
         COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.post_id = $1
+      WHERE c.post_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
     )
     SELECT *,
@@ -474,7 +528,7 @@ async function fetchCommentsByPost(pool, postId, sort = "latest", filterSolution
 
   const { rows } = await pool.query(sql, [postId]);
   return rows;
-};
+}
 exports.fetchCommentsByPost = fetchCommentsByPost;
 
 /**
@@ -489,11 +543,15 @@ exports.getComments = async (req, res, next) => {
     const sort = (req.query.sort || "latest").toLowerCase();
 
     if (!Number.isInteger(postId) || postId <= 0) {
-      return res.status(400).json({ success: false, message: "Invalid postId" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid postId" });
     }
 
     const rows = await fetchCommentsByPost(pool, postId, sort);
-    return res.status(200).json({ success: true, count: rows.length, data: rows });
+    return res
+      .status(200)
+      .json({ success: true, count: rows.length, data: rows });
   } catch (err) {
     next(err);
   }
@@ -508,20 +566,27 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const postId = Number(req.params.postId);
-    const sort = (req.query.sort || 'latest').toLowerCase();
+    const sort = (req.query.sort || "latest").toLowerCase();
 
     if (!Number.isInteger(postId) || postId <= 0) {
-      return res.status(400).json({ success:false, message:'Invalid postId' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid postId" });
     }
 
     // ตรวจ post อายุ
-    const postQ = await pool.query(`
+    const postQ = await pool.query(
+      `
       SELECT post_id, created_at,
              CASE WHEN created_at >= (now() - interval '30 days') THEN TRUE ELSE FALSE END AS is_recent
-      FROM posts WHERE post_id = $1 LIMIT 1`, [postId]);
+      FROM posts WHERE post_id = $1 LIMIT 1`,
+      [postId]
+    );
 
     if (postQ.rowCount === 0)
-      return res.status(404).json({ success:false, message:'Post not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
 
     const post = postQ.rows[0];
     const isRecent = !!post.is_recent;
@@ -530,20 +595,38 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
     let currentUserId = req.user?.uid ?? null;
     let isPremium = false;
     if (currentUserId) {
-      const u = await pool.query(`SELECT is_premium FROM users WHERE user_id = $1`, [currentUserId]);
+      const u = await pool.query(
+        `SELECT is_premium FROM users WHERE user_id = $1`,
+        [currentUserId]
+      );
       if (u.rowCount === 1) isPremium = !!u.rows[0].is_premium;
     }
 
     // เงื่อนไข access
     if (!currentUserId && !isRecent)
-      return res.status(200).json({ success:true, restricted:true, reason:'LOGIN_REQUIRED', data:[] });
+      return res.status(200).json({
+        success: true,
+        restricted: true,
+        reason: "LOGIN_REQUIRED",
+        data: [],
+      });
 
     if (currentUserId && !isRecent && !isPremium)
-      return res.status(200).json({ success:true, restricted:true, reason:'PREMIUM_REQUIRED', data:[] });
+      return res.status(200).json({
+        success: true,
+        restricted: true,
+        reason: "PREMIUM_REQUIRED",
+        data: [],
+      });
 
     // ดึง comment data โดย reuse getComments logic
-    const filterSolutionsForAnonymous = (!currentUserId && isRecent);
-    const rows = await fetchCommentsByPost(pool, postId, sort, filterSolutionsForAnonymous);
+    const filterSolutionsForAnonymous = !currentUserId && isRecent;
+    const rows = await fetchCommentsByPost(
+      pool,
+      postId,
+      sort,
+      filterSolutionsForAnonymous
+    );
 
     return res.status(200).json({
       success: true,
@@ -552,10 +635,10 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
       post: {
         post_id: post.post_id,
         created_at: post.created_at,
-        is_recent_30d: isRecent
+        is_recent_30d: isRecent,
       },
       count: rows.length,
-      data: rows
+      data: rows,
     });
   } catch (err) {
     next(err);
