@@ -158,7 +158,7 @@ exports.editPost = async (req, res, next) => {
           description = COALESCE($3, description),
           post_image = COALESCE($4, post_image),
           is_solved = COALESCE($5, is_solved)
-        WHERE post_id = $1 AND user_id = $6
+        WHERE post_id = $1 AND user_id = $6 AND is_deleted = FALSE
         RETURNING post_id, user_id, title, description, post_image, is_solved, created_at
       `;
       const { rows } = await client.query(sql, [
