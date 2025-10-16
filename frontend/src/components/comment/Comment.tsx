@@ -37,8 +37,8 @@ const Comment = ({ commentData }: CommentProps) => {
     draftContent,
     displayContent,
     isDeleteModalOpen,
-    handleLike,
-    handleDislike,
+    toggleLike,
+    toggleDislike,
     handleToggleReplies,
     handleToggleNewReply,
     handleCancelReply,
@@ -109,14 +109,14 @@ const Comment = ({ commentData }: CommentProps) => {
               <LikeButton
                 count={likes}
                 userStatus={userLikeStatus}
-                onClick={handleLike}
+                onClick={toggleLike}
               />
 
               {/* 2. Dislike Button */}
               <DislikeButton
                 count={dislikes}
                 userStatus={userLikeStatus}
-                onClick={handleDislike}
+                onClick={toggleDislike}
               />
               <div className="flex items-center gap-7">
                 {/* 3. Reply Button */}
