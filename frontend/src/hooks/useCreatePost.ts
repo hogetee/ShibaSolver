@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { NewPostData } from '@/components/post/CreatePostModal';
 import { PostData } from '@/components/post/Post';
 
-// กำหนด Type ของ Response ที่ได้จาก API ให้ตรง
 interface ApiResponse {
   success: boolean;
   data: PostData;
@@ -21,14 +20,14 @@ export const useCreatePost = () => {
       title: postData.title,
       description: postData.details,
       tags: postData.subjects,
-      post_image: null,
+      post_image: postData.imageUrl || null, // ✅ now sends Cloudinary link
     };
 
     try {
       const response = await fetch('http://localhost:5003/api/v1/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // ✅ ส่ง cookie ไปด้วย
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
@@ -36,7 +35,6 @@ export const useCreatePost = () => {
       if (!response.ok) throw new Error(responseData.message || 'Failed to create post');
 
       return responseData as ApiResponse;
-
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       setError(msg);
