@@ -59,8 +59,10 @@ export interface CommentActions {
     draftContent: CommentContent | null;
     displayContent: CommentContent | null;
     isDeleteModalOpen: boolean;
-    handleLike: () => void;
-    handleDislike: () => void;
+    // handleLike: () => void;
+    // handleDislike: () => void;
+    toggleLike: () => void;
+    toggleDislike: () => void;
     handleToggleReplies: () => void;
     handleToggleNewReply: () => void;
     handleCancelReply: () => void;
