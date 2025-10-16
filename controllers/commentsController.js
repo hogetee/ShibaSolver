@@ -4,14 +4,21 @@ function isNonEmptyString(s) {
 }
 
 /**
- * @desc    Get all comments of the current user
- * @route   GET /api/v1/comments/me
+ * @desc    Get all comments of the user
+ * @route   GET /api/v1/comments/user/:userId
  * @access  Private
  */
-exports.getMyComments = async (req, res, next) => {
+exports.getCommentsByUser = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
-    const userId = req.user.uid; // จาก JWT middleware
+
+    // ใช้ userId จาก params ถ้ามี, ไม่งั้นใช้ของคนล็อกอินเอง
+    const authUserId = req.user.uid;
+    const paramUserId = req.params.userId ? Number(req.params.userId) : authUserId;
+
+    if (!Number.isInteger(paramUserId) || paramUserId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid userId" });
+    }
 
     const sql = `
       SELECT 
@@ -34,11 +41,14 @@ exports.getMyComments = async (req, res, next) => {
       ORDER BY c.created_at DESC;
     `;
 
-    const { rows } = await pool.query(sql, [userId]);
+    const { rows } = await pool.query(sql, [paramUserId]);
 
-    return res
-      .status(200)
-      .json({ success: true, count: rows.length, data: rows });
+    return res.status(200).json({
+      success: true,
+      count: rows.length,
+      viewingSelf: paramUserId === authUserId,
+      data: rows,
+    });
   } catch (err) {
     next(err);
   }
