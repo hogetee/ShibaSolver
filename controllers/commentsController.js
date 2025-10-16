@@ -191,7 +191,7 @@ exports.createComment = async (req, res) => {
 
       // 3) เช็คว่า post มีอยู่จริง
       const postRes = await client.query(
-        "SELECT post_id FROM posts WHERE post_id = $1",
+        "SELECT post_id FROM posts WHERE post_id = $1 AND is_deleted = FALSE",
         [post_id]
       );
       if (postRes.rowCount === 0) {

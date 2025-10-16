@@ -227,28 +227,50 @@ exports.editPost = async (req, res, next) => {
  */
 
 exports.deletePost = async (req, res, next) => {
+  const pool = req.app.locals.pool;
+  const client = await pool.connect();
   try {
-    const user_id = req.user.uid; // user ID is from token
+    const user_id = req.user.uid;
     const postId = Number(req.params.postId);
     if (!Number.isInteger(postId) || postId <= 0) {
       return res.status(400).json({ success: false, message: "Invalid postId" });
     }
-    const pool = req.app.locals.pool;
-    const sql = `
+
+    await client.query("BEGIN");
+
+    // 1) soft delete post (owner only, and only if not already deleted)
+    const upPost = await client.query(
+      `
       UPDATE posts
       SET is_deleted = TRUE
       WHERE post_id = $1 AND user_id = $2 AND is_deleted = FALSE
-      RETURNING post_id,is_deleted;
-    `;
-
-    const { rows } = await pool.query(sql, [postId, user_id]);
-    if (rows.length === 0) {
+      RETURNING post_id
+      `,
+      [postId, user_id]
+    );
+    if (upPost.rowCount === 0) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Post not found or not authorized" });
     }
-    return res.status(200).json({ success: true, message: "Post deleted", data: rows[0] });
+
+    // 2) cascade soft delete comments under this post
+    await client.query(
+      `
+      UPDATE comments
+      SET is_deleted = TRUE
+      WHERE post_id = $1 AND is_deleted = FALSE
+      `,
+      [postId]
+    );
+
+    await client.query("COMMIT");
+    return res.status(200).json({ success: true, message: "Post deleted with comments cascaded", data: upPost.rows[0] });
   } catch (e) {
-      next(e);
-  } 
+    try { await client.query("ROLLBACK"); } catch (_) {}
+    next(e);
+  } finally {
+    client.release();
+  }
 };
 
 /**
@@ -341,6 +363,7 @@ exports.getBookmarks = async (req, res, next) => {
       JOIN public.posts p ON p.post_id = b.post_id
       JOIN public.users u ON u.user_id = p.user_id
       WHERE b.user_id = $1
+      AND p.is_deleted = FALSE
       ORDER BY b.created_at DESC`,
       [user_id]
     );
