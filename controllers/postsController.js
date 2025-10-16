@@ -1,6 +1,6 @@
 /**
  * @desc    Get a single post by ID
- * @route   GET /api/v1/posts/:id
+ * @route   GET /api/v1/posts/:postId 
  * @access  Private
  * @return {post_id, title, description, post_image, is_solved, created_at, poster_id, tags: []}
  */
@@ -33,7 +33,7 @@ exports.getPost = async (req, res, next) => {
       JOIN users u ON u.user_id = p.user_id
       LEFT JOIN ratings r_all ON r_all.post_id = p.post_id
       LEFT JOIN ratings r_me ON r_me.post_id = p.post_id AND r_me.user_id = $2
-      WHERE p.post_id = $1
+      WHERE p.post_id = $1 AND p.is_deleted = FALSE
       GROUP BY p.post_id, u.user_id, u.display_name, u.profile_picture
       LIMIT 1;
     `;
@@ -41,10 +41,7 @@ exports.getPost = async (req, res, next) => {
     const postRes = await pool.query(sql, [postId, userId]);
     if (postRes.rowCount === 0) {
       return res.status(404).json({ success: false, message: "Post not found" });
-    }else if (postRes.rows[0].is_deleted) {
-      return res.status(410).json({ success: false, message: "Post has been deleted" });
     }
-
     const post = postRes.rows[0];
 
     const tagSql = `
@@ -128,7 +125,7 @@ exports.createPost = async (req, res, next) => {
 
 /**
  * @desc    Edit a post and update its tags
- * @route   PUT /api/v1/posts/:id
+ * @route   PUT /api/v1/posts/:postId 
  * @access  Private
  * @request {title, description, post_image, is_solved, tags: [tag1, tag2, ...]}
  */
@@ -166,7 +163,7 @@ exports.editPost = async (req, res, next) => {
         title ?? null,
         description ?? null,
         post_image ?? null,
-        is_solved ?? false,
+        is_solved ?? null,
         user_id,
       ]);
       if (rows.length === 0) {
@@ -314,9 +311,12 @@ exports.addBookmark = async (req, res, next) => {
     // SINGLE query: insert or do nothing, then check rowCount via RETURNING
     const sql = `
       INSERT INTO public.bookmarks (user_id, post_id)
-      VALUES ($1, $2)
+      SELECT $1, $2
+      WHERE EXISTS (
+        SELECT 1 FROM public.posts WHERE post_id = $2 AND is_deleted = FALSE
+      )
       ON CONFLICT (user_id, post_id) DO NOTHING
-      RETURNING user_id, post_id, created_at
+      RETURNING user_id, post_id, created_at;
     `;
     const { rows } = await pool.query(sql, [user_id, post_id]);
 
@@ -345,7 +345,6 @@ exports.addBookmark = async (req, res, next) => {
 
 exports.getBookmarks = async (req, res, next) => {
   try {
-    // const { user_id } = req.params;
     const user_id = req.user.uid;  // เอาจาก token
     if (!/^\d+$/.test(String(user_id))) {
       return res
