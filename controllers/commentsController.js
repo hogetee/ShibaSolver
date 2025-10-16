@@ -426,7 +426,11 @@ exports.replyToComment = async (req, res, next) => {
   const client = await req.app.locals.pool.connect();
   try {
     const actorUserId = req.user.uid;
-    const { commentId } = req.params; // parent comment id
+    const rawId = req.params.commentId;
+    const commentId = Number(rawId);
+    if (!Number.isInteger(commentIdNum) || commentId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid commentId" });
+    }
     const { text, comment_image } = req.body;
 
     if (!text || !text.trim()) {
