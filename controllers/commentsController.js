@@ -65,6 +65,7 @@ exports.getTopComment = async (req, res, next) => {
           c.comment_id,
           c.user_id,
           c.post_id,
+          c.parent_comment,
           c.text,
           c.comment_image,
           c.is_solution,
@@ -159,7 +160,7 @@ exports.createComment = async (req, res) => {
 
     // 1) validate input ขั้นพื้นฐาน
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
     if (
       !(
@@ -167,10 +168,14 @@ exports.createComment = async (req, res) => {
         (typeof post_id === "string" && /^\d+$/.test(post_id))
       )
     ) {
-      return res.status(400).json({ error: "post_id must be an integer" });
+      return res
+        .status(400)
+        .json({ success: false, message: "post_id must be an integer" });
     }
     if (!isNonEmptyString(text)) {
-      return res.status(400).json({ error: "text is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "text is required" });
     }
     if (
       parent_comment != null &&
@@ -179,9 +184,10 @@ exports.createComment = async (req, res) => {
         (typeof parent_comment === "string" && /^\d+$/.test(parent_comment))
       )
     ) {
-      return res
-        .status(400)
-        .json({ error: "parent_comment must be an integer if provided" });
+      return res.status(400).json({
+        success: false,
+        message: "parent_comment must be an integer if provided",
+      });
     }
 
     // 2) เปิด transaction
@@ -196,7 +202,9 @@ exports.createComment = async (req, res) => {
       );
       if (postRes.rowCount === 0) {
         await client.query("ROLLBACK");
-        return res.status(404).json({ error: "post not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "post not found" });
       }
 
       // 4) ถ้ามี parent_comment ให้เช็คว่าอยู่โพสต์เดียวกัน
@@ -210,13 +218,14 @@ exports.createComment = async (req, res) => {
           await client.query("ROLLBACK");
           return res
             .status(400)
-            .json({ error: "parent_comment does not exist" });
+            .json({ success: false, message: "parent_comment does not exist" });
         }
         if (Number(parentRes.rows[0].post_id) !== Number(post_id)) {
           await client.query("ROLLBACK");
-          return res
-            .status(400)
-            .json({ error: "parent_comment must belong to the same post" });
+          return res.status(400).json({
+            success: false,
+            message: "parent_comment must belong to the same post",
+          });
         }
         parentId = parent_comment;
       }
@@ -231,15 +240,17 @@ exports.createComment = async (req, res) => {
 
       await client.query("COMMIT");
 
-      return res.status(201).json({ data: insertRes.rows[0] });
+      return res.status(201).json({ success: true, data: insertRes.rows[0] });
     } catch (e) {
       await client.query("ROLLBACK");
       // จัดการ error ของ FK/constraint
       if (e.code === "23503") {
         // foreign_key_violation
-        return res
-          .status(400)
-          .json({ error: "Foreign key violation", detail: e.detail });
+        return res.status(400).json({
+          success: false,
+          message: "Foreign key violation",
+          detail: e.detail,
+        });
       }
       throw e;
     } finally {
@@ -247,7 +258,9 @@ exports.createComment = async (req, res) => {
     }
   } catch (err) {
     console.error("createComment error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -357,8 +370,10 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
     const rawId = req.params.commentId;
     const commentIdNum = Number(rawId);
     if (!Number.isInteger(commentIdNum) || commentIdNum <= 0) {
-        return res.status(400).json({ success: false, message: "Invalid commentId" });
-      }
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid commentId" });
+    }
 
     const { rows } = await pool.query(
       `SELECT comment_id, user_id, is_solution
@@ -370,7 +385,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
     if (rows.length === 0) {
       return res
         .status(404)
-        .json({ success: false, error: "Comment not found" });
+        .json({ success: false, message: "Comment not found" });
     }
 
     const comment = rows[0];
@@ -378,7 +393,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
     if (Number(comment.user_id) !== Number(userId)) {
       return res.status(403).json({
         success: false,
-         message: "You are not the owner of this comment",
+        message: "You are not the owner of this comment",
       });
     }
 
@@ -417,7 +432,7 @@ exports.replyToComment = async (req, res, next) => {
     if (!text || !text.trim()) {
       return res
         .status(400)
-        .json({ success: false, error: "Text is required" });
+        .json({ success: false, message: "Text is required" });
     }
 
     await client.query("BEGIN");
@@ -433,7 +448,7 @@ exports.replyToComment = async (req, res, next) => {
       await client.query("ROLLBACK");
       return res
         .status(404)
-        .json({ success: false, error: "Parent comment not found" });
+        .json({ success: false, message: "Parent comment not found" });
     }
     const parent = par.rows[0];
 
