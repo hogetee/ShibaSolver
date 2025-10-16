@@ -525,6 +525,8 @@ async function fetchCommentsByPost(
         c.user_id,
         c.post_id,
         c.parent_comment,
+        u.user_name,
+        u.profile_image,
         c.text,
         c.comment_image,
         c.is_solution,
@@ -533,6 +535,7 @@ async function fetchCommentsByPost(
         COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
         COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
       FROM comments c
+      JOIN users u ON u.user_id = c.user_id  
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
       WHERE c.post_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
