@@ -505,16 +505,16 @@ async function fetchCommentsByPost(
   sort = "latest",
   filterSolutionsForAnonymous = false
 ) {
-  let orderBy = `c.created_at DESC, c.comment_id DESC`;
+  let orderBy = `created_at DESC, comment_id DESC`;
   switch (sort) {
     case "popular":
-      orderBy = `total_votes DESC, c.created_at ASC, c.comment_id ASC`;
+      orderBy = `total_votes DESC, created_at ASC, comment_id ASC`;
       break;
     case "oldest":
-      orderBy = `c.created_at ASC, c.comment_id ASC`;
+      orderBy = `created_at ASC, comment_id ASC`;
       break;
     case "ratio":
-      orderBy = `ratio DESC NULLS LAST, total_votes DESC, c.created_at ASC`;
+      orderBy = `ratio DESC NULLS LAST, total_votes DESC, created_at ASC`;
       break;
   }
 
