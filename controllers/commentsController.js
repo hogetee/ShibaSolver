@@ -29,7 +29,7 @@ exports.getMyComments = async (req, res, next) => {
           COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.user_id = $1 AND is_deleted = FALSE
+      WHERE c.user_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
       ORDER BY c.created_at DESC;
     `;
@@ -75,7 +75,7 @@ exports.getTopComment = async (req, res, next) => {
           COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.post_id = $1 AND is_deleted = FALSE
+      WHERE c.post_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
       ORDER BY total_votes DESC, c.created_at ASC, c.comment_id ASC
       LIMIT 1;
@@ -126,7 +126,7 @@ exports.getComment = async (req, res, next) => {
         COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.comment_id = $1 AND is_deleted = FALSE
+      WHERE c.comment_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
       LIMIT 1;
     `;
@@ -354,13 +354,17 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const userId = req.user.uid;
-    const { commentId } = req.params;
+    const rawId = req.params.commentId;
+    const commentIdNum = Number(rawId);
+    if (!Number.isInteger(commentIdNum) || commentIdNum <= 0) {
+        return res.status(400).json({ success: false, message: "Invalid commentId" });
+      }
 
     const { rows } = await pool.query(
       `SELECT comment_id, user_id, is_solution
        FROM comments
        WHERE comment_id = $1 AND is_deleted = FALSE`,
-      [commentId]
+      [commentIdNum]
     );
 
     if (rows.length === 0) {
@@ -374,7 +378,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
     if (Number(comment.user_id) !== Number(userId)) {
       return res.status(403).json({
         success: false,
-        error: "You are not the owner of this comment",
+         message: "You are not the owner of this comment",
       });
     }
 
@@ -386,7 +390,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
            is_updated  = TRUE
        WHERE comment_id = $2 AND is_deleted = FALSE
        RETURNING comment_id, user_id, is_solution, is_updated, created_at`,
-      [newValue, commentId]
+      [newValue, commentIdNum]
     );
 
     return res.status(200).json({
@@ -449,7 +453,7 @@ exports.replyToComment = async (req, res, next) => {
     const reply = ins.rows[0];
 
     // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
-    if (parent.parent_user_id !== actorUserId) {
+    if (Number(parent.parent_user_id) !== Number(actorUserId)) {
       await client.query(
         `INSERT INTO notifications
          (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
@@ -579,7 +583,7 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
       `
       SELECT post_id, created_at,
              CASE WHEN created_at >= (now() - interval '30 days') THEN TRUE ELSE FALSE END AS is_recent
-      FROM posts WHERE post_id = $1 LIMIT 1`,
+      FROM posts WHERE post_id = $1 AND is_deleted = FALSE LIMIT 1`,
       [postId]
     );
 
