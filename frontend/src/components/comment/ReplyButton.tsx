@@ -22,7 +22,7 @@ export const ReplyButton: React.FC<ReplyButtonProps> = ({ isReplying, onClick })
                     // The borderRadius is handled by IconButton, but this ensures a circle
                     borderRadius: '50%', 
                     // Merge existing conditional styles
-                    ...(isReplying ? { backgroundColor: '#1976d2', color: 'white' } : {backgroundColor: 'black', color: 'white'})
+                    ...(isReplying ? { backgroundColor: 'var(--color-accent-400)', color: 'white' } : {backgroundColor: 'black', color: 'white'})
                 }}
             >
                 {/* Adjust icon size if needed */}

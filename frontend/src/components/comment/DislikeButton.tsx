@@ -22,7 +22,7 @@ export const DislikeButton: React.FC<ActionButtonProps> = ({ count, userStatus, 
                         // The borderRadius is handled by IconButton, but this ensures a circle
                      
                         // Merge existing conditional styles
-                        ...(userStatus === 'disliked' ?{ backgroundColor: '#1976d2', color: 'white' } : {backgroundColor: 'black', color: 'white'})
+                        ...(userStatus === 'disliked' ?{ backgroundColor: 'var(--color-accent-400)', color: 'white' } : {backgroundColor: 'black', color: 'white'})
                 }}
                 >
                 <ThumbUpAltIcon   style={{ fontSize: '17px' }}/>

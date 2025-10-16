@@ -61,14 +61,17 @@ const Comment = ({ commentData }: CommentProps) => {
   const [replyText, setReplyText] = React.useState("");
   return (
     <div>
-      <div className="flex items-start gap-3 relative">
+      <div className="flex items-start gap-3 relative font-display">
         {hasReplies && (
           <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
         )}
         <img
-          src={commentData.author.profile_picture}
+          src={commentData.author.profile_picture || "/image/DefaultAvatar.png"}
           alt={`${commentData.author.display_name}'s avatar`}
           className="w-10 h-10 rounded-full"
+          onError={(e) => {
+            e.currentTarget.src = "/image/DefaultAvatar.png";
+          }}
         />
 
         <div className="flex-grow">
@@ -77,7 +80,7 @@ const Comment = ({ commentData }: CommentProps) => {
             <div className="flex items-baseline  gap-3">
               <span
                 className="font-semibold text-xl"
-                style={{ color: "#865DFF" }}
+                style={{ color: "var(--color-accent-400)" }}
               >
                 {commentData.author.display_name}
               </span>
@@ -155,7 +158,7 @@ const Comment = ({ commentData }: CommentProps) => {
               <div className="flex justify-end gap-2 mt-2">
                 <button
                   onClick={() => { setReplyText(""); handleCancelReply(); }}
-                  className="text-sm px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-full"
+                  className="text-sm px-3 py-1 text-accent-600 hover:bg-gray-100 rounded-full"
                 >
                   Cancel
                 </button>

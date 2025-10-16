@@ -23,7 +23,7 @@ export const LikeButton: React.FC<ActionButtonProps> = ({ count, userStatus, onC
                         // The borderRadius is handled by IconButton, but this ensures a circle
                      
                         // Merge existing conditional styles
-                        ...(userStatus === 'liked' ?{ backgroundColor: '#1976d2', color: 'white' } : {backgroundColor: 'black', color: 'white'})
+                        ...(userStatus === 'liked' ?{ backgroundColor: 'var(--color-accent-400)', color: 'white' } : {backgroundColor: 'black', color: 'white'})
                 }}
                 >
                 <ThumbUpAltIcon   style={{ fontSize: '17px' }}/>
