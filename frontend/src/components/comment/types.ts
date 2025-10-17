@@ -2,12 +2,12 @@ export interface CommentData {
     id: string; 
     author: {
         user_id: number;
-        display_name: string;
+        display_name?: string | null;
         profile_picture: string;
     };
     text: string;
     created_at: string; // ISO date
-    
+    comment_image?: string | undefined;
     likes: number;
     dislikes: number;
     Replies: number;

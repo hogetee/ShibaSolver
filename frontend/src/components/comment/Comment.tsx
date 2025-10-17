@@ -73,7 +73,7 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
           <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
         )}
         <img
-          src={commentData.author.profile_picture || "/image/DefaultAvatar.png"}
+          src={commentData.author.profile_picture}
           alt={`${commentData.author.display_name}'s avatar`}
           className="w-10 h-10 rounded-full"
           onError={(e) => {
@@ -90,6 +90,17 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
                 style={{ color: "var(--color-accent-400)" }}
               >
                 {commentData.author.display_name}
+                {/* {commentData.comment_image } */}
+                 {commentData.comment_image != "null"  && (
+                <div className="mt-2">
+                  <img
+                    src={commentData.comment_image}
+
+                    className="max-w-xs h-auto rounded-lg border" 
+                    
+                  />
+                </div>
+            )}
               </span>
               <span className="text-base text-gray-400">
                 {formatTimeAgo(commentData.created_at)}
