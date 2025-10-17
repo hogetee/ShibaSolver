@@ -540,7 +540,7 @@ async function fetchCommentsByPost(
         c.post_id,
         c.parent_comment,
         u.user_name,
-        u.profile_image,
+        u.profile_picture,
         c.text,
         c.comment_image,
         c.is_solution,
