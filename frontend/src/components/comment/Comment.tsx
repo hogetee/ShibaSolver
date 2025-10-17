@@ -20,7 +20,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
 import useCurrentUser from "@/hooks/useCurrentUser";
 
-const Comment = ({ commentData }: CommentProps) => {
+const Comment = ({ commentData,onDelete }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
   const { user, isLoading, error, refetch } = useCurrentUser();
 
@@ -57,7 +57,8 @@ const Comment = ({ commentData }: CommentProps) => {
     commentData.id,
     commentData.likes,
     commentData.dislikes,
-    commentData.is_solution
+    commentData.is_solution,
+    onDelete
   );
   const [replyText, setReplyText] = React.useState("");
   return (

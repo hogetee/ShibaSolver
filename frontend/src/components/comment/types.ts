@@ -25,6 +25,7 @@ export type UserLikeStatus = 'none' | 'liked' | 'disliked';
 
 export interface CommentProps {
     commentData: CommentData;
+    onDelete?: (commentId:string) => void;
 }
 
 // Interfaces for Action Buttons
