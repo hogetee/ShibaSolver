@@ -4,14 +4,21 @@ function isNonEmptyString(s) {
 }
 
 /**
- * @desc    Get all comments of the current user
- * @route   GET /api/v1/comments/me
+ * @desc    Get all comments of the user
+ * @route   GET /api/v1/comments/user/:userId
  * @access  Private
  */
-exports.getMyComments = async (req, res, next) => {
+exports.getCommentsByUser = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
-    const userId = req.user.uid; // จาก JWT middleware
+
+    // ใช้ userId จาก params ถ้ามี, ไม่งั้นใช้ของคนล็อกอินเอง
+    const authUserId = req.user.uid;
+    const paramUserId = req.params.userId ? Number(req.params.userId) : authUserId;
+
+    if (!Number.isInteger(paramUserId) || paramUserId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid userId" });
+    }
 
     const sql = `
       SELECT 
@@ -29,16 +36,19 @@ exports.getMyComments = async (req, res, next) => {
           COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.user_id = $1 AND is_deleted = FALSE
+      WHERE c.user_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
       ORDER BY c.created_at DESC;
     `;
 
-    const { rows } = await pool.query(sql, [userId]);
+    const { rows } = await pool.query(sql, [paramUserId]);
 
-    return res
-      .status(200)
-      .json({ success: true, count: rows.length, data: rows });
+    return res.status(200).json({
+      success: true,
+      count: rows.length,
+      viewingSelf: paramUserId === authUserId,
+      data: rows,
+    });
   } catch (err) {
     next(err);
   }
@@ -65,6 +75,7 @@ exports.getTopComment = async (req, res, next) => {
           c.comment_id,
           c.user_id,
           c.post_id,
+          c.parent_comment,
           c.text,
           c.comment_image,
           c.is_solution,
@@ -75,7 +86,7 @@ exports.getTopComment = async (req, res, next) => {
           COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.post_id = $1 AND is_deleted = FALSE
+      WHERE c.post_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
       ORDER BY total_votes DESC, c.created_at ASC, c.comment_id ASC
       LIMIT 1;
@@ -126,7 +137,7 @@ exports.getComment = async (req, res, next) => {
         COALESCE(COUNT(r.rating_id), 0) AS total_votes
       FROM comments c
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.comment_id = $1 AND is_deleted = FALSE
+      WHERE c.comment_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
       LIMIT 1;
     `;
@@ -159,7 +170,7 @@ exports.createComment = async (req, res) => {
 
     // 1) validate input ขั้นพื้นฐาน
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
     if (
       !(
@@ -167,10 +178,14 @@ exports.createComment = async (req, res) => {
         (typeof post_id === "string" && /^\d+$/.test(post_id))
       )
     ) {
-      return res.status(400).json({ error: "post_id must be an integer" });
+      return res
+        .status(400)
+        .json({ success: false, message: "post_id must be an integer" });
     }
     if (!isNonEmptyString(text)) {
-      return res.status(400).json({ error: "text is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "text is required" });
     }
     if (
       parent_comment != null &&
@@ -179,9 +194,10 @@ exports.createComment = async (req, res) => {
         (typeof parent_comment === "string" && /^\d+$/.test(parent_comment))
       )
     ) {
-      return res
-        .status(400)
-        .json({ error: "parent_comment must be an integer if provided" });
+      return res.status(400).json({
+        success: false,
+        message: "parent_comment must be an integer if provided",
+      });
     }
 
     // 2) เปิด transaction
@@ -191,12 +207,14 @@ exports.createComment = async (req, res) => {
 
       // 3) เช็คว่า post มีอยู่จริง
       const postRes = await client.query(
-        "SELECT post_id FROM posts WHERE post_id = $1",
+        "SELECT post_id FROM posts WHERE post_id = $1 AND is_deleted = FALSE",
         [post_id]
       );
       if (postRes.rowCount === 0) {
         await client.query("ROLLBACK");
-        return res.status(404).json({ error: "post not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "post not found" });
       }
 
       // 4) ถ้ามี parent_comment ให้เช็คว่าอยู่โพสต์เดียวกัน
@@ -210,13 +228,14 @@ exports.createComment = async (req, res) => {
           await client.query("ROLLBACK");
           return res
             .status(400)
-            .json({ error: "parent_comment does not exist" });
+            .json({ success: false, message: "parent_comment does not exist" });
         }
         if (Number(parentRes.rows[0].post_id) !== Number(post_id)) {
           await client.query("ROLLBACK");
-          return res
-            .status(400)
-            .json({ error: "parent_comment must belong to the same post" });
+          return res.status(400).json({
+            success: false,
+            message: "parent_comment must belong to the same post",
+          });
         }
         parentId = parent_comment;
       }
@@ -231,15 +250,17 @@ exports.createComment = async (req, res) => {
 
       await client.query("COMMIT");
 
-      return res.status(201).json({ data: insertRes.rows[0] });
+      return res.status(201).json({ success: true, data: insertRes.rows[0] });
     } catch (e) {
       await client.query("ROLLBACK");
       // จัดการ error ของ FK/constraint
       if (e.code === "23503") {
         // foreign_key_violation
-        return res
-          .status(400)
-          .json({ error: "Foreign key violation", detail: e.detail });
+        return res.status(400).json({
+          success: false,
+          message: "Foreign key violation",
+          detail: e.detail,
+        });
       }
       throw e;
     } finally {
@@ -247,7 +268,9 @@ exports.createComment = async (req, res) => {
     }
   } catch (err) {
     console.error("createComment error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -261,7 +284,7 @@ exports.editComment = async (req, res, next) => {
     const pool = req.app.locals.pool;
     const commentId = Number(req.params.id);
     const userId = req.user.uid; // จาก JWT middleware
-    const { text, comment_image } = req.body;
+    let { text, comment_image } = req.body;
 
     if (!Number.isInteger(commentId) || commentId <= 0) {
       return res
@@ -354,19 +377,25 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const userId = req.user.uid;
-    const { commentId } = req.params;
+    const rawId = req.params.commentId;
+    const commentIdNum = Number(rawId);
+    if (!Number.isInteger(commentIdNum) || commentIdNum <= 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid commentId" });
+    }
 
     const { rows } = await pool.query(
       `SELECT comment_id, user_id, is_solution
        FROM comments
        WHERE comment_id = $1 AND is_deleted = FALSE`,
-      [commentId]
+      [commentIdNum]
     );
 
     if (rows.length === 0) {
       return res
         .status(404)
-        .json({ success: false, error: "Comment not found" });
+        .json({ success: false, message: "Comment not found" });
     }
 
     const comment = rows[0];
@@ -374,7 +403,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
     if (Number(comment.user_id) !== Number(userId)) {
       return res.status(403).json({
         success: false,
-        error: "You are not the owner of this comment",
+        message: "You are not the owner of this comment",
       });
     }
 
@@ -386,7 +415,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
            is_updated  = TRUE
        WHERE comment_id = $2 AND is_deleted = FALSE
        RETURNING comment_id, user_id, is_solution, is_updated, created_at`,
-      [newValue, commentId]
+      [newValue, commentIdNum]
     );
 
     return res.status(200).json({
@@ -407,13 +436,17 @@ exports.replyToComment = async (req, res, next) => {
   const client = await req.app.locals.pool.connect();
   try {
     const actorUserId = req.user.uid;
-    const { commentId } = req.params; // parent comment id
+    const rawId = req.params.commentId;
+    const commentId = Number(rawId);
+    if (!Number.isInteger(commentIdNum) || commentId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid commentId" });
+    }
     const { text, comment_image } = req.body;
 
     if (!text || !text.trim()) {
       return res
         .status(400)
-        .json({ success: false, error: "Text is required" });
+        .json({ success: false, message: "Text is required" });
     }
 
     await client.query("BEGIN");
@@ -429,7 +462,7 @@ exports.replyToComment = async (req, res, next) => {
       await client.query("ROLLBACK");
       return res
         .status(404)
-        .json({ success: false, error: "Parent comment not found" });
+        .json({ success: false, message: "Parent comment not found" });
     }
     const parent = par.rows[0];
 
@@ -449,7 +482,7 @@ exports.replyToComment = async (req, res, next) => {
     const reply = ins.rows[0];
 
     // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
-    if (parent.parent_user_id !== actorUserId) {
+    if (Number(parent.parent_user_id) !== Number(actorUserId)) {
       await client.query(
         `INSERT INTO notifications
          (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
@@ -486,16 +519,16 @@ async function fetchCommentsByPost(
   sort = "latest",
   filterSolutionsForAnonymous = false
 ) {
-  let orderBy = `c.created_at DESC, c.comment_id DESC`;
+  let orderBy = `created_at DESC, comment_id DESC`;
   switch (sort) {
     case "popular":
-      orderBy = `total_votes DESC, c.created_at ASC, c.comment_id ASC`;
+      orderBy = `total_votes DESC, created_at ASC, comment_id ASC`;
       break;
     case "oldest":
-      orderBy = `c.created_at ASC, c.comment_id ASC`;
+      orderBy = `created_at ASC, comment_id ASC`;
       break;
     case "ratio":
-      orderBy = `ratio DESC NULLS LAST, total_votes DESC, c.created_at ASC`;
+      orderBy = `ratio DESC NULLS LAST, total_votes DESC, created_at ASC`;
       break;
   }
 
@@ -506,6 +539,8 @@ async function fetchCommentsByPost(
         c.user_id,
         c.post_id,
         c.parent_comment,
+        u.user_name,
+        u.profile_picture,
         c.text,
         c.comment_image,
         c.is_solution,
@@ -514,6 +549,7 @@ async function fetchCommentsByPost(
         COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
         COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
       FROM comments c
+      JOIN users u ON u.user_id = c.user_id  
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
       WHERE c.post_id = $1 AND c.is_deleted = FALSE
       GROUP BY c.comment_id
@@ -579,7 +615,7 @@ exports.getCommentsAccessControlled = async (req, res, next) => {
       `
       SELECT post_id, created_at,
              CASE WHEN created_at >= (now() - interval '30 days') THEN TRUE ELSE FALSE END AS is_recent
-      FROM posts WHERE post_id = $1 LIMIT 1`,
+      FROM posts WHERE post_id = $1 AND is_deleted = FALSE LIMIT 1`,
       [postId]
     );
 
