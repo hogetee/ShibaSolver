@@ -552,7 +552,18 @@ async function fetchCommentsByPost(
       JOIN users u ON u.user_id = c.user_id  
       LEFT JOIN ratings r ON c.comment_id = r.comment_id
       WHERE c.post_id = $1 AND c.is_deleted = FALSE
-      GROUP BY c.comment_id
+      GROUP BY 
+        c.comment_id,
+        c.user_id,
+        c.post_id,
+        c.parent_comment,
+        u.user_name,
+        u.profile_picture,
+        c.text,
+        c.comment_image,
+        c.is_solution,
+        c.is_updated,
+        c.created_at
     )
     SELECT *,
       (likes + dislikes) AS total_votes,
