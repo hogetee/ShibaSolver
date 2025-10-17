@@ -106,7 +106,7 @@ const Comment = ({ commentData }: CommentProps) => {
             />
           ) : (
             <CommentContent
-              content={draftContent ? draftContent : { text: commentData.text }}
+              content={displayContent ? displayContent : { text: commentData.text }}
             />
           )}
           {/* turn the other one into input */}
