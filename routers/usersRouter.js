@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/", usersCtrl.getAllUsers);
 router.get("/:username", usersCtrl.getUser);
 router.get("/:username/shibameter", getShibaMeter);
-router.get("/:userID/posts",optionalAuth, usersCtrl.getPostbyId);
+router.get("/:userID/posts",optionalAuth, usersCtrl.getPostbyUserId);
 //POST
 
 //PUT

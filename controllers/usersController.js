@@ -204,7 +204,7 @@ exports.adminUpdateUser = async (req, res, next) => {
  * @return  {post_id, title, description, post_image, is_solved, created_at, poster info, tags: [], top_comment: {}, rating info}
  */
 
-exports.getPostbyId = async (req, res, next) => {
+exports.getPostbyUserId = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const userID = req.params.userID;
