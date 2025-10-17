@@ -41,7 +41,7 @@ export default function CommentEditor({
         value={content.text}
         onChange={(e) => setContent({ text: e.target.value })}
         onKeyDown={handleKeyDown}
-        className="w-full p-2 border-2 border-transparent rounded-md focus:border-accent-400 outline-none transition duration-300 bg-accent-200"
+        className="w-full p-2 border-2 border-transparent rounded-md focus:border-accent-400 outline-none transition duration-300 bg-accent-200 resize-none min-h-[100px]"
         rows={4}
         placeholder="Edit your comment..."
         autoFocus
