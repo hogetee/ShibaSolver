@@ -10,7 +10,7 @@ import { MoreActionsMenu } from "@/components/comment/MoreActionsMenu";
 import { SolutionTag } from "./SolutionTag";
 import CommentContent from "./CommentContent";
 import CommentEditor from "./CommentEditor";
-
+import useCurrentUser from "@/hooks/useCurrentUser";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -19,11 +19,12 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
+import CreateComment from "./CreateComment";
 
 
 const Comment = ({ commentData }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
-
+  const { user: currentUser } = useCurrentUser();
 
   const {
     likes,
@@ -144,36 +145,17 @@ const Comment = ({ commentData }: CommentProps) => {
           </div>
           {/* Reply Input Section: Opened by ReplyButton */}
           {isReplying && (
-            <div className="mt-4 ">
-              <div className="flex items-start gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
-                <input
-                  type="text"
-                  placeholder="Write your reply..."
-                  className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                />
-              </div>
-              <div className="flex justify-end gap-2 mt-2">
-                <button
-                  onClick={() => { setReplyText(""); handleCancelReply(); }}
-                  className="text-sm px-3 py-1 text-accent-600 hover:bg-gray-100 rounded-full"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    const ok = await handleCreateNewReply(replyText);
-                    if (ok) setReplyText("");
-                  }}
-                  disabled={!replyText.trim()}
-                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full"
-                >
-                  Reply
-                </button>
-              </div>
-            </div>
+            <div className="w-full bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display mt-5">
+            {/* Create Reply component */}
+            <CreateComment
+                placeholder="Add your reply..."
+                author={currentUser ? {
+                    profile_picture: currentUser.profile_picture ?? undefined,
+                    display_name: currentUser.display_name ?? undefined,
+                } : undefined}
+                onSubmit={(text, attachment) => handleCreateNewReply(text, attachment)}
+            />
+        </div>
           )}
           {/* Replies Section: Opened by View Replies Toggle */}
           {isRepliesOpen && (

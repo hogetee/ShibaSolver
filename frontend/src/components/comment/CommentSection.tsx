@@ -20,7 +20,7 @@ export default function CommentSection({ initialComments }: Props) {
     return (
         <>
         {/* A section to create a new comment could go here */}
-        <div className="w-full bg-white cursor-pointer hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display">
+        <div className="w-full bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display mt-5">
             {/* CreateComment component */}
             <CreateComment
                 placeholder="Create a new comment..."
@@ -28,7 +28,7 @@ export default function CommentSection({ initialComments }: Props) {
                     profile_picture: currentUser.profile_picture ?? undefined,
                     display_name: currentUser.display_name ?? undefined,
                 } : undefined}
-                onSubmit={(text) => handleCreateNewComment(text)}
+                onSubmit={(text, attachment) => handleCreateNewComment(text, attachment)}
             />
         </div>
         {/* The list of comments is rendered from state */}

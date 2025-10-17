@@ -17,10 +17,12 @@ export const useCommentActions = (
     const [dislikes, setDislikes] = useState(initialDislikes);
     const [userLikeStatus, setUserLikeStatus] = useState(initialUserStatus);
 
-  const [isRepliesOpen, setIsRepliesOpen] = useState(false);
-  const [isReplying, setIsReplying] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [isSolution, setIsSolution] = useState(initialSolution);
+    const [isRepliesOpen, setIsRepliesOpen] = useState(false);
+    const [isReplying, setIsReplying] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [isSolution, setIsSolution] = useState(initialSolution);
+    const [attachedImage, setAttachedImage] = useState<File | null>(null);
+    const [attachedImagePreview, setAttachedImagePreview] = useState<string | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState<CommentContent | null>(null);
@@ -299,7 +301,41 @@ export const useCommentActions = (
     setIsReplying((prev) => !prev);
   };
 
-  const handleCreateNewReply = async (replyText: string) => {
+  const handleAttachImage = async (file: File | null) => {
+    try {
+      if (!file) {
+        // clear
+        if (attachedImagePreview) {
+            URL.revokeObjectURL(attachedImagePreview);
+        }
+        setAttachedImage(null);
+        setAttachedImagePreview(null);
+        return null;
+      }
+      // revoke previous if any
+      if (attachedImagePreview) {
+          URL.revokeObjectURL(attachedImagePreview);
+      }
+      // create preview URL
+      const preview = URL.createObjectURL(file);
+      setAttachedImage(file);
+      setAttachedImagePreview(preview);
+      return preview;
+    } catch (err) {
+        console.error('Failed to attach image', err);
+        return null;
+    }
+  };
+
+    const handleRemoveAttachment = () => {
+        if (attachedImagePreview) {
+            URL.revokeObjectURL(attachedImagePreview);
+        }
+        setAttachedImage(null);
+        setAttachedImagePreview(null);
+    };
+
+  const handleCreateNewReply = async (replyText: string, attachment: File | null = null) => {
     const commentNumericId = Number(commentId);
     try {
       const res = await fetch(
@@ -313,21 +349,29 @@ export const useCommentActions = (
       );
       if (!res.ok) throw new Error("Failed to create reply");
       // Optionally update local UI or refetch replies here
-      setIsReplying(false);
-      if (!isRepliesOpen) setIsRepliesOpen(true);
-      return true;
-    } catch (err) {
-      console.error("Failed to create reply", err);
-      return false;
-    }
-  };
+            setIsReplying(false);
+            if (!isRepliesOpen) setIsRepliesOpen(true);
+            // Clear attachment after success
+            if (attachedImage || attachment) {
+                handleRemoveAttachment();
+            }
+            return true;
+        } catch (err) {
+            console.error("Failed to create reply", err);
+            return false;
+        }
+    };
 
-  const handleCreateNewComment = async (commentText: string) => {
-    // Simulate creating a comment. In a real app you'd POST to an API.
+    const handleCreateNewComment = async (commentText: string, attachment: File | null = null) => {
+        // Simulate creating a comment. In a real app you'd POST to an API.
     try {
       console.log(`[ACTION] create comment for ${commentId}:`, commentText);
       // Simulate network latency
       await new Promise((r) => setTimeout(r, 200));
+      // Clear local attachment state after success
+      if (attachedImage || attachment) {
+          handleRemoveAttachment();
+      }
       return true;
     } catch (err) {
       console.error("Failed to create comment", err);
@@ -439,6 +483,10 @@ export const useCommentActions = (
 
     const handleCancelReply = () => {
         setIsReplying(false);
+        // have to handle attachment clear here too
+        if (attachedImage || attachedImagePreview) {
+            handleRemoveAttachment();
+        }
     };
     
     return {
@@ -449,6 +497,7 @@ export const useCommentActions = (
         isReplying,
         anchorEl,
         isSolution,
+        attachedImagePreview,
         isEditing,
         draftContent,
         displayContent,
@@ -457,9 +506,11 @@ export const useCommentActions = (
         toggleDislike,
         handleToggleReplies,
         handleToggleNewReply,
-        handleCreateNewComment,
         handleCancelReply,
         handleCreateNewReply,
+        handleCreateNewComment,
+        handleAttachImage,
+        handleRemoveAttachment,
         handleMenuOpen,
         handleMenuClose,
         handleEdit,

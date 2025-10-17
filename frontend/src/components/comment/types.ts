@@ -55,6 +55,7 @@ export interface CommentActions {
     isReplying: boolean;
     anchorEl: null | HTMLElement;
     isSolution: boolean;
+    attachedImagePreview: string | null;
     isEditing: boolean;
     draftContent: CommentContent | null;
     displayContent: CommentContent | null;
@@ -66,8 +67,10 @@ export interface CommentActions {
     handleToggleReplies: () => void;
     handleToggleNewReply: () => void;
     handleCancelReply: () => void;
-    handleCreateNewReply : (replyText: string) => Promise<boolean>;
-    handleCreateNewComment: (commentText: string) => Promise<boolean>;
+    handleCreateNewReply : (replyText: string, attachment?: File | null) => Promise<boolean>;
+    handleCreateNewComment: (commentText: string, attachment?: File | null) => Promise<boolean>;
+    handleAttachImage: (file: File | null) => Promise<string | null>;
+    handleRemoveAttachment: () => void;
     handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
     handleMenuClose: () => void;
     handleEdit: () => void;
