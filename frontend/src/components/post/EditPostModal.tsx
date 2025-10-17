@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { PostData } from '@/components/post/Post';
-import MultiSelectSubject from './MultiSelectSubject'; // 1. Import MultiSelectSubject
+'use client';
 
-// 2. อัปเดต Interface ให้รับเป็น subjects (Array)
+import React, { useState, useRef } from 'react';
+import { PostData } from '@/components/post/Post';
+import MultiSelectSubject from './MultiSelectSubject';
+import { uploadImageToCloudinary } from '@/utils/uploadImage';
+
 export interface UpdatedPostData {
   title: string;
-  subjects: string[]; 
+  subjects: string[];
   details: string;
   is_solved: boolean;
+  imageUrl?: string | null;
 }
 
 interface EditPostModalProps {
@@ -18,40 +21,77 @@ interface EditPostModalProps {
 }
 
 const subjectOptions = [
-  "Math", "Physics", "Chemistry", "Biology", "History", "Geography", 
-  "Economics", "Law", "Thai", "English", "Chinese", "Programming", "Others"
+  'Math', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography',
+  'Economics', 'Law', 'Thai', 'English', 'Chinese', 'Programming', 'Others'
 ];
 
 const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalProps) => {
   const [title, setTitle] = useState(postToEdit.title);
-  // 3. เปลี่ยน State ของ Subject ให้เป็น Array
-  const [selectedSubjects, setSelectedSubjects] = useState(postToEdit.tags || []);
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(postToEdit.tags || []);
   const [details, setDetails] = useState(postToEdit.description);
   const [isSolved, setIsSolved] = useState(postToEdit.is_solved);
+
+  // 🖼️ Image state
+  const [imageUrl, setImageUrl] = useState<string | null>(postToEdit.post_image || null);
+  const [imageFileName, setImageFileName] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // 📤 Upload image
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageFileName(file.name);
+    setUploading(true);
+
+    try {
+      const url = await uploadImageToCloudinary(file);
+      setImageUrl(url);
+    } catch (err) {
+      console.error(err);
+      alert((err as Error).message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      // safely reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+// ❌ Remove image
+const handleRemoveImage = () => {
+  setImageUrl(null);
+  setImageFileName('');
+  if (fileInputRef.current) fileInputRef.current.value = '';
+  // force rerender by also clearing post image reference
+  postToEdit.post_image = '';
+};
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedSubjects.length === 0) {
-      alert("Please select at least one subject.");
+      alert('Please select at least one subject.');
       return;
     }
+
     const updatedData: UpdatedPostData = {
       title,
-      subjects: selectedSubjects, // 4. ส่งข้อมูลเป็น Array
+      subjects: selectedSubjects,
       details,
       is_solved: isSolved,
+      imageUrl: imageUrl || null,
     };
+
     onSave(updatedData);
   };
 
   return (
-    // Backdrop & Modal Card - ใช้สไตล์เดียวกับ CreatePostModal
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm backdrop-brightness-30">
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-xl bg-white p-8 shadow-xl"
       >
-        {/* ปุ่มปิด (X) - เหมือนกับ CreatePostModal */}
+        {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
@@ -62,26 +102,26 @@ const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalP
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        
+
         <h2 className="text-3xl font-bold mb-6">Edit Post</h2>
-        
+
         <form onSubmit={handleSave}>
-          {/* Title Input - เพิ่ม Character Counter */}
+          {/* Title */}
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input
-              type="text"
               id="title"
+              type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
               maxLength={100}
               required
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
           </div>
 
-          {/* Subject Select */}
+          {/* Subjects */}
           <div className="mb-9">
             <MultiSelectSubject
               options={subjectOptions}
@@ -91,7 +131,7 @@ const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalP
             />
           </div>
 
-          {/* Details Textarea - เพิ่ม Character Counter */}
+          {/* Details */}
           <div className="mb-4">
             <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">Details</label>
             <textarea
@@ -100,41 +140,95 @@ const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalP
               onChange={(e) => setDetails(e.target.value)}
               rows={5}
               maxLength={500}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
               required
+              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
             />
-             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
+            <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
           </div>
 
-          {/* Status Radio Buttons */}
+          {/* 🖼️ Image Upload */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Attach image</label>
+
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="edit-file-upload"
+                onClick={(e) => e.stopPropagation()}
+                className={`inline-flex items-center gap-2 cursor-pointer rounded-md border border-gray-400 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 ${
+                  uploading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                📎 {uploading ? 'Uploading…' : 'Choose file'}
+              </label>
+
+              <input
+                id="edit-file-upload"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={onPickFile}
+                disabled={uploading}
+                className="hidden"
+              />
+
+              {imageFileName && !uploading && (
+                <span className="text-sm text-gray-500">{imageFileName}</span>
+              )}
+            </div>
+
+            {imageUrl && imageUrl.trim() !== '' && (
+              <div className="mt-3">
+                <img
+                  src={imageUrl}
+                  alt="Uploaded"
+                  className="max-h-48 rounded-md border border-gray-300 shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="mt-2 text-xs text-red-600 hover:underline"
+                >
+                  Remove image
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Status */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <div className="flex items-center gap-8">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="status" checked={isSolved} onChange={() => setIsSolved(true)} className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
+                <input
+                  type="radio"
+                  name="status"
+                  checked={isSolved}
+                  onChange={() => setIsSolved(true)}
+                  className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                />
                 <span>Solved</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="status" checked={!isSolved} onChange={() => setIsSolved(false)} className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300" />
+                <input
+                  type="radio"
+                  name="status"
+                  checked={!isSolved}
+                  onChange={() => setIsSolved(false)}
+                  className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                />
                 <span>Unsolved</span>
               </label>
             </div>
           </div>
-          
-          {/* Buttons - ปรับ Layout ให้เหมือนกัน */}
-          <div className="flex items-center justify-between mt-6">
-            <button 
-              type="button" 
-              className="flex items-center gap-2 rounded-md border border-gray-400 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              📎 Attach files/images
-            </button>
+
+          {/* Save Button */}
+          <div className="flex justify-end mt-6">
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || uploading}
               className="rounded-md bg-purple-700 px-8 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
             >
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
         </form>
