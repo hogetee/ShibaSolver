@@ -123,7 +123,7 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
           {/* turn the other one into input */}
           {/* ACTION ROW (Using individual imported components) */}
           <div className="flex items-center justify-between text-gray-500">
-            <div className="flex items-center gap-3 text-gray-500">
+           {!isEditing && ( <div className="flex items-center gap-3 text-gray-500">
               {/* 1. Like Button */}
               <LikeButton
                 count={likes}
@@ -158,7 +158,7 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
                   />
                 )}
               </div>
-            </div>
+            </div>) }
           </div>
           {/* Reply Input Section: Opened by ReplyButton */}
           {isReplying && (

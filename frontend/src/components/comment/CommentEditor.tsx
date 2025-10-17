@@ -3,7 +3,7 @@ import { useState } from "react";
 import Button from "@mui/material/Button";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
-
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 interface CommentEditorProps {
   initialContent: CommentContent;
   onSave: (newContent: CommentContent) => void;
@@ -29,7 +29,7 @@ export default function CommentEditor({
       e.preventDefault();
       handleSubmit();
     }
-    if(e.key === "Escape") {
+    if (e.key === "Escape") {
       e.preventDefault();
       onCancel();
     }
@@ -46,28 +46,33 @@ export default function CommentEditor({
         placeholder="Edit your comment..."
         autoFocus
       />
-      <div className="flex justify-end mt-2 gap-2">
+      <div className="flex justify-between items-center">
         <ThemeProvider theme={theme}>
-          <Button
-            onClick={onCancel}
-            variant="contained"
-            color="error"
-            size="large"
-            disableElevation
-            sx={{ flex: 1, maxWidth: '10ch' }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            color="primary"
-            size="large"
-            disableElevation
-            sx={{ flex: 1, maxWidth: '10ch' }}
-          >
-            Save
-          </Button>
+          <div className="pt-1 pb-1.5 px-1.5 rounded-full bg-transparent text-dark-900 hover:text-accent-400 hover:bg-accent-400/20 transition-colors duration-300 cursor-pointer">
+            <AddPhotoAlternateIcon/>
+          </div>
+          <div className="flex justify-end mt-2 gap-2">
+            <Button
+              onClick={onCancel}
+              variant="contained"
+              color="error"
+              size="large"
+              disableElevation
+              sx={{ flex: 1, maxWidth: "10ch" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              color="primary"
+              size="large"
+              disableElevation
+              sx={{ flex: 1, maxWidth: "10ch" }}
+            >
+              Save
+            </Button>
+          </div>
         </ThemeProvider>
       </div>
     </form>
