@@ -1,6 +1,7 @@
 export interface CommentData {
     id: string; 
     author: {
+        user_id: number;
         display_name: string;
         profile_picture: string;
     };
@@ -11,6 +12,8 @@ export interface CommentData {
     dislikes: number;
     Replies: number;
     is_solution : boolean;
+    updated_at?: string; // ISO date, optional
+    is_edited?: boolean; // optional
 }
 
 export interface CommentContent {

@@ -29,7 +29,7 @@ export const useCommentActions = (
   );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const BASE_URL = process.env.BACKEND_URL || "http://localhost:5000";
+    const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
       
     
     async function postRate(
@@ -196,98 +196,6 @@ export const useCommentActions = (
     }
   };
 
-    // const handleLike = async () => {
-    //     const commentNumericId = Number(commentId);
-    //     const prev = { likes, dislikes, userLikeStatus };
-    
-    //     try {
-    //         if (userLikeStatus === 'liked') {
-    //             // unrate
-    //             setLikes(prev => prev - 1);
-    //             setUserLikeStatus('none');
-    
-    //             const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //                 method: 'DELETE',
-    //                 credentials: 'include',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId })
-    //             });
-    //             if (!res.ok) throw new Error('Failed to unrate');
-    //             const payload = await res.json();
-    //             setLikes(Number(payload?.summary?.likes ?? likes));
-    //             setDislikes(Number(payload?.summary?.dislikes ?? dislikes));
-    //         } else {
-    //             // rate like
-    //             if (userLikeStatus === 'disliked') setDislikes(d => d - 1);
-    //             setLikes(l => l + 1);
-    //             setUserLikeStatus('liked');
-    
-    //             const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //                 method: 'POST',
-    //                 credentials: 'include',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId, rating_type: 'like' })
-    //             });
-    //             if (!res.ok) throw new Error('Failed to like');
-    //             const payload = await res.json();
-    //             setLikes(Number(payload?.data?.summary?.likes ?? likes));
-    //             setDislikes(Number(payload?.data?.summary?.dislikes ?? dislikes));
-    //         }
-    //     } catch (e) {
-    //         setLikes(prev.likes);
-    //         setDislikes(prev.dislikes);
-    //         setUserLikeStatus(prev.userLikeStatus);
-    //         console.error(e);
-    //     }
-    //     // In a real app, you'd send an API request here
-    // };
-
-    // const handleDislike = async () => {
-    //    const commentNumericId = Number(commentId);
-    // const prev = { likes, dislikes, userLikeStatus };
-
-    // try {
-    //     if (userLikeStatus === 'disliked') {
-    //         // unrate
-    //         setDislikes(d => d - 1);
-    //         setUserLikeStatus('none');
-
-    //         const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //             method: 'DELETE',
-    //             credentials: 'include',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId })
-    //         });
-    //         if (!res.ok) throw new Error('Failed to unrate');
-    //         const payload = await res.json();
-    //         setLikes(Number(payload?.summary?.likes ?? likes));
-    //         setDislikes(Number(payload?.summary?.dislikes ?? dislikes));
-    //     } else {
-    //         // rate dislike
-    //         if (userLikeStatus === 'liked') setLikes(l => l - 1);
-    //         setDislikes(d => d + 1);
-    //         setUserLikeStatus('disliked');
-
-    //         const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //             method: 'POST',
-    //             credentials: 'include',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId, rating_type: 'dislike' })
-    //         });
-    //         if (!res.ok) throw new Error('Failed to dislike');
-    //         const payload = await res.json();
-    //         setLikes(Number(payload?.data?.summary?.likes ?? likes));
-    //         setDislikes(Number(payload?.data?.summary?.dislikes ?? dislikes));
-    //     }
-    // } catch (e) {
-    //     setLikes(prev.likes);
-    //     setDislikes(prev.dislikes);
-    //     setUserLikeStatus(prev.userLikeStatus);
-    //     console.error(e);
-    // }
-    // };
-
-
   const handleToggleReplies = () => {
     setIsRepliesOpen((prev) => !prev);
     if (!isRepliesOpen) {
@@ -357,7 +265,8 @@ export const useCommentActions = (
 
   const handleSaveEdit = async (newContent: CommentContent) => {
     try {
-      console.log("Saving edit: ", newContent);
+      console.log(`Saving edit for ID ${commentId}:`, newContent);
+
 
       const res = await fetch(
         `${BASE_URL}/api/v1/comments/${Number(commentId)}`,
@@ -373,10 +282,16 @@ export const useCommentActions = (
         throw new Error(errorData.message || "Failed to save edit");
       }
 
-      const updatedComment = await res.json();
+      const response = await res.json();
+
+      const updatedCommentData = response.data;
+
+      const updatedComment: CommentContent = {
+        text: updatedCommentData.text,
+      };
 
       setDisplayContent(updatedComment);
-      setDraftContent(updatedComment);
+      setDraftContent(null);
       setIsEditing(false);
       console.log(
         `[ACTION] Saved edited content for comment ID: ${commentId}`,

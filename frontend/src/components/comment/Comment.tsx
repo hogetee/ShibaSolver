@@ -11,7 +11,6 @@ import { SolutionTag } from "./SolutionTag";
 import CommentContent from "./CommentContent";
 import CommentEditor from "./CommentEditor";
 
-
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -19,11 +18,13 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
-
+import useCurrentUser from "@/hooks/useCurrentUser";
 
 const Comment = ({ commentData }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
+  const { user, isLoading, error, refetch } = useCurrentUser();
 
+  const isOwner = (user?.user_id == commentData.author.user_id);
 
   const {
     likes,
@@ -61,6 +62,11 @@ const Comment = ({ commentData }: CommentProps) => {
   const [replyText, setReplyText] = React.useState("");
   return (
     <div>
+      {/* for debugging */}
+      {/* <div style={{ fontSize: '10px', color: 'red' }}>
+        Debug: currentUser={user?.user_id}, author={commentData.author.user_id}, isOwner={String(isOwner)}, loading={String(isLoading)}
+      </div> */}
+
       <div className="flex items-start gap-3 relative font-display">
         {hasReplies && (
           <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
@@ -87,7 +93,6 @@ const Comment = ({ commentData }: CommentProps) => {
               <span className="text-base text-gray-400">
                 {formatTimeAgo(commentData.created_at)}
               </span>
-
             </div>
             {isSolution && <SolutionTag />}
           </div>
@@ -129,16 +134,18 @@ const Comment = ({ commentData }: CommentProps) => {
                 />
 
                 {/* 4. More Actions Menu */}
-                <MoreActionsMenu
-                  anchorEl={anchorEl}
-                  handleMenuOpen={handleMenuOpen}
-                  handleMenuClose={handleMenuClose}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                  handleSetSolution={handleSetSolution}
-                  handleDeleteModalOpen={handleDeleteModalOpen}
-                  handleDeleteModalClose={handleDeleteModalClose}
-                />
+                {!isLoading && isOwner && (
+                  <MoreActionsMenu
+                    anchorEl={anchorEl}
+                    handleMenuOpen={handleMenuOpen}
+                    handleMenuClose={handleMenuClose}
+                    handleEdit={handleEdit}
+                    handleDelete={handleDelete}
+                    handleSetSolution={handleSetSolution}
+                    handleDeleteModalOpen={handleDeleteModalOpen}
+                    handleDeleteModalClose={handleDeleteModalClose}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -157,7 +164,10 @@ const Comment = ({ commentData }: CommentProps) => {
               </div>
               <div className="flex justify-end gap-2 mt-2">
                 <button
-                  onClick={() => { setReplyText(""); handleCancelReply(); }}
+                  onClick={() => {
+                    setReplyText("");
+                    handleCancelReply();
+                  }}
                   className="text-sm px-3 py-1 text-accent-600 hover:bg-gray-100 rounded-full"
                 >
                   Cancel
@@ -214,7 +224,9 @@ const Comment = ({ commentData }: CommentProps) => {
             aria-labelledby="delete-dialog-title"
             aria-describedby="delete-dialog-description"
           >
-            <DialogTitle id="delete-dialog-title" className="text-xl">Delete Comment</DialogTitle>
+            <DialogTitle id="delete-dialog-title" className="text-xl">
+              Delete Comment
+            </DialogTitle>
             <DialogContent>
               <p
                 id="delete-dialog-description"
@@ -230,7 +242,7 @@ const Comment = ({ commentData }: CommentProps) => {
                 color="primary"
                 size="large"
                 variant="outlined"
-                sx={{ fontSize: 24 , padding: '8px 24px' }}
+                sx={{ fontSize: 24, padding: "8px 24px" }}
               >
                 Cancel
               </Button>
@@ -240,7 +252,7 @@ const Comment = ({ commentData }: CommentProps) => {
                 autoFocus
                 size="large"
                 variant="outlined"
-                sx={{ fontSize: 24 , padding: '8px 24px' }}
+                sx={{ fontSize: 24, padding: "8px 24px" }}
               >
                 Delete
               </Button>

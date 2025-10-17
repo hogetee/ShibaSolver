@@ -16,6 +16,7 @@ function mapPostCommentToCommentData(api: any): CommentData {
     author: {
       display_name: api.author_name || api.username || "Anonymous",
       profile_picture: api.user_profile_picture || "/assets/image/DefaultAvatar.png",
+      user_id: Number(api.user_id || 0),
     },
     text: String(api.text ?? ""),
     created_at: api.created_at,
