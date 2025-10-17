@@ -83,7 +83,7 @@ const Comment = ({ commentData,onDelete }: CommentProps) => {
 
         <div className="flex-grow">
           {/* Header and Text Content */}
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-start justify-between">
             <div className="flex items-baseline  gap-3">
               <span
                 className="font-semibold text-xl"
@@ -237,13 +237,14 @@ const Comment = ({ commentData,onDelete }: CommentProps) => {
                 be undone.
               </p>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ justifyContent: "space-evenly", padding: "16px 24px", gap: 2 }}>
               <Button
                 onClick={handleDeleteModalClose}
                 color="primary"
                 size="large"
-                variant="outlined"
-                sx={{ fontSize: 24, padding: "8px 24px" }}
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px" , minWidth: '10ch'}}
               >
                 Cancel
               </Button>
@@ -252,8 +253,9 @@ const Comment = ({ commentData,onDelete }: CommentProps) => {
                 color="error"
                 autoFocus
                 size="large"
-                variant="outlined"
-                sx={{ fontSize: 24, padding: "8px 24px" }}
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: '10ch' }}
               >
                 Delete
               </Button>
