@@ -20,11 +20,11 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
 import useCurrentUser from "@/hooks/useCurrentUser";
 
-const Comment = ({ commentData,onDelete }: CommentProps) => {
+const Comment = ({ commentData, onDelete }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
   const { user, isLoading, error, refetch } = useCurrentUser();
 
-  const isOwner = (user?.user_id == commentData.author.user_id);
+  const isOwner = user?.user_id == commentData.author.user_id;
 
   const {
     likes,
@@ -95,7 +95,15 @@ const Comment = ({ commentData,onDelete }: CommentProps) => {
                 {formatTimeAgo(commentData.created_at)}
               </span>
             </div>
-            {isSolution && <SolutionTag />}
+            <div
+              className={`transition-all duration-300 ease-in-out transform ${
+                isSolution
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-95"
+              }`}
+            >
+              <SolutionTag />
+            </div>
           </div>
           {isEditing ? (
             <CommentEditor
@@ -107,7 +115,9 @@ const Comment = ({ commentData,onDelete }: CommentProps) => {
             />
           ) : (
             <CommentContent
-              content={displayContent ? displayContent : { text: commentData.text }}
+              content={
+                displayContent ? displayContent : { text: commentData.text }
+              }
             />
           )}
           {/* turn the other one into input */}
@@ -237,14 +247,20 @@ const Comment = ({ commentData,onDelete }: CommentProps) => {
                 be undone.
               </p>
             </DialogContent>
-            <DialogActions sx={{ justifyContent: "space-evenly", padding: "16px 24px", gap: 2 }}>
+            <DialogActions
+              sx={{
+                justifyContent: "space-evenly",
+                padding: "16px 24px",
+                gap: 2,
+              }}
+            >
               <Button
                 onClick={handleDeleteModalClose}
                 color="primary"
                 size="large"
                 variant="contained"
                 disableElevation
-                sx={{ fontSize: 24, padding: "8px 24px" , minWidth: '10ch'}}
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
               >
                 Cancel
               </Button>
@@ -255,7 +271,7 @@ const Comment = ({ commentData,onDelete }: CommentProps) => {
                 size="large"
                 variant="contained"
                 disableElevation
-                sx={{ fontSize: 24, padding: "8px 24px", minWidth: '10ch' }}
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
               >
                 Delete
               </Button>
