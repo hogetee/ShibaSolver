@@ -38,11 +38,11 @@ type UseUserResult = {
 };
 
 // Helper to map backend shape to UI shape we already use across components
-function mapBackendToUi(user: BackendUser): MappedUser {
-  const likes = typeof user.like === "number" ? user.like : 0;
-  const dislikes = typeof user.dislike === "number" ? user.dislike : 0;
-  // Temporary shibaMeter calculation until backend provides a dedicated score
-  const shibaMeter = Math.max(0, Math.min(100, 50 + (likes - dislikes)));
+function mapBackendToUi(user: BackendUser, shibaMeter: number): MappedUser {
+  // const likes = typeof user.like === "number" ? user.like : 0;
+  // const dislikes = typeof user.dislike === "number" ? user.dislike : 0;
+  // // Temporary shibaMeter calculation until backend provides a dedicated score
+  // shibaMeter = Math.max(0, Math.min(100, 3 + (likes - dislikes)));
 
   return {
     id: user.user_id,
@@ -61,6 +61,7 @@ function mapBackendToUi(user: BackendUser): MappedUser {
 export function useUserProfile(username?: string | null): UseUserResult {
   const [data, setData] = useState<BackendUser | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [shibaMeter, setShibaMeter] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [nonce, setNonce] = useState<number>(0);
 
@@ -96,20 +97,52 @@ export function useUserProfile(username?: string | null): UseUserResult {
           if (!aborted) setData(mock);
         } else {
           // Adjust BASE_URL to your backend origin as needed
-          const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+          const BASE_URL =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
           // Backend should provide this route; alternatively implement resolve-username -> id
-          const res = await fetch(`${BASE_URL}/api/v1/users/${encodeURIComponent(username)}`, {
-            signal: controller.signal,
-            credentials: "include",
-          });
+          const res = await fetch(
+            `${BASE_URL}/api/v1/users/${encodeURIComponent(username)}`,
+            {
+              signal: controller.signal,
+              credentials: "include",
+            }
+          );
+
+          const shibaRes = await fetch(
+            `${BASE_URL}/api/v1/users/${encodeURIComponent(
+              username
+            )}/shibameter`,
+            {
+              signal: controller.signal,
+              credentials: "include",
+            }
+          );
+
           if (!res.ok) {
             const body = await res.json().catch(() => ({}));
             throw new Error(body?.message || `Request failed (${res.status})`);
           }
+
+          if (!shibaRes.ok) {
+            const body = await shibaRes.json().catch(() => ({}));
+            throw new Error(body?.message || `Failed to fetch shiba meter (${shibaRes.status})`);
+          }
+
           const payload = await res.json();
+          const shibaPayload = await shibaRes.json();
+
           const backendUser: BackendUser | null = payload?.data ?? null;
+          const shibaScore: number = shibaPayload?.shibaMeter ?? 0;
+
+          console.log("Shiba meter API success:", {
+            username,
+            shibaScore,
+            fullResponse: shibaPayload
+          });
+          
           if (!aborted) {
             setData(backendUser);
+            setShibaMeter(shibaScore);
           }
         }
       } catch (err: any) {
@@ -129,11 +162,9 @@ export function useUserProfile(username?: string | null): UseUserResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username, nonce]);
 
-  const user = useMemo(() => (data ? mapBackendToUi(data) : null), [data]);
+  const user = useMemo(() => (data ? mapBackendToUi(data, shibaMeter) : null), [data, shibaMeter]);
 
   return { user, isLoading: loading, error, refetch };
 }
 
 export default useUserProfile;
-
-
