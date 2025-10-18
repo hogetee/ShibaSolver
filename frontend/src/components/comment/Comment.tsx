@@ -106,14 +106,14 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
               >
                 {commentData.author.display_name}
                 {/* {commentData.comment_image } */}
-                {/* {commentData.comment_image != "null" && (
+                {commentData.comment_image != "null" && (
                   <div className="mt-2">
                     <img
                       src={commentData.comment_image}
                       className="max-w-xs h-auto rounded-lg border"
                     />
                   </div>
-                )} */}
+                )}
               </span>
               <span className="text-base text-gray-400">
                 {formatTimeAgo(commentData.created_at)}
