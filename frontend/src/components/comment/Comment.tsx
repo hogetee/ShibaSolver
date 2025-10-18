@@ -20,6 +20,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { useState } from "react";
+import { ViewRepliesButton } from "./ViewRepliesButton";
 
 const Comment = ({ commentData, onDelete }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
@@ -177,6 +178,11 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
               </div>
             )}
           </div>
+          <ViewRepliesButton
+            replyCount={commentData.Replies}
+            isOpen={isRepliesOpen}
+            onClick={handleToggleReplies}
+          />
           {/* Reply Input Section: Opened by ReplyButton */}
           {isReplying && (
             <div className="mt-4">

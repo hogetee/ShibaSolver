@@ -14,6 +14,8 @@ export interface CommentData {
     is_solution : boolean;
     updated_at?: string; // ISO date, optional
     is_edited?: boolean; // optional
+    // parent_comment?: string | null; // ID of parent comment if this is a reply
+    // replies?: CommentData[]; // Array of nested replies (populated by frontend)
 }
 
 export interface CommentContent {
@@ -49,6 +51,19 @@ export interface MoreActionsButtonProps {
     handleSetSolution: () => void;
     handleDeleteModalOpen: () => void;
     handleDeleteModalClose: () => void;
+}
+
+// New interfaces for reply functionality
+export interface ViewRepliesButtonProps {
+    replyCount: number;
+    isOpen: boolean;
+    onClick: () => void;
+}
+
+export interface ReplyItemProps {
+    reply: CommentData;
+    onDelete?: (replyId: string) => void;
+    level?: number; // For nested indentation
 }
 
 export interface CommentActions {
