@@ -10,18 +10,25 @@ interface Props {
   sort?: "latest" | "popular" | "oldest" | "ratio";
 }
 
+
+
 function mapPostCommentToCommentData(api: any): CommentData {
   return {
     id: String(api.comment_id),
     author: {
-      display_name: api.author_name || api.username || "Anonymous",
-      profile_picture: api.user_profile_picture || "/assets/image/DefaultAvatar.png",
+      display_name: api.user_name || "Anonymous",
+      profile_picture: api.profile_picture || "/assets/image/DefaultAvatar.png",
+      user_id: Number(api.user_id || 0),
     },
     text: String(api.text ?? ""),
+    comment_image : api.comment_image || null,
     created_at: api.created_at,
     likes: Number(api.likes ?? 0),
     dislikes: Number(api.dislikes ?? 0),
-    Replies: Number(api.replies ?? 0),
+    // NOTE: The 'PostComment' type does not include a reply count.
+    // This must be calculated separately on the frontend or added to the backend query.
+    // For now, it is defaulted to 0.
+    Replies: 0, 
     is_solution: Boolean(api.is_solution),
   };
 }
@@ -29,6 +36,7 @@ function mapPostCommentToCommentData(api: any): CommentData {
 export default function CommentContainer({ postId, sort = "latest" }: Props) {
   const { comments, isLoading, error, restricted, reason } = usePostComments(postId, sort);
   const mapped = useMemo<CommentData[]>(() => comments.map(mapPostCommentToCommentData), [comments]);
+  
 
   if (isLoading) return <div className="mt-5 pt-4">Loading comments…</div>;
   if (error) return <div className="mt-5 pt-4 text-red-600">Failed to load comments: {error}</div>;

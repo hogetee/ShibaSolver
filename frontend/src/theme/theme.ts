@@ -7,6 +7,11 @@ declare module "@mui/material/styles" {
       light: string;
       dark: string;
     };
+    accent200: {
+      main: string;
+      light: string;
+      dark: string;
+    }
   }
   interface PaletteOptions {
     customGray?: {
@@ -14,6 +19,11 @@ declare module "@mui/material/styles" {
       light: string;
       dark: string;
     };
+    accent200?: {
+      main: string;
+      light: string;
+      dark: string;
+    }
   }
 }
 
@@ -31,10 +41,15 @@ const theme = createTheme({
       dark: "#d166ff",
       contrastText: "#ffffff",
     },
+    accent200: {
+      main: "#f6d9ff",
+      light: "#fbedffff",
+      dark: "#c18bd2ff",
+    },
     error: {
-      main: "#FF6B6B",
+      main: "#FF5555",
       light: "#ff8585",
-      dark: "#ff5252",
+      dark: "#ff2327ff",
     },
     success: {
       main: "#4CAF50",

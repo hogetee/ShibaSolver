@@ -1,5 +1,5 @@
 import React from "react";
-import { CommentProps } from "./types";
+import { CommentContent, CommentProps } from "./types";
 import { useCommentActions } from "@/components/comment/useCommentActions";
 import { formatTimeAgo } from "@/components/comment/utils";
 
@@ -8,9 +8,8 @@ import { DislikeButton } from "@/components/comment/DislikeButton";
 import { ReplyButton } from "@/components/comment/ReplyButton";
 import { MoreActionsMenu } from "@/components/comment/MoreActionsMenu";
 import { SolutionTag } from "./SolutionTag";
-import CommentContent from "./CommentContent";
+import CommentContentDisplay from "./CommentContent";
 import CommentEditor from "./CommentEditor";
-import useCurrentUser from "@/hooks/useCurrentUser";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -19,12 +18,20 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
-import CreateComment from "./CreateComment";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import { useState } from "react";
+import { ViewRepliesButton } from "./ViewRepliesButton";
 
-
-const Comment = ({ commentData }: CommentProps) => {
+const Comment = ({ commentData, onDelete }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
-  const { user: currentUser } = useCurrentUser();
+  const { user, isLoading, error, refetch } = useCurrentUser();
+
+  const isOwner = user?.user_id == commentData.author.user_id;
+
+  const initialContent: CommentContent = {
+    text: commentData.text,
+    image: commentData.comment_image !== "null" && commentData.comment_image ? commentData.comment_image : null, // Use null instead of undefined for consistency
+  };
 
   const {
     likes,
@@ -57,17 +64,31 @@ const Comment = ({ commentData }: CommentProps) => {
     commentData.id,
     commentData.likes,
     commentData.dislikes,
-    commentData.is_solution
+    commentData.is_solution,
+    onDelete,
+    "none",
+    initialContent
   );
-  const [replyText, setReplyText] = React.useState("");
+  const [replyContent, setReplyContent] = useState<CommentContent>({
+    text: "",
+    image: null,
+  });
+
   return (
     <div>
+      {/* for debugging */}
+      {/* <div style={{ fontSize: "10px", color: "red" }}>
+        Debug: currentUser={user?.user_id}, author={commentData.author.user_id},
+        isOwner={String(isOwner)}, loading={String(isLoading)}, isEditing=
+        {String(isEditing)}
+      </div> */}
+
       <div className="flex items-start gap-3 relative font-display">
         {hasReplies && (
           <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
         )}
         <img
-          src={commentData.author.profile_picture || "/image/DefaultAvatar.png"}
+          src={commentData.author.profile_picture}
           alt={`${commentData.author.display_name}'s avatar`}
           className="w-10 h-10 rounded-full"
           onError={(e) => {
@@ -77,86 +98,143 @@ const Comment = ({ commentData }: CommentProps) => {
 
         <div className="flex-grow">
           {/* Header and Text Content */}
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-start justify-between">
             <div className="flex items-baseline  gap-3">
               <span
                 className="font-semibold text-xl"
                 style={{ color: "var(--color-accent-400)" }}
               >
                 {commentData.author.display_name}
+                {/* {commentData.comment_image } */}
+                {/* {commentData.comment_image != "null" && (
+                  <div className="mt-2">
+                    <img
+                      src={commentData.comment_image}
+                      className="max-w-xs h-auto rounded-lg border"
+                    />
+                  </div>
+                )} */}
               </span>
               <span className="text-base text-gray-400">
                 {formatTimeAgo(commentData.created_at)}
               </span>
-
             </div>
-            {isSolution && <SolutionTag />}
+            <div
+              className={`transition-all duration-300 ease-in-out transform ${
+                isSolution ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+            >
+              <SolutionTag />
+            </div>
           </div>
           {isEditing ? (
             <CommentEditor
-              initialContent={
-                displayContent ? displayContent : { text: commentData.text }
-              }
+              initialContent={displayContent || initialContent}
               onSave={handleSaveEdit}
               onCancel={handleCancelEdit}
             />
           ) : (
-            <CommentContent
-              content={draftContent ? draftContent : { text: commentData.text }}
-            />
+            <CommentContentDisplay content={displayContent || initialContent} />
           )}
           {/* turn the other one into input */}
           {/* ACTION ROW (Using individual imported components) */}
           <div className="flex items-center justify-between text-gray-500">
-            <div className="flex items-center gap-3 text-gray-500">
-              {/* 1. Like Button */}
-              <LikeButton
-                count={likes}
-                userStatus={userLikeStatus}
-                onClick={toggleLike}
-              />
-
-              {/* 2. Dislike Button */}
-              <DislikeButton
-                count={dislikes}
-                userStatus={userLikeStatus}
-                onClick={toggleDislike}
-              />
-              <div className="flex items-center gap-7">
-                {/* 3. Reply Button */}
-                <ReplyButton
-                  isReplying={isReplying}
-                  onClick={handleToggleNewReply}
+            {!isEditing && (
+              <div className="flex items-center gap-3 text-gray-500">
+                {/* 1. Like Button */}
+                <LikeButton
+                  count={likes}
+                  userStatus={userLikeStatus}
+                  onClick={toggleLike}
                 />
 
-                {/* 4. More Actions Menu */}
-                <MoreActionsMenu
-                  anchorEl={anchorEl}
-                  handleMenuOpen={handleMenuOpen}
-                  handleMenuClose={handleMenuClose}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                  handleSetSolution={handleSetSolution}
-                  handleDeleteModalOpen={handleDeleteModalOpen}
-                  handleDeleteModalClose={handleDeleteModalClose}
+                {/* 2. Dislike Button */}
+                <DislikeButton
+                  count={dislikes}
+                  userStatus={userLikeStatus}
+                  onClick={toggleDislike}
                 />
+                <div className="flex items-center gap-7">
+                  {/* 3. Reply Button */}
+                  <ReplyButton
+                    isReplying={isReplying}
+                    onClick={handleToggleNewReply}
+                  />
+
+                  {/* 4. More Actions Menu */}
+                  {!isLoading && isOwner && (
+                    <MoreActionsMenu
+                      anchorEl={anchorEl}
+                      handleMenuOpen={handleMenuOpen}
+                      handleMenuClose={handleMenuClose}
+                      handleEdit={handleEdit}
+                      handleDelete={handleDelete}
+                      handleSetSolution={handleSetSolution}
+                      handleDeleteModalOpen={handleDeleteModalOpen}
+                      handleDeleteModalClose={handleDeleteModalClose}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
+          <ViewRepliesButton
+            replyCount={commentData.Replies}
+            isOpen={isRepliesOpen}
+            onClick={handleToggleReplies}
+          />
           {/* Reply Input Section: Opened by ReplyButton */}
           {isReplying && (
-            <div className="w-full bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display mt-5">
-            {/* Create Reply component */}
-            <CreateComment
-                placeholder="Add your reply..."
-                author={currentUser ? {
-                    profile_picture: currentUser.profile_picture ?? undefined,
-                    display_name: currentUser.display_name ?? undefined,
-                } : undefined}
-                onSubmit={(text, attachment) => handleCreateNewReply(text, attachment)}
-            />
-        </div>
+            <div className="mt-4">
+              <CommentEditor
+                initialContent={{ text: "", image: null }}
+                onSave={async (content) => {
+                  const ok = await handleCreateNewReply(content);
+                  if (ok) setReplyContent({ text: "", image: null });
+                }}
+                onCancel={() => {
+                  setReplyContent({ text: "", image: null });
+                  handleCancelReply();
+                }}
+              />
+            </div>
           )}
+          {/* {isReplying && (
+            <div className="mt-4 ">
+              <div className="flex items-start gap-2">
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <input
+                  type="text"
+                  placeholder="Write your reply..."
+                  className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    setReplyText("");
+                    handleCancelReply();
+                  }}
+                  className="text-sm px-3 py-1 text-accent-600 hover:bg-gray-100 rounded-full"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    const ok = await handleCreateNewReply(replyText);
+                    if (ok) setReplyText("");
+                  }}
+                  disabled={!replyText.trim()}
+                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full"
+                >
+                  Reply
+                </button>
+              </div>
+            </div>
+          )} */}
+
           {/* Replies Section: Opened by View Replies Toggle */}
           {isRepliesOpen && (
             <div className="mt-4 relative pl-8 ">
@@ -196,7 +274,9 @@ const Comment = ({ commentData }: CommentProps) => {
             aria-labelledby="delete-dialog-title"
             aria-describedby="delete-dialog-description"
           >
-            <DialogTitle id="delete-dialog-title" className="text-xl">Delete Comment</DialogTitle>
+            <DialogTitle id="delete-dialog-title" className="text-xl">
+              Delete Comment
+            </DialogTitle>
             <DialogContent>
               <p
                 id="delete-dialog-description"
@@ -206,13 +286,20 @@ const Comment = ({ commentData }: CommentProps) => {
                 be undone.
               </p>
             </DialogContent>
-            <DialogActions>
+            <DialogActions
+              sx={{
+                justifyContent: "space-evenly",
+                padding: "16px 24px",
+                gap: 2,
+              }}
+            >
               <Button
                 onClick={handleDeleteModalClose}
                 color="primary"
                 size="large"
-                variant="outlined"
-                sx={{ fontSize: 24 , padding: '8px 24px' }}
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
               >
                 Cancel
               </Button>
@@ -221,8 +308,9 @@ const Comment = ({ commentData }: CommentProps) => {
                 color="error"
                 autoFocus
                 size="large"
-                variant="outlined"
-                sx={{ fontSize: 24 , padding: '8px 24px' }}
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
               >
                 Delete
               </Button>

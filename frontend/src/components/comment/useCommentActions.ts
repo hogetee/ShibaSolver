@@ -8,14 +8,16 @@ export const useCommentActions = (
   initialLikes: number,
   initialDislikes: number,
   initialSolution: boolean,
-  initialUserStatus: UserLikeStatus = "none"
+  onDelete?: (commentId: string) => void,
+  initialUserStatus: UserLikeStatus = "none",
+  initialContent?: CommentContent
 ): CommentActions => {
-    const [liked, setLiked] = useState(false);
-    const [disliked, setDisliked] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [likes, setLikes] = useState(initialLikes);
-    const [dislikes, setDislikes] = useState(initialDislikes);
-    const [userLikeStatus, setUserLikeStatus] = useState(initialUserStatus);
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [likes, setLikes] = useState(initialLikes);
+  const [dislikes, setDislikes] = useState(initialDislikes);
+  const [userLikeStatus, setUserLikeStatus] = useState(initialUserStatus);
 
     const [isRepliesOpen, setIsRepliesOpen] = useState(false);
     const [isReplying, setIsReplying] = useState(false);
@@ -27,24 +29,22 @@ export const useCommentActions = (
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState<CommentContent | null>(null);
   const [displayContent, setDisplayContent] = useState<CommentContent | null>(
-    null
+    initialContent || null
   );
 
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const BASE_URL = process.env.BACKEND_URL || "http://localhost:5000";
-      
-    
-    async function postRate(
-        target_type: 'post' | 'comment',
-        target_id: number | string,
-        rating_type: 'like' | 'dislike'
-    ) 
-    {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
+
+  async function postRate(
+    target_type: "post" | "comment",
+    target_id: number | string,
+    rating_type: "like" | "dislike"
+  ) {
     try {
-      const res = await fetch('http://localhost:5003/api/v1/ratings', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:5003/api/v1/ratings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           target_type,
           target_id: Number(target_id),
@@ -54,27 +54,27 @@ export const useCommentActions = (
 
       if (!res.ok) {
         if (res.status === 401) {
-          console.warn('User not authenticated');
+          console.warn("User not authenticated");
         }
         throw new Error(`POST /ratings failed: ${res.status}`);
       }
 
       return await res.json();
     } catch (err) {
-      console.error('Error posting rating:', err);
+      console.error("Error posting rating:", err);
       throw err;
     }
   }
 
   async function deleteRate(
-    target_type: 'post' | 'comment',
+    target_type: "post" | "comment",
     target_id: number | string
   ) {
     try {
-      const res = await fetch('http://localhost:5003/api/v1/ratings', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:5003/api/v1/ratings", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           target_type,
           target_id: Number(target_id),
@@ -83,14 +83,14 @@ export const useCommentActions = (
 
       if (!res.ok) {
         if (res.status === 401) {
-          console.warn('User not authenticated');
+          console.warn("User not authenticated");
         }
         throw new Error(`DELETE /ratings failed: ${res.status}`);
       }
 
       return await res.json();
     } catch (err) {
-      console.error('Error deleting rating:', err);
+      console.error("Error deleting rating:", err);
       throw err;
     }
   }
@@ -104,13 +104,13 @@ export const useCommentActions = (
 
     // optimistic UI update
     if (liked) {
-        setUserLikeStatus('none');
-        setLiked(false);
-        setLikes((l) => Math.max(0, l - 1));
+      setUserLikeStatus("none");
+      setLiked(false);
+      setLikes((l) => Math.max(0, l - 1));
     } else {
-        setUserLikeStatus('liked');
-        setLiked(true);
-        setLikes((l) => l + 1);
+      setUserLikeStatus("liked");
+      setLiked(true);
+      setLikes((l) => l + 1);
       if (disliked) {
         setDisliked(false);
         setDislikes((d) => Math.max(0, d - 1));
@@ -119,8 +119,8 @@ export const useCommentActions = (
 
     try {
       const json = liked
-        ? await deleteRate('comment', commentId)
-        : await postRate('comment', commentId, 'like');
+        ? await deleteRate("comment", commentId)
+        : await postRate("comment", commentId, "like");
 
       // --- sync back with backend response ---
       const summary = json?.data?.summary ?? json?.summary;
@@ -133,8 +133,8 @@ export const useCommentActions = (
       }
 
       if (my_rating) {
-        setLiked(my_rating === 'like');
-        setDisliked(my_rating === 'dislike');
+        setLiked(my_rating === "like");
+        setDisliked(my_rating === "dislike");
       }
     } catch (err) {
       // rollback on error
@@ -156,13 +156,13 @@ export const useCommentActions = (
 
     // optimistic UI update
     if (disliked) {
-        setUserLikeStatus('none');
-        setDisliked(false);
-        setDislikes((d) => Math.max(0, d - 1));
+      setUserLikeStatus("none");
+      setDisliked(false);
+      setDislikes((d) => Math.max(0, d - 1));
     } else {
-        setUserLikeStatus('disliked');
-        setDisliked(true);
-        setDislikes((d) => d + 1);
+      setUserLikeStatus("disliked");
+      setDisliked(true);
+      setDislikes((d) => d + 1);
       if (liked) {
         setLiked(false);
         setLikes((l) => Math.max(0, l - 1));
@@ -171,8 +171,8 @@ export const useCommentActions = (
 
     try {
       const json = disliked
-        ? await deleteRate('comment', commentId)
-        : await postRate('comment', commentId, 'dislike');
+        ? await deleteRate("comment", commentId)
+        : await postRate("comment", commentId, "dislike");
 
       const summary = json?.data?.summary ?? json?.summary;
       const rating = json?.data?.rating ?? json?.rating;
@@ -184,8 +184,8 @@ export const useCommentActions = (
       }
 
       if (my_rating) {
-        setLiked(my_rating === 'like');
-        setDisliked(my_rating === 'dislike');
+        setLiked(my_rating === "like");
+        setDisliked(my_rating === "dislike");
       }
     } catch (err) {
       // rollback on error
@@ -197,98 +197,6 @@ export const useCommentActions = (
       setLoading(false);
     }
   };
-
-    // const handleLike = async () => {
-    //     const commentNumericId = Number(commentId);
-    //     const prev = { likes, dislikes, userLikeStatus };
-    
-    //     try {
-    //         if (userLikeStatus === 'liked') {
-    //             // unrate
-    //             setLikes(prev => prev - 1);
-    //             setUserLikeStatus('none');
-    
-    //             const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //                 method: 'DELETE',
-    //                 credentials: 'include',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId })
-    //             });
-    //             if (!res.ok) throw new Error('Failed to unrate');
-    //             const payload = await res.json();
-    //             setLikes(Number(payload?.summary?.likes ?? likes));
-    //             setDislikes(Number(payload?.summary?.dislikes ?? dislikes));
-    //         } else {
-    //             // rate like
-    //             if (userLikeStatus === 'disliked') setDislikes(d => d - 1);
-    //             setLikes(l => l + 1);
-    //             setUserLikeStatus('liked');
-    
-    //             const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //                 method: 'POST',
-    //                 credentials: 'include',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId, rating_type: 'like' })
-    //             });
-    //             if (!res.ok) throw new Error('Failed to like');
-    //             const payload = await res.json();
-    //             setLikes(Number(payload?.data?.summary?.likes ?? likes));
-    //             setDislikes(Number(payload?.data?.summary?.dislikes ?? dislikes));
-    //         }
-    //     } catch (e) {
-    //         setLikes(prev.likes);
-    //         setDislikes(prev.dislikes);
-    //         setUserLikeStatus(prev.userLikeStatus);
-    //         console.error(e);
-    //     }
-    //     // In a real app, you'd send an API request here
-    // };
-
-    // const handleDislike = async () => {
-    //    const commentNumericId = Number(commentId);
-    // const prev = { likes, dislikes, userLikeStatus };
-
-    // try {
-    //     if (userLikeStatus === 'disliked') {
-    //         // unrate
-    //         setDislikes(d => d - 1);
-    //         setUserLikeStatus('none');
-
-    //         const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //             method: 'DELETE',
-    //             credentials: 'include',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId })
-    //         });
-    //         if (!res.ok) throw new Error('Failed to unrate');
-    //         const payload = await res.json();
-    //         setLikes(Number(payload?.summary?.likes ?? likes));
-    //         setDislikes(Number(payload?.summary?.dislikes ?? dislikes));
-    //     } else {
-    //         // rate dislike
-    //         if (userLikeStatus === 'liked') setLikes(l => l - 1);
-    //         setDislikes(d => d + 1);
-    //         setUserLikeStatus('disliked');
-
-    //         const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
-    //             method: 'POST',
-    //             credentials: 'include',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ target_type: 'comment', target_id: commentNumericId, rating_type: 'dislike' })
-    //         });
-    //         if (!res.ok) throw new Error('Failed to dislike');
-    //         const payload = await res.json();
-    //         setLikes(Number(payload?.data?.summary?.likes ?? likes));
-    //         setDislikes(Number(payload?.data?.summary?.dislikes ?? dislikes));
-    //     }
-    // } catch (e) {
-    //     setLikes(prev.likes);
-    //     setDislikes(prev.dislikes);
-    //     setUserLikeStatus(prev.userLikeStatus);
-    //     console.error(e);
-    // }
-    // };
-
 
   const handleToggleReplies = () => {
     setIsRepliesOpen((prev) => !prev);
@@ -394,33 +302,60 @@ export const useCommentActions = (
 
   const handleEdit = () => {
     console.log(`[ACTION] Editing comment ID: ${commentId}`);
+    console.log(`[ACTION] Current displayContent:`, displayContent);
     setIsEditing(true);
-    setDraftContent(displayContent || { text: "" });
+    setDraftContent(displayContent || { text: "", image: null });
     handleMenuClose();
+    console.log(`[ACTION] Set isEditing to true for comment ID: ${commentId}`);
   };
 
   const handleSaveEdit = async (newContent: CommentContent) => {
     try {
-      console.log("Saving edit: ", newContent);
+      console.log(`Saving edit for ID ${commentId}:`, newContent);
+
+      const requestBody = {
+        text: newContent.text,
+        image_url: newContent.image || null,
+      };
 
       const res = await fetch(
         `${BASE_URL}/api/v1/comments/${Number(commentId)}`,
         {
           method: "PUT",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: newContent.text }),
+          headers: {
+          "Content-Type": "application/json", // Add this missing header
+        },
+          body: JSON.stringify(requestBody),
         }
       );
-      if (!res.ok){
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to save edit");
-      }
 
-      const updatedComment = await res.json();
+      if (!res.ok) {
+        console.error("Edit failed:", res.status, res.statusText);
+        throw new Error(`Failed to save edit: ${res.status}`);
+      }
+      // if (!res.ok) {
+      //   const errorText = await res.text();
+      //   console.error("Edit failed:", res.status, errorText);
+      //   throw new Error(`Failed to save edit: ${res.status}`);
+      // }
+
+      const response = await res.json();
+      console.log("Backend response:", response);
+
+      const updatedCommentData = response.data;
+
+      const updatedComment: CommentContent = {
+        text: updatedCommentData.text,
+        image:
+          updatedCommentData.comment_image &&
+          updatedCommentData.comment_image !== "null"
+            ? updatedCommentData.comment_image
+            : null,
+      };
 
       setDisplayContent(updatedComment);
-      setDraftContent(updatedComment);
+      setDraftContent(null);
       setIsEditing(false);
       console.log(
         `[ACTION] Saved edited content for comment ID: ${commentId}`,
@@ -457,6 +392,10 @@ export const useCommentActions = (
       );
       if (!res.ok) throw new Error("Failed to delete comment");
       // Optionally: notify parent to remove this comment from the list
+      if (onDelete) {
+        onDelete(commentId);
+      }
+
       setIsDeleteModalOpen(false);
     } catch (e) {
       console.error(e);
@@ -481,44 +420,37 @@ export const useCommentActions = (
     }
   };
 
-    const handleCancelReply = () => {
-        setIsReplying(false);
-        // have to handle attachment clear here too
-        if (attachedImage || attachedImagePreview) {
-            handleRemoveAttachment();
-        }
-    };
-    
-    return {
-        likes,
-        dislikes,
-        userLikeStatus,
-        isRepliesOpen,
-        isReplying,
-        anchorEl,
-        isSolution,
-        attachedImagePreview,
-        isEditing,
-        draftContent,
-        displayContent,
-        isDeleteModalOpen,
-        toggleLike,
-        toggleDislike,
-        handleToggleReplies,
-        handleToggleNewReply,
-        handleCancelReply,
-        handleCreateNewReply,
-        handleCreateNewComment,
-        handleAttachImage,
-        handleRemoveAttachment,
-        handleMenuOpen,
-        handleMenuClose,
-        handleEdit,
-        handleSaveEdit,
-        handleCancelEdit,
-        handleDeleteModalOpen,
-        handleDeleteModalClose,
-        handleDelete,
-        handleSetSolution,
-    };
-}
+  const handleCancelReply = () => {
+    setIsReplying(false);
+  };
+
+  return {
+    likes,
+    dislikes,
+    userLikeStatus,
+    isRepliesOpen,
+    isReplying,
+    anchorEl,
+    isSolution,
+    isEditing,
+    draftContent,
+    displayContent,
+    isDeleteModalOpen,
+    toggleLike,
+    toggleDislike,
+    handleToggleReplies,
+    handleToggleNewReply,
+    handleCreateNewComment,
+    handleCancelReply,
+    handleCreateNewReply,
+    handleMenuOpen,
+    handleMenuClose,
+    handleEdit,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleDeleteModalOpen,
+    handleDeleteModalClose,
+    handleDelete,
+    handleSetSolution,
+  };
+};
