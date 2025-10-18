@@ -9,7 +9,8 @@ export const useCommentActions = (
   initialDislikes: number,
   initialSolution: boolean,
   onDelete?: (commentId: string) => void,
-  initialUserStatus: UserLikeStatus = "none"
+  initialUserStatus: UserLikeStatus = "none",
+  initialContent?: CommentContent
 ): CommentActions => {
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
@@ -26,7 +27,7 @@ export const useCommentActions = (
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState<CommentContent | null>(null);
   const [displayContent, setDisplayContent] = useState<CommentContent | null>(
-    null
+    initialContent || null
   );
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -257,35 +258,56 @@ export const useCommentActions = (
 
   const handleEdit = () => {
     console.log(`[ACTION] Editing comment ID: ${commentId}`);
+    console.log(`[ACTION] Current displayContent:`, displayContent);
     setIsEditing(true);
-    setDraftContent(displayContent || { text: "" });
+    setDraftContent(displayContent || { text: "", image: null });
     handleMenuClose();
+    console.log(`[ACTION] Set isEditing to true for comment ID: ${commentId}`);
   };
 
   const handleSaveEdit = async (newContent: CommentContent) => {
     try {
       console.log(`Saving edit for ID ${commentId}:`, newContent);
 
+      const requestBody = {
+        text: newContent.text,
+        image_url: newContent.image || null,
+      };
+
       const res = await fetch(
         `${BASE_URL}/api/v1/comments/${Number(commentId)}`,
         {
           method: "PUT",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: newContent.text }),
+          headers: {
+          "Content-Type": "application/json", // Add this missing header
+        },
+          body: JSON.stringify(requestBody),
         }
       );
+
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to save edit");
+        console.error("Edit failed:", res.status, res.statusText);
+        throw new Error(`Failed to save edit: ${res.status}`);
       }
+      // if (!res.ok) {
+      //   const errorText = await res.text();
+      //   console.error("Edit failed:", res.status, errorText);
+      //   throw new Error(`Failed to save edit: ${res.status}`);
+      // }
 
       const response = await res.json();
+      console.log("Backend response:", response);
 
       const updatedCommentData = response.data;
 
       const updatedComment: CommentContent = {
         text: updatedCommentData.text,
+        image:
+          updatedCommentData.comment_image &&
+          updatedCommentData.comment_image !== "null"
+            ? updatedCommentData.comment_image
+            : null,
       };
 
       setDisplayContent(updatedComment);

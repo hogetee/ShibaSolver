@@ -18,7 +18,7 @@ export interface CommentData {
 
 export interface CommentContent {
     text: string;
-    // possibly more field in the future such as imgs
+    image?: string | null;
 }
 
 export type UserLikeStatus = 'none' | 'liked' | 'disliked';
