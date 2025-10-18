@@ -243,7 +243,7 @@ export const useCommentActions = (
         setAttachedImagePreview(null);
     };
 
-  const handleCreateNewReply = async (replyText: string, attachment: File | null = null) => {
+  const handleCreateNewReply = async (replyText: string, attachment: string | null = null) => {
     const commentNumericId = Number(commentId);
     try {
       const res = await fetch(
@@ -257,25 +257,37 @@ export const useCommentActions = (
       );
       if (!res.ok) throw new Error("Failed to create reply");
       // Optionally update local UI or refetch replies here
-            setIsReplying(false);
-            if (!isRepliesOpen) setIsRepliesOpen(true);
-            // Clear attachment after success
-            if (attachedImage || attachment) {
-                handleRemoveAttachment();
-            }
-            return true;
-        } catch (err) {
-            console.error("Failed to create reply", err);
-            return false;
-        }
+      setIsReplying(false);
+      if (!isRepliesOpen) setIsRepliesOpen(true);
+      // Clear attachment after success
+      if (attachedImage || attachment) {
+          handleRemoveAttachment();
+      }
+      return true;
+    } catch (err) {
+        console.error("Failed to create reply", err);
+        return false;
+    }
     };
 
-    const handleCreateNewComment = async (commentText: string, attachment: File | null = null) => {
+    const handleCreateNewComment = async (postid: number, commentText: string, attachment: string | null = null) => {
         // Simulate creating a comment. In a real app you'd POST to an API.
     try {
-      console.log(`[ACTION] create comment for ${commentId}:`, commentText);
-      // Simulate network latency
-      await new Promise((r) => setTimeout(r, 200));
+      const res = await fetch(
+        `${BASE_URL}/api/v1/comments`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            post_id: postid,
+            parent_comment: null,
+            text: commentText,
+            comment_image: attachment || null,
+           }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to create reply");
       // Clear local attachment state after success
       if (attachedImage || attachment) {
           handleRemoveAttachment();
@@ -422,6 +434,10 @@ export const useCommentActions = (
 
   const handleCancelReply = () => {
     setIsReplying(false);
+    // have to handle attachment clear here too
+    if (attachedImage || attachedImagePreview) {
+        handleRemoveAttachment();
+    }
   };
 
   return {
@@ -432,6 +448,7 @@ export const useCommentActions = (
     isReplying,
     anchorEl,
     isSolution,
+    attachedImagePreview,
     isEditing,
     draftContent,
     displayContent,
@@ -440,9 +457,11 @@ export const useCommentActions = (
     toggleDislike,
     handleToggleReplies,
     handleToggleNewReply,
-    handleCreateNewComment,
     handleCancelReply,
     handleCreateNewReply,
+    handleCreateNewComment,
+    handleAttachImage,
+    handleRemoveAttachment,
     handleMenuOpen,
     handleMenuClose,
     handleEdit,

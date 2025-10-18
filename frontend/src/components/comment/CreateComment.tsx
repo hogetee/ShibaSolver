@@ -1,3 +1,7 @@
+// Cloudinary config
+const CLOUD_NAME = 'dvlsunwrx';
+const UPLOAD_PRESET = 'Shiba_comment_image';
+
 import React, { useState } from 'react';
 
 import ProfilePic from '@/components/profile/profile_header/ProfilePic';
@@ -7,13 +11,34 @@ import SendIcon from '@mui/icons-material/Send';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 
+
+// Uploads an image file to Cloudinary and returns the image URL
+async function uploadImageToCloudinary(file: File): Promise<string | null> {
+  const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Cloudinary upload failed');
+    const data = await res.json();
+    return data.secure_url || data.url || null;
+  } catch (err) {
+    console.error('Cloudinary upload error:', err);
+    return null;
+  }
+}
+
 interface CreateCommentProps {
   placeholder?: string;
   author?: {
     profile_picture?: string;
     display_name?: string;
   };
-  onSubmit?: (text: string, attachment?: File | null) => Promise<boolean> | boolean | void;
+  onSubmit?: (text: string, imageUrl?: string | null) => Promise<boolean> | boolean | void;
 }
 
 export default function CreateComment({ placeholder = "Add a comment...", author, onSubmit }: CreateCommentProps) {
@@ -41,10 +66,15 @@ export default function CreateComment({ placeholder = "Add a comment...", author
       }
       return;
     }
-    // pass attachment (if any) to onSubmit
+    // Convert localAttachedFile to Cloudinary URL if present
+    let imageUrl: string | null = null;
+    if (localAttachedFile) {
+      imageUrl = await uploadImageToCloudinary(localAttachedFile);
+    }
+    // pass imageUrl and text to onSubmit
     let success = true;
     if (onSubmit) {
-      const res = await onSubmit(text, localAttachedFile);
+      const res = await onSubmit(text, imageUrl);
       success = typeof res === 'boolean' ? res : true;
     }
     if (success) {

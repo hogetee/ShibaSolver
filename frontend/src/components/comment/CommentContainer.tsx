@@ -6,7 +6,7 @@ import CommentSection from "@/components/comment/CommentSection";
 import usePostComments from "@/hooks/userPostComments";
 
 interface Props {
-  postId: string | number;
+  postId: string;
   sort?: "latest" | "popular" | "oldest" | "ratio";
 }
 
@@ -49,7 +49,7 @@ export default function CommentContainer({ postId, sort = "latest" }: Props) {
     );
   }
 
-  return <CommentSection initialComments={mapped} />;
+  return <CommentSection initialComments={mapped} postId={postId} />;
 }
 
 // async function getComment(postId: string): Promise<CommentData[]> {

@@ -86,8 +86,8 @@ export interface CommentActions {
     handleToggleReplies: () => void;
     handleToggleNewReply: () => void;
     handleCancelReply: () => void;
-    handleCreateNewReply : (replyText: string, attachment?: File | null) => Promise<boolean>;
-    handleCreateNewComment: (commentText: string, attachment?: File | null) => Promise<boolean>;
+    handleCreateNewReply : (replyText: string, attachment?: string | null) => Promise<boolean>;
+    handleCreateNewComment: (post_id: number, commentText: string, attachment?: string | null) => Promise<boolean>;
     handleAttachImage: (file: File | null) => Promise<string | null>;
     handleRemoveAttachment: () => void;
     handleMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;

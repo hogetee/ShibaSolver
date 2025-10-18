@@ -10,6 +10,7 @@ import { MoreActionsMenu } from "@/components/comment/MoreActionsMenu";
 import { SolutionTag } from "./SolutionTag";
 import CommentContentDisplay from "./CommentContent";
 import CommentEditor from "./CommentEditor";
+import useCurrentUser from "@/hooks/useCurrentUser";
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -18,7 +19,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
-import useCurrentUser from "@/hooks/useCurrentUser";
+import CreateComment from "./CreateComment";
 import { useState } from "react";
 import { ViewRepliesButton } from "./ViewRepliesButton";
 
