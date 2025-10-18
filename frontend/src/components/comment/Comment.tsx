@@ -23,7 +23,7 @@ import CreateComment from "./CreateComment";
 import { useState } from "react";
 import { ViewRepliesButton } from "./ViewRepliesButton";
 
-const Comment = ({ commentData, onDelete }: CommentProps) => {
+const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
   const { user, isLoading, error, refetch } = useCurrentUser();
 
@@ -186,8 +186,8 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
           />
           {/* Reply Input Section: Opened by ReplyButton */}
           {isReplying && (
-            <div className="mt-4">
-              <CommentEditor
+            <div className="w-full bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display mt-3">
+              {/* <CommentEditor
                 initialContent={{ text: "", image: null }}
                 onSave={async (content) => {
                   const ok = await handleCreateNewReply(content);
@@ -197,6 +197,16 @@ const Comment = ({ commentData, onDelete }: CommentProps) => {
                   setReplyContent({ text: "", image: null });
                   handleCancelReply();
                 }}
+              /> */}
+              <CreateComment
+                  placeholder="Add your reply..."
+                  author={
+                      user ? {
+                          profile_picture: user.profile_picture ?? undefined,
+                          display_name: user.display_name ?? undefined,
+                      } : undefined
+                  }
+                  onSubmit={(text, attachment) => handleCreateNewReply(Number(postId), text, attachment)}
               />
             </div>
           )}

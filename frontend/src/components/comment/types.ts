@@ -28,6 +28,7 @@ export type UserLikeStatus = 'none' | 'liked' | 'disliked';
 export interface CommentProps {
     commentData: CommentData;
     onDelete?: (commentId:string) => void;
+    postId: string;
 }
 
 // Interfaces for Action Buttons
@@ -86,7 +87,7 @@ export interface CommentActions {
     handleToggleReplies: () => void;
     handleToggleNewReply: () => void;
     handleCancelReply: () => void;
-    handleCreateNewReply : (replyText: string, attachment?: string | null) => Promise<boolean>;
+    handleCreateNewReply : (post_id: number, replyText: string, attachment?: string | null) => Promise<boolean>;
     handleCreateNewComment: (post_id: number, commentText: string, attachment?: string | null) => Promise<boolean>;
     handleAttachImage: (file: File | null) => Promise<string | null>;
     handleRemoveAttachment: () => void;

@@ -50,6 +50,7 @@ export default function CommentSection({ initialComments, postId }: Props) {
                   key={comment.id}
                   commentData={comment}
                   onDelete={handleCommentDelete}
+                  postId={postId}
                 />
               ))}
             </div>

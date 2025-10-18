@@ -243,7 +243,7 @@ export const useCommentActions = (
         setAttachedImagePreview(null);
     };
 
-  const handleCreateNewReply = async (replyText: string, attachment: string | null = null) => {
+  const handleCreateNewReply = async (postid: number, replyText: string, attachment: string | null = null) => {
     const commentNumericId = Number(commentId);
     try {
       const res = await fetch(
@@ -252,7 +252,12 @@ export const useCommentActions = (
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: replyText }),
+          body: JSON.stringify({ 
+            post_id: postid,
+            parent_comment: Number(commentId),
+            text: replyText,
+            comment_image: attachment || null,
+           }),
         }
       );
       if (!res.ok) throw new Error("Failed to create reply");
