@@ -8,6 +8,11 @@
 :root {
   --background: #ffffff;
   --foreground: #191825;
+  --color-accent-200: #f6d9ff;
+  --color-accent-400: #ab72c1;
+  --color-accent-600: #4b0082;
+  --color-dark-900: #191825;
+  --color-primary-00: #ffffff;
 }
 
 @theme inline {
@@ -15,11 +20,11 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-accent-200: #F6D9FF;
-  --color-accent-400: #AB72C1;
-  --color-accent-600: #4B0082;
+  --color-accent-200: #f6d9ff;
+  --color-accent-400: #ab72c1;
+  --color-accent-600: #4b0082;
   --color-dark-900: #191825;
-  --color-primary-00: #FFFFFF;
+  --color-primary-00: #ffffff;
   --font-display: "Afacad","Sarabun", sans-serif;
 }
 

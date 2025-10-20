@@ -1,4 +1,5 @@
 import DedicatedPostContainer from '@/components/post/dedicatedPost/DedicatedPostContainer'
+import CommentContainer from '@/components/comment/CommentContainer'
 
 interface PostPageProps {
   params: {
@@ -11,7 +12,8 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
   const { postId } = await params;
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 pt-20">
-      <DedicatedPostContainer postId={postId} />
+      <DedicatedPostContainer postId={params.postId} />
+      <CommentContainer postId={params.postId} />
     </div>
   );
 }

@@ -36,7 +36,7 @@ export default function Home() {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // ✅ 1. สร้าง "คู่มือ" หรือฟังก์ชันสำหรับจัดการการอัปเดต
+  // 1. สร้าง "คู่มือ" หรือฟังก์ชันสำหรับจัดการการอัปเดต
   const handlePostUpdateInFeed = (updatedPost: PostData) => {
     setPosts(currentPosts => 
       currentPosts.map(p => 
@@ -45,7 +45,7 @@ export default function Home() {
     );
   };
 
-  // ✅ 2. สร้าง "คู่มือ" สำหรับการลบ (เผื่อไว้ในอนาคต)
+  // 2. สร้าง "คู่มือ" สำหรับการลบ (เผื่อไว้ในอนาคต)
   const handlePostDeleteInFeed = (postIdToDelete: string) => {
     setPosts(currentPosts => 
       currentPosts.filter(p => p.post_id !== postIdToDelete)
