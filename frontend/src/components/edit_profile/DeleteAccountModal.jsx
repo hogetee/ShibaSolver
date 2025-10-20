@@ -1,31 +1,9 @@
-import React, { useState } from "react";
-import { useDeleteUser } from "@/hooks/useDeleteUser";
+import React from "react";
+import { useDeleteAccount } from "@/hooks/useDeleteAccount";
 
 export default function DeleteAccountModal({ isOpen, onClose, onSuccess }) {
-  const { deleteUser, isLoading, error } = useDeleteUser();
-  const [showError, setShowError] = useState(false);
-
-  if (!isOpen) return null;
-
-  const handleDelete = async () => {
-    try {
-      setShowError(false);
-      await deleteUser();
-
-      // Clear any stored user data
-      localStorage.removeItem("username");
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("token");
-
-      // Call success callback (e.g., redirect to home page)
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (err) {
-      setShowError(true);
-      console.error("Failed to delete account:", err);
-    }
-  };
+  
+  const { showError, isLoading, error, handleDelete } = useDeleteAccount();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center font-display">
