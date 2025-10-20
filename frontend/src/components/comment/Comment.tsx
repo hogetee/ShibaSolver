@@ -1,278 +1,343 @@
+import React from "react";
+import { CommentContent, CommentProps } from "./types";
+import { useCommentActions } from "@/components/comment/useCommentActions";
+import { formatTimeAgo } from "@/components/comment/utils";
 
-import React, { useState } from 'react'; 
+import { LikeButton } from "@/components/comment/LikeButton";
+import { DislikeButton } from "@/components/comment/DislikeButton";
+import { ReplyButton } from "@/components/comment/ReplyButton";
+import { MoreActionsMenu } from "@/components/comment/MoreActionsMenu";
+import { SolutionTag } from "./SolutionTag";
+import CommentContentDisplay from "./CommentContent";
+import CommentEditor from "./CommentEditor";
+import useCurrentUser from "@/hooks/useCurrentUser";
 
-export interface CommentData{
-    id: string; // data type ไม่แน่ใจ
-    author: {
-        display_name: string;
-        profile_picture: string;
-    };
-    text: string;
-    created_at: string; // ISO date {แก้ภายหลัง}
-    likes: number;
-    dislikes: number;
-    // likeStatus อาจจะเปลี่ยนเป็น method เรียกใช้
-    Replies: number;
-}
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "@/theme/theme";
+import CreateComment from "./CreateComment";
+import { useState } from "react";
+import { ViewRepliesButton } from "./ViewRepliesButton";
 
-interface CommentProps{
-    commentData: CommentData;
-}
+const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
+  const hasReplies = commentData.Replies > 0;
+  const { user, isLoading, error, refetch } = useCurrentUser();
 
-const useCommentActions = (
-    commentId: string, 
-    initialLikes: number, 
-    initialDislikes: number,
-    // สมมติสถานะเริ่มต้นของผู้ใช้ (none, liked, disliked)
-    initialUserStatus: 'none' | 'liked' | 'disliked' = 'none' 
-) => {
-   const [likes, setLikes] = useState(initialLikes);
-    const [dislikes, setDislikes] = useState(initialDislikes);
-    // สถานะใหม่: ติดตามว่าผู้ใช้ Like หรือ Dislike คอมเมนต์นี้อยู่หรือไม่
-    const [userLikeStatus, setUserLikeStatus] = useState(initialUserStatus);
-    
-    const [isRepliesOpen, setIsRepliesOpen] = useState(false);
-    const [isReplying, setIsReplying] = useState(false); 
+  const isOwner = user?.user_id == commentData.author.user_id;
 
-    const handleLike = () => {
-        if (userLikeStatus === 'liked') {
-            // 1. ถ้าเคยกด Like แล้ว -> ยกเลิก Like
-            setLikes(prev => prev - 1);
-            setUserLikeStatus('none');
-            console.log(`[ACTION] Unliking comment ID: ${commentId}`);
-        } else if (userLikeStatus === 'disliked') {
-            // 2. ถ้าเคยกด Dislike แล้ว -> เปลี่ยนเป็น Like (Like +1, Dislike -1)
-            setLikes(prev => prev + 1);
-            setDislikes(prev => prev - 1);
-            setUserLikeStatus('liked');
-            console.log(`[ACTION] Changing Dislike to Like for ID: ${commentId}`);
-        } else {
-            // 3. ถ้ายังไม่เคยทำอะไร -> กด Like
-            setLikes(prev => prev + 1);
-            setUserLikeStatus('liked');
-            console.log(`[ACTION] Liking comment ID: ${commentId}`);
-        }
-    };
+  const initialContent: CommentContent = {
+    text: commentData.text,
+    image:
+      commentData.comment_image !== "null" && commentData.comment_image
+        ? commentData.comment_image
+        : null, // Use null instead of undefined for consistency
+  };
 
-    const handleDislike = () => {
-        if (userLikeStatus === 'disliked') {
-            // 1. ถ้าเคยกด Dislike แล้ว -> ยกเลิก Dislike
-            setDislikes(prev => prev - 1);
-            setUserLikeStatus('none');
-            console.log(`[ACTION] Undisliking comment ID: ${commentId}`);
-        } else if (userLikeStatus === 'liked') {
-            // 2. ถ้าเคยกด Like แล้ว -> เปลี่ยนเป็น Dislike (Dislike +1, Like -1)
-            setDislikes(prev => prev + 1);
-            setLikes(prev => prev - 1);
-            setUserLikeStatus('disliked');
-            console.log(`[ACTION] Changing Like to Dislike for ID: ${commentId}`);
-        } else {
-            // 3. ถ้ายังไม่เคยทำอะไร -> กด Dislike
-            setDislikes(prev => prev + 1);
-            setUserLikeStatus('disliked');
-            console.log(`[ACTION] Disliking comment ID: ${commentId}`);
-        }
-    };
+  const {
+    likes,
+    dislikes,
+    userLikeStatus,
+    isRepliesOpen,
+    isReplying,
+    anchorEl,
+    isSolution,
+    isEditing,
+    draftContent,
+    displayContent,
+    isDeleteModalOpen,
+    toggleLike,
+    toggleDislike,
+    handleToggleReplies,
+    handleToggleNewReply,
+    handleCancelReply,
+    handleCreateNewReply,
+    handleMenuOpen,
+    handleMenuClose,
+    handleEdit,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleDeleteModalOpen,
+    handleDeleteModalClose,
+    handleDelete,
+    handleSetSolution,
+  } = useCommentActions(
+    commentData.id,
+    commentData.likes,
+    commentData.dislikes,
+    commentData.is_solution,
+    onDelete,
+    "none",
+    initialContent
+  );
+  const [replyContent, setReplyContent] = useState<CommentContent>({
+    text: "",
+    image: null,
+  });
 
-    // ฟังก์ชันหลักสำหรับการจัดการ Reply (เปิด Reply Input เสมอ และสลับ Replies ถ้ามี)
-    const handleMainReplyAction = (hasReplies: boolean) => {
-        
-        // 1. สลับการเปิด/ปิดช่องกรอก Reply ใหม่ เสมอ
-        setIsReplying(prev => !prev);
-        console.log(`[ACTION] Toggle New Reply Input for ID: ${commentId}`);
-        
-        // 2. ถ้ามี Replies อยู่แล้ว: สลับการแสดงผลรายการ Replies
-        if (hasReplies) {
-            setIsRepliesOpen(prev => !prev);
-            if (!isRepliesOpen) {
-                 console.log(`[ACTION] Fetching replies for comment ID: ${commentId}`);
-            }
-        }
-    };
+  return (
+    <div>
+      {/* for debugging */}
+      {/* <div style={{ fontSize: "10px", color: "red" }}>
+        Debug: currentUser={user?.user_id}, author={commentData.author.user_id},
+        isOwner={String(isOwner)}, loading={String(isLoading)}, isEditing=
+        {String(isEditing)}
+      </div> */}
 
-    const handleCancelReply = () => {
-        // ฟังก์ชันสำหรับปุ่มยกเลิกในช่องกรอก (ปิดช่องกรอก)
-        setIsReplying(false);
-    };
-     return { 
-        likes, 
-        dislikes, 
-        userLikeStatus, // สถานะใหม่
-        isRepliesOpen, 
-        isReplying,
-        handleLike, 
-        handleDislike, 
-        handleMainReplyAction,
-        handleCancelReply 
-    };
-}
+      <div className="flex items-start gap-3 relative font-display">
+        {hasReplies && (
+          <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
+        )}
+        <img
+          src={commentData.author.profile_picture}
+          alt={`${commentData.author.display_name}'s avatar`}
+          className="w-10 h-10 rounded-full"
+          onError={(e) => {
+            e.currentTarget.src = "/image/DefaultAvatar.png";
+          }}
+        />
 
-// ***reusable***
-const formatTimeAgo = (dateString: string) => {
-    // เวลาปัจจุบัน
-    const now:number = Date.now();
-    // เวลาที่สร้าง
-    const createdTime: number = new Date(dateString).getTime();
-    // ผลต่างเวลา
-    const timeDifference : number = Math.floor((now - createdTime)/1000);
-    // ค่าที่ใช้แปลงเวลา
-    const intervals: {[key:string]:number}= {
-        year: 31536000,
-        month: 2592000,
-        day: 86400,
-        hour: 3600,
-        minute: 60,
-        second: 1
-    }
-    // แปลงหน่วยเวลา
-    for(const unit in intervals){
-        const intervalValue = intervals[unit];
-        const count = Math.floor(timeDifference / intervalValue);
-
-        if(count >= 1){
-            const unitName = count === 1 ? unit : unit + 's';
-            return '${count} ${unitName} ago';
-        }
-    }
-
-    return "just now"; 
-};
-
-
-
-const Comment= ({ commentData }: CommentProps) => {
-    
-    const hasReplies = commentData.Replies > 0;
-    
-    const { 
-        likes, 
-        dislikes, 
-        userLikeStatus, // ดึงสถานะใหม่
-        isRepliesOpen, 
-        isReplying,
-        handleLike, 
-        handleDislike, 
-        handleMainReplyAction,
-        handleCancelReply 
-    } = useCommentActions(commentData.id, commentData.likes, commentData.dislikes);
-
-    // กำหนดข้อความสำหรับปุ่ม Reply/View Replies
-    let replyButtonLabel = 'Reply';
-    if (hasReplies && isRepliesOpen) {
-        replyButtonLabel = 'Hide replies';
-    } else if (hasReplies) {
-        replyButtonLabel = `View ${commentData.Replies} replies`;
-    } 
-
-    // กำหนดสีของ SVG icon ตามสถานะของผู้ใช้
-    const likeIconStyle = userLikeStatus === 'liked' ? 'text-blue-600 fill-blue-600' : 'text-gray-500 hover:text-dark-900';
-    const dislikeIconStyle = userLikeStatus === 'disliked' ? 'text-blue-600 fill-blue-600' : 'text-gray-500 hover:text-dark-900';
-
-    return (
-        <div>
-            <div className="flex items-start gap-3">
-                <img src={commentData.author.profile_picture} alt={`${commentData.author.display_name}'s avatar`} className="w-8 h-8 rounded-full" />
-                
-                <div className="flex-grow">
-                    {/* Header และ Text Content */}
-                    <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-dark-900">{commentData.author.display_name}</span>
-                        <span className="text-xs text-gray-400">{formatTimeAgo(commentData.created_at)}</span>
-                    </div>
-                    <p className="text-gray-600 mt-1 mb-2">{commentData.text}</p>
-                    
-                    {/* ACTION ROW */}
-                    <div className="flex items-center justify-between text-gray-500">
-                        
-                        {/* === LEFT SIDE GROUP: ปุ่ม Reply / View Replies === */}
-                        <div className="flex items-center gap-4 text-sm font-medium">
-                            
-                            <button 
-                                className="text-blue-500 hover:text-blue-700 font-normal" 
-                                onClick={() => handleMainReplyAction(hasReplies)}
-                            >
-                                {replyButtonLabel}
-                            </button>
-                            
-                        </div>
-                        
-                        {/* === RIGHT SIDE GROUP: Like/Dislike Buttons and Count === */}
-                        <div className="flex items-center gap-2 text-gray-500">
-                            {/* Like Button */}
-                            <button 
-                                className="p-1 rounded-full hover:bg-gray-100"
-                                onClick={handleLike}
-                                aria-label="Like comment"
-                            >
-                                <svg 
-                                    // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Like ที่ทำงานอยู่
-                                    className={`w-4 h-4 cursor-pointer ${likeIconStyle}`} 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    viewBox="0 0 24 24" 
-                                    fill={userLikeStatus === 'liked' ? 'currentColor' : 'none'} // ถ้า liked ให้ fill
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M7 10v12" /><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a2 2 0 0 1 1.79 1.11L15 5.88Z" />
-                                </svg>
-                            </button>
-                            <span className="text-sm font-bold">{likes}</span>
-                            
-                            {/* Dislike Button */}
-                            <button 
-                                className="p-1 rounded-full hover:bg-gray-100"
-                                onClick={handleDislike}
-                                aria-label="Dislike comment"
-                            >
-                                <svg 
-                                    // ใช้ dynamic class และ fill เพื่อให้แสดงสถานะ Dislike ที่ทำงานอยู่
-                                    className={`w-4 h-4 cursor-pointer ${dislikeIconStyle}`} 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    viewBox="0 0 24 24" 
-                                    fill={userLikeStatus === 'disliked' ? 'currentColor' : 'none'} // ถ้า disliked ให้ fill
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M17 14V2" /><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a2 2 0 0 1-1.79-1.11L9 18.12Z" />
-                                </svg>
-                            </button>
-                            <span className="text-sm font-bold">{dislikes}</span>
-                        </div>
-                    </div>
-
-                    {/* Reply Input Section: เปิด/ปิด ด้วย isReplying */}
-                    {isReplying && (
-                        <div className="mt-4">
-                             <div className="flex items-start gap-2">
-                                {/* Placeholder for user avatar */}
-                                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div> 
-                                <input 
-                                    type="text" 
-                                    placeholder="Write your reply..." 
-                                    className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
-                                />
-                            </div>
-                            <div className="flex justify-end gap-2 mt-2">
-                                <button onClick={handleCancelReply} className="text-sm px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-full">Cancel</button>
-                                <button disabled className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full opacity-50">Reply</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Replies Section: เปิด/ปิด ด้วย isRepliesOpen */}
-                    {isRepliesOpen && (
-                        <div className="mt-4 border-l-2 border-gray-200 pl-4">
-                            <p className="text-gray-500 italic">...Replies will be displayed here...</p>
-                        </div>
-                    )}
-                </div>
+        <div className="flex-grow">
+          {/* Header and Text Content */}
+          <div className="flex items-start justify-between">
+            <div className="flex items-baseline  gap-3">
+              <span
+                className="font-semibold text-xl"
+                style={{ color: "var(--color-accent-400)" }}
+              >
+                {commentData.author.display_name}
+                {/* {commentData.comment_image } */}
+                {displayContent?.image && (
+                  <div className="mt-2">
+                    <img
+                      src={displayContent.image}
+                      className="max-w-xs h-auto rounded-lg border"
+                    />
+                  </div>
+                )}
+              </span>
+              <span className="text-base text-gray-400">
+                {formatTimeAgo(commentData.created_at)}
+              </span>
             </div>
+            <div
+              className={`transition-all duration-300 ease-in-out transform ${
+                isSolution ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+            >
+              <SolutionTag />
+            </div>
+          </div>
+          {isEditing ? (
+            <CommentEditor
+              initialContent={displayContent || initialContent}
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+            />
+          ) : (
+            <CommentContentDisplay content={displayContent || initialContent} />
+          )}
+          {/* turn the other one into input */}
+          {/* ACTION ROW (Using individual imported components) */}
+          <div className="flex items-center justify-between text-gray-500">
+            {!isEditing && (
+              <div className="flex items-center gap-3 text-gray-500">
+                {/* 1. Like Button */}
+                <LikeButton
+                  count={likes}
+                  userStatus={userLikeStatus}
+                  onClick={toggleLike}
+                />
+
+                {/* 2. Dislike Button */}
+                <DislikeButton
+                  count={dislikes}
+                  userStatus={userLikeStatus}
+                  onClick={toggleDislike}
+                />
+                <div className="flex items-center gap-7">
+                  {/* 3. Reply Button */}
+                  <ReplyButton
+                    isReplying={isReplying}
+                    onClick={handleToggleNewReply}
+                  />
+
+                  {/* 4. More Actions Menu */}
+                  {!isLoading && isOwner && (
+                    <MoreActionsMenu
+                      anchorEl={anchorEl}
+                      handleMenuOpen={handleMenuOpen}
+                      handleMenuClose={handleMenuClose}
+                      handleEdit={handleEdit}
+                      handleDelete={handleDelete}
+                      handleSetSolution={handleSetSolution}
+                      handleDeleteModalOpen={handleDeleteModalOpen}
+                      handleDeleteModalClose={handleDeleteModalClose}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          <ViewRepliesButton
+            replyCount={commentData.Replies}
+            isOpen={isRepliesOpen}
+            onClick={handleToggleReplies}
+          />
+          {/* Reply Input Section: Opened by ReplyButton */}
+          {isReplying && (
+            <div className="w-full bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display mt-3">
+              {/* <CommentEditor
+                initialContent={{ text: "", image: null }}
+                onSave={async (content) => {
+                  const ok = await handleCreateNewReply(content);
+                  if (ok) setReplyContent({ text: "", image: null });
+                }}
+                onCancel={() => {
+                  setReplyContent({ text: "", image: null });
+                  handleCancelReply();
+                }}
+              /> */}
+              <CreateComment
+                placeholder="Add your reply..."
+                author={
+                  user
+                    ? {
+                        profile_picture: user.profile_picture ?? undefined,
+                        display_name: user.display_name ?? undefined,
+                      }
+                    : undefined
+                }
+                onSubmit={(text, attachment) =>
+                  handleCreateNewReply(Number(postId), text, attachment)
+                }
+              />
+            </div>
+          )}
+          {/* {isReplying && (
+            <div className="mt-4 ">
+              <div className="flex items-start gap-2">
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <input
+                  type="text"
+                  placeholder="Write your reply..."
+                  className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    setReplyText("");
+                    handleCancelReply();
+                  }}
+                  className="text-sm px-3 py-1 text-accent-600 hover:bg-gray-100 rounded-full"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    const ok = await handleCreateNewReply(replyText);
+                    if (ok) setReplyText("");
+                  }}
+                  disabled={!replyText.trim()}
+                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full"
+                >
+                  Reply
+                </button>
+              </div>
+            </div>
+          )} */}
+
+          {/* Replies Section: Opened by View Replies Toggle */}
+          {isRepliesOpen && (
+            <div className="mt-4 relative pl-8 ">
+              {isRepliesOpen && (
+                <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>
+              )}
+              <p className="text-gray-500 italic">
+                ...Replies will be displayed here...
+              </p>
+            </div>
+          )}
+
+          {/* View Replies Toggle */}
+          {hasReplies && (
+            <div className="mt-4 relative pl-8">
+              {!isRepliesOpen && (
+                <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>
+              )}
+              <button
+                className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
+                onClick={handleToggleReplies}
+              >
+                {isRepliesOpen
+                  ? "Hide replies"
+                  : `View ${commentData.Replies} replies`}
+              </button>
+            </div>
+          )}
         </div>
-    );
+      </div>
+
+      {isDeleteModalOpen && (
+        <ThemeProvider theme={theme}>
+          <Dialog
+            open={isDeleteModalOpen}
+            onClose={handleDeleteModalClose}
+            aria-labelledby="delete-dialog-title"
+            aria-describedby="delete-dialog-description"
+          >
+            <DialogTitle id="delete-dialog-title" className="text-xl">
+              Delete Comment
+            </DialogTitle>
+            <DialogContent>
+              <p
+                id="delete-dialog-description"
+                className="text-center font-display text-xl"
+              >
+                Are you sure you want to delete this comment? This action cannot
+                be undone.
+              </p>
+            </DialogContent>
+            <DialogActions
+              sx={{
+                justifyContent: "space-evenly",
+                padding: "16px 24px",
+                gap: 2,
+              }}
+            >
+              <Button
+                onClick={handleDeleteModalClose}
+                color="primary"
+                size="large"
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDelete}
+                color="error"
+                autoFocus
+                size="large"
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </ThemeProvider>
+      )}
+    </div>
+  );
 };
 
 export default Comment;

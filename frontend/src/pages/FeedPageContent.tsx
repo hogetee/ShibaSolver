@@ -6,7 +6,7 @@ import Link from 'next/link';
 async function getPostData(): Promise<PostData[]> {
   const mockData: PostData[] = [
     {
-      post_id: "post-001",
+      post_id: "2",
       title: "How to solve these chemical equations",
       description: "I need help with these chemical equations. I'm stuck on balancing the atoms.",
       is_solved: true,
