@@ -411,8 +411,7 @@ exports.toggleMyCommentSolution = async (req, res, next) => {
 
     const update = await pool.query(
       `UPDATE comments
-       SET is_solution = $1,
-           is_updated  = TRUE
+       SET is_solution = $1
        WHERE comment_id = $2 AND is_deleted = FALSE
        RETURNING comment_id, user_id, is_solution, is_updated, created_at`,
       [newValue, commentIdNum]
