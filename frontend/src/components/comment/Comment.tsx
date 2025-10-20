@@ -31,7 +31,10 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
 
   const initialContent: CommentContent = {
     text: commentData.text,
-    image: commentData.comment_image !== "null" && commentData.comment_image ? commentData.comment_image : null, // Use null instead of undefined for consistency
+    image:
+      commentData.comment_image !== "null" && commentData.comment_image
+        ? commentData.comment_image
+        : null, // Use null instead of undefined for consistency
   };
 
   const {
@@ -107,10 +110,10 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
               >
                 {commentData.author.display_name}
                 {/* {commentData.comment_image } */}
-                {commentData.comment_image != "null" && (
+                {displayContent?.image && (
                   <div className="mt-2">
                     <img
-                      src={commentData.comment_image}
+                      src={displayContent.image}
                       className="max-w-xs h-auto rounded-lg border"
                     />
                   </div>
@@ -199,14 +202,18 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
                 }}
               /> */}
               <CreateComment
-                  placeholder="Add your reply..."
-                  author={
-                      user ? {
-                          profile_picture: user.profile_picture ?? undefined,
-                          display_name: user.display_name ?? undefined,
-                      } : undefined
-                  }
-                  onSubmit={(text, attachment) => handleCreateNewReply(Number(postId), text, attachment)}
+                placeholder="Add your reply..."
+                author={
+                  user
+                    ? {
+                        profile_picture: user.profile_picture ?? undefined,
+                        display_name: user.display_name ?? undefined,
+                      }
+                    : undefined
+                }
+                onSubmit={(text, attachment) =>
+                  handleCreateNewReply(Number(postId), text, attachment)
+                }
               />
             </div>
           )}

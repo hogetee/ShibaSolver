@@ -19,12 +19,14 @@ export const useCommentActions = (
   const [dislikes, setDislikes] = useState(initialDislikes);
   const [userLikeStatus, setUserLikeStatus] = useState(initialUserStatus);
 
-    const [isRepliesOpen, setIsRepliesOpen] = useState(false);
-    const [isReplying, setIsReplying] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [isSolution, setIsSolution] = useState(initialSolution);
-    const [attachedImage, setAttachedImage] = useState<File | null>(null);
-    const [attachedImagePreview, setAttachedImagePreview] = useState<string | null>(null);
+  const [isRepliesOpen, setIsRepliesOpen] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isSolution, setIsSolution] = useState(initialSolution);
+  const [attachedImage, setAttachedImage] = useState<File | null>(null);
+  const [attachedImagePreview, setAttachedImagePreview] = useState<
+    string | null
+  >(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState<CommentContent | null>(null);
@@ -214,7 +216,7 @@ export const useCommentActions = (
       if (!file) {
         // clear
         if (attachedImagePreview) {
-            URL.revokeObjectURL(attachedImagePreview);
+          URL.revokeObjectURL(attachedImagePreview);
         }
         setAttachedImage(null);
         setAttachedImagePreview(null);
@@ -222,7 +224,7 @@ export const useCommentActions = (
       }
       // revoke previous if any
       if (attachedImagePreview) {
-          URL.revokeObjectURL(attachedImagePreview);
+        URL.revokeObjectURL(attachedImagePreview);
       }
       // create preview URL
       const preview = URL.createObjectURL(file);
@@ -230,20 +232,24 @@ export const useCommentActions = (
       setAttachedImagePreview(preview);
       return preview;
     } catch (err) {
-        console.error('Failed to attach image', err);
-        return null;
+      console.error("Failed to attach image", err);
+      return null;
     }
   };
 
-    const handleRemoveAttachment = () => {
-        if (attachedImagePreview) {
-            URL.revokeObjectURL(attachedImagePreview);
-        }
-        setAttachedImage(null);
-        setAttachedImagePreview(null);
-    };
+  const handleRemoveAttachment = () => {
+    if (attachedImagePreview) {
+      URL.revokeObjectURL(attachedImagePreview);
+    }
+    setAttachedImage(null);
+    setAttachedImagePreview(null);
+  };
 
-  const handleCreateNewReply = async (postid: number, replyText: string, attachment: string | null = null) => {
+  const handleCreateNewReply = async (
+    postid: number,
+    replyText: string,
+    attachment: string | null = null
+  ) => {
     const commentNumericId = Number(commentId);
     try {
       const res = await fetch(
@@ -252,12 +258,12 @@ export const useCommentActions = (
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             post_id: postid,
             parent_comment: Number(commentId),
             text: replyText,
             comment_image: attachment || null,
-           }),
+          }),
         }
       );
       if (!res.ok) throw new Error("Failed to create reply");
@@ -266,36 +272,37 @@ export const useCommentActions = (
       if (!isRepliesOpen) setIsRepliesOpen(true);
       // Clear attachment after success
       if (attachedImage || attachment) {
-          handleRemoveAttachment();
+        handleRemoveAttachment();
       }
       return true;
     } catch (err) {
-        console.error("Failed to create reply", err);
-        return false;
+      console.error("Failed to create reply", err);
+      return false;
     }
-    };
+  };
 
-    const handleCreateNewComment = async (postid: number, commentText: string, attachment: string | null = null) => {
-        // Simulate creating a comment. In a real app you'd POST to an API.
+  const handleCreateNewComment = async (
+    postid: number,
+    commentText: string,
+    attachment: string | null = null
+  ) => {
+    // Simulate creating a comment. In a real app you'd POST to an API.
     try {
-      const res = await fetch(
-        `${BASE_URL}/api/v1/comments`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            post_id: postid,
-            parent_comment: null,
-            text: commentText,
-            comment_image: attachment || null,
-           }),
-        }
-      );
+      const res = await fetch(`${BASE_URL}/api/v1/comments`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          post_id: postid,
+          parent_comment: null,
+          text: commentText,
+          comment_image: attachment || null,
+        }),
+      });
       if (!res.ok) throw new Error("Failed to create reply");
       // Clear local attachment state after success
       if (attachedImage || attachment) {
-          handleRemoveAttachment();
+        handleRemoveAttachment();
       }
       return true;
     } catch (err) {
@@ -327,13 +334,17 @@ export const useCommentActions = (
   };
 
   const handleSaveEdit = async (newContent: CommentContent) => {
+    console.log("Parent received content to save:", newContent);
+
     try {
       console.log(`Saving edit for ID ${commentId}:`, newContent);
 
-      const requestBody = {
+      const requestBody: any = {
         text: newContent.text,
-        image_url: newContent.image || null,
+        comment_image: newContent.image === null ? "" : newContent.image,
       };
+
+      console.log("Request body being sent:", requestBody);
 
       const res = await fetch(
         `${BASE_URL}/api/v1/comments/${Number(commentId)}`,
@@ -341,8 +352,8 @@ export const useCommentActions = (
           method: "PUT",
           credentials: "include",
           headers: {
-          "Content-Type": "application/json", // Add this missing header
-        },
+            "Content-Type": "application/json", // Add this missing header
+          },
           body: JSON.stringify(requestBody),
         }
       );
@@ -363,13 +374,11 @@ export const useCommentActions = (
       const updatedCommentData = response.data;
 
       const updatedComment: CommentContent = {
-        text: updatedCommentData.text,
-        image:
-          updatedCommentData.comment_image &&
-          updatedCommentData.comment_image !== "null"
-            ? updatedCommentData.comment_image
-            : null,
-      };
+      text: updatedCommentData.text,
+      image: updatedCommentData.comment_image === "" || updatedCommentData.comment_image === null 
+        ? null 
+        : updatedCommentData.comment_image,
+    };
 
       setDisplayContent(updatedComment);
       setDraftContent(null);
@@ -378,9 +387,25 @@ export const useCommentActions = (
         `[ACTION] Saved edited content for comment ID: ${commentId}`,
         updatedComment
       );
+
+      // const normalizedContent: CommentContent = {
+      //   text: newContent.text,
+      //   image: newContent.image === "" ? null : newContent.image,
+      // };
+
+      // setDisplayContent(normalizedContent);
+      // setDraftContent(null);
+      // setIsEditing(false);
+
+      // console.log(
+      //   `[ACTION] Saved edited content for comment ID: ${commentId}`,
+      //   newContent // Use newContent instead of updatedComment
+      // );
     } catch (error) {
       console.error("Error saving edit:", error);
     }
+
+    console.log("Parent updated local state with:", newContent);
   };
 
   const handleCancelEdit = () => {
@@ -441,7 +466,7 @@ export const useCommentActions = (
     setIsReplying(false);
     // have to handle attachment clear here too
     if (attachedImage || attachedImagePreview) {
-        handleRemoveAttachment();
+      handleRemoveAttachment();
     }
   };
 
