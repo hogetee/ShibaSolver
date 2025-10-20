@@ -1,60 +1,60 @@
 import DedicatedPost, { DedicatedPostData } from '@/components/post/dedicatedPost/DedicatedPost'
 
+
 interface Props {
   postId: string;
 }
+async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
+  const [postRes, ratingRes] = await Promise.all([
+    fetch(`http://localhost:5003/api/v1/posts/${postId}`, { cache: 'no-store' }),
+    fetch(`http://localhost:5003/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
+      cache: 'no-store',
+      credentials: 'include',
+    }),
+  ]);
 
+  if (!postRes.ok) throw new Error('Failed to fetch post');
 
-function mapApiToPostData(api: any): DedicatedPostData {
+  const postJson = await postRes.json();
+  const postData = postJson.data ?? postJson;
+
+  // --- Default rating object ---
+  let rating = { likes: 0, dislikes: 0, my_rating: null };
+
+  // --- Handle rating response gracefully ---
+  if (ratingRes.ok) {
+    const ratingJson = await ratingRes.json();
+    const found = ratingJson.data?.find((r: any) => r.id === Number(postId));
+    if (found) rating = found;
+  } else if (ratingRes.status === 401) {
+    console.warn('User not logged in, skipping rating summary');
+  } else {
+    throw new Error('Failed to fetch rating summary');
+  }
+
+  // --- Map both into DedicatedPostData ---
   return {
-    post_id: api.post_id,
-    title: api.title,
-    description: api.description,
-    post_image: api.post_image,
-    is_solved: api.solved,
-    created_at: api.created_at,
-    tags: api.tagList,
-    author: {
-      user_id: api.user_id,
-      display_name: api.username,
-      profile_picture: api.user_profile_picture,
-    },
+    post_id: postData.post_id,
+    title: postData.title,
+    description: postData.description,
+    post_image: postData.post_image,
+    is_solved: postData.is_solved,
+    created_at: postData.created_at,
+    tags: postData.tags,
+    author: postData.author,
     stats: {
-      likes: api.likesCount,
-      dislikes: api.dislikesCount,
+      likes: postData.likes,
+      dislikes: postData.dislikes,
     },
-  }
+    liked_by_user: rating.my_rating === 'like',
+    disliked_by_user: rating.my_rating === 'dislike',
+  };
 }
 
-async function getPost(postId: string): Promise<DedicatedPostData> {
-  const res = await fetch(`https://your-api.com/api/posts/${postId}`, {
-    cache: 'no-store', 
-  })
-
-  if (!res.ok) {
-    throw new Error('Failed to fetch post')
-  }
-
-  const data = await res.json()
-  return mapApiToPostData(data)
-}
-
-
-
-/*
-export default async function PostPage({ params }: PostPageProps) {
-  const postData = await getPost(params.postId)
-
-  return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <DedicatedPost postData={postData} />
-    </div>
-  )
-}
-*/
 
 // Mock data for development/testing
- const mockPostData: DedicatedPostData = {
+/*
+const mockPostData: DedicatedPostData = {
   post_id: '123',
   title: 'How to Prove the Riemann Hypothesis',
   description: 'I have been reading about the Riemann Hypothesis and I’m confused about the distribution of non-trivial zeros...',
@@ -71,12 +71,15 @@ export default async function PostPage({ params }: PostPageProps) {
     likes: 120,
     dislikes: 5,
   },
+  liked_by_user: false,
+  disliked_by_user: true,
 }
+*/
 
 export default async function PostPage({ postId }: Props) {
-  // const postData = await getPost(postId)
-  const postData = mockPostData
+  const postData = await getPostWithRatings(postId)
+  // const postData = mockPostData
 
-  return <DedicatedPost postData={postData} />
+  return <DedicatedPost dedicatedPostData={postData} />
 }
   
