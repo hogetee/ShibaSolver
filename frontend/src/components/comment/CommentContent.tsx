@@ -5,22 +5,26 @@ interface CommentContentProps {
   content: CommentContent;
 }
 
-export default function CommentContentDisplay({ content }: CommentContentProps) {
+export default function CommentContentDisplay({
+  content,
+}: CommentContentProps) {
   return (
     <div className="mt-2 mb-4">
-      <p className="text-gray-800">{content.text}</p>
-      {/* {content.image && (
-        <div className="mt-2">
-          <img
-            src={content.image}
-            alt="Comment attachment"
-            className="max-w-xs h-auto rounded-lg border"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        </div>
-      )} */}
+      <p className="text-gray-800">
+        {content.image && (
+          <div className="mt-2">
+            <img
+              src={content.image}
+              alt="Comment attachment"
+              className="max-w-xs h-auto rounded-lg border"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        )}
+        {content.text}
+      </p>
     </div>
   );
 }
