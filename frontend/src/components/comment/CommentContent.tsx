@@ -9,10 +9,9 @@ export default function CommentContentDisplay({
   content,
 }: CommentContentProps) {
   return (
-    <div className="mt-2 mb-4">
-      <p className="text-gray-800">
+    <div className="mt-2 mb-4 text-gray-800">
         {content.image && (
-          <div className="mt-2">
+          <div className="m-1">
             <img
               src={content.image}
               alt="Comment attachment"
@@ -24,7 +23,6 @@ export default function CommentContentDisplay({
           </div>
         )}
         {content.text}
-      </p>
-    </div>
+      </div>
   );
 }
