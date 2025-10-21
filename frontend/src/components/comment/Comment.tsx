@@ -109,15 +109,6 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
                 style={{ color: "var(--color-accent-400)" }}
               >
                 {commentData.author.display_name}
-                {/* {commentData.comment_image } */}
-                {displayContent?.image && (
-                  <div className="mt-2">
-                    <img
-                      src={displayContent.image}
-                      className="max-w-xs h-auto rounded-lg border"
-                    />
-                  </div>
-                )}
               </span>
               <span className="text-base text-gray-400">
                 {formatTimeAgo(commentData.created_at)}
