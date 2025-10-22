@@ -2,9 +2,8 @@ import PostsList from "./PostsList";
 import { useSearchParams } from "next/navigation";
 
 
-export default function PostsPanel() {
-  const sp = useSearchParams();
-  const username = typeof window !== 'undefined' ? (window.location.pathname.split('/').pop() || undefined) : undefined;
+export default function PostsPanel({ username }: { username?: string }) {
+  console.log("PostsPanel received username:", username);
   return (
     <div className="pt-4">
       {/* <div className="mb-4 flex items-baseline">
