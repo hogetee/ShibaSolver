@@ -85,6 +85,8 @@ export default function useUserPosts(
 
         const currentUserData = await fetchUserData();
         console.log("User data after fetching posts:", currentUserData?.data);
+        console.log("User display name:", currentUserData?.data?.display_name);
+        console.log("User profile picture:", currentUserData?.data?.profile_picture);
 
         const transformedPosts = postsArray.map((post) => ({
           ...post,
@@ -93,7 +95,7 @@ export default function useUserPosts(
           // Ensure author exists
           author: post.author || {
             display_name: currentUserData?.data?.display_name || "Unknown",
-            profile_picture: currentUserData?.data?.profile_picture || "",
+            profile_picture: currentUserData?.data?.profile_picture || "https://www.gravatar.com/avatar/?d=mp",
           },
           // Ensure boolean fields exist
           liked_by_user: Boolean(post.liked_by_user),

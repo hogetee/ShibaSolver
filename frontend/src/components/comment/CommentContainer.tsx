@@ -17,7 +17,7 @@ function mapPostCommentToCommentData(api: any): CommentData {
     id: String(api.comment_id),
     author: {
       display_name: api.user_name || "Anonymous",
-      profile_picture: api.profile_picture || "/assets/image/DefaultAvatar.png",
+      profile_picture: api.profile_picture || "https://www.gravatar.com/avatar/?d=mp",
       user_id: Number(api.user_id || 0),
     },
     text: String(api.text ?? ""),

@@ -198,8 +198,8 @@ const PostAuthor = ({
       {/* --- Author Info --- */}
       <div className="flex items-center gap-3">
         <img
-          src={author.profile_picture}
-          alt={`${author.display_name}'s avatar`}
+          src={author.profile_picture || "https://www.gravatar.com/avatar/?d=mp"}
+          alt={`${author.display_name[0]}'s avatar`}
           className="w-10 h-10 rounded-full"
         />
         <span className="font-semibold text-dark-900">
