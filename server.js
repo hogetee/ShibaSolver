@@ -11,6 +11,7 @@ const feedRouter = require("./routers/feedRouter");
 const authRouter = require("./routers/authRouter");
 const commentsRouter = require("./routers/commentsRouter");
 const ratingRouter = require("./routers/ratingRouter");
+const reportRouter = require("./routers/reportRouter");
 
 dotenv.config({ path: "./config/config.env" });
 

@@ -9,6 +9,6 @@ const router = express.Router();
 router.post("/accounts", requireAuth, reportCtrl.reportAccount);
 
 // Admin views account reports
-router.get("/accounts", requireAdmin, reportCtrl.adminGetAccountReports);
+//router.get("/accounts", requireAdmin, reportCtrl.adminGetAccountReports);
 
 module.exports = router;
