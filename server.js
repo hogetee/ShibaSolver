@@ -41,6 +41,7 @@ app.use(
   app.use("/api/v1/feeds", feedRouter);
   app.use("/api/v1/comments", commentsRouter);
   app.use("/api/v1/ratings", ratingRouter);
+  app.use("/api/v1/reports", reportRouter);
 
   const PORT = process.env.PORT || 5000;
 
