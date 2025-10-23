@@ -7,6 +7,7 @@ const router = express.Router();
 
 // User reports another user
 router.post("/accounts", requireAuth, reportCtrl.reportAccount);
+router.post("/content", requireAuth, reportCtrl.reportPostOrComment);
 
 // Admin views account reports
 //router.get("/accounts", requireAdmin, reportCtrl.adminGetAccountReports);
