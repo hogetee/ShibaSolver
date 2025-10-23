@@ -1,0 +1,121 @@
+/**
+ * @desc    Report a violating account (user)
+ * @route   POST /api/v1/reports/accounts
+ * @access  Private
+ * @body    { target_id: number, reason: string }
+ */
+exports.reportAccount = async (req, res, next) => {
+  const pool = req.app.locals.pool;
+  try {
+    const reporterId = req.user?.uid;
+    const { target_id, reason } = req.body || {};
+
+    // 1 Validation
+    if (!reporterId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    if (!Number.isInteger(target_id) || target_id <= 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid target_id" });
+    }
+    if (reporterId === target_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "You cannot report yourself" });
+    }
+    if (!reason || typeof reason !== "string" || reason.trim().length < 3) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Reason is required and must be valid" });
+    }
+
+    // 2 ตรวจสอบว่า user ที่ถูกรายงานมีอยู่จริง
+    const userCheck = await pool.query(
+      "SELECT user_id FROM users WHERE user_id = $1",
+      [target_id]
+    );
+    if (userCheck.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Target user not found" });
+    }
+
+    // 3 ป้องกันการรายงานซ้ำภายใน 24 ชม.
+    const dupCheck = await pool.query(
+      `SELECT report_id 
+       FROM reports 
+       WHERE reporter_id = $1 
+         AND target_type = 'user'
+         AND target_id = $2
+         AND created_at >= (now() - interval '24 hours')
+       LIMIT 1`,
+      [reporterId, target_id]
+    );
+    if (dupCheck.rowCount > 0) {
+      return res.status(429).json({
+        success: false,
+        message: "You have already reported this user recently",
+      });
+    }
+
+    // 4 บันทึกลง reports table
+    const insert = await pool.query(
+      `INSERT INTO reports (reporter_id, target_type, target_id, reason)
+       VALUES ($1, 'user', $2, $3)
+       RETURNING report_id, reporter_id, target_type, target_id, reason, status, created_at`,
+      [reporterId, target_id, reason.trim()]
+    );
+
+    // 5 แจ้งเตือนแอดมิน (ถ้ามี notifications table)
+    await pool.query(
+      `INSERT INTO notifications (receiver_id, sender_id, notification_type, payload)
+       SELECT a.admin_id, $1, 'user_report', jsonb_build_object('target_id',$2,'report_id',$3)
+       FROM admins a
+       WHERE a.is_active = TRUE`,
+      [reporterId, target_id, insert.rows[0].report_id]
+    ).catch(() => {}); // เผื่อไม่มี notifications table
+
+    return res.status(201).json({
+      success: true,
+      message: "User reported successfully",
+      data: insert.rows[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc    Admin: view all user account reports
+ * @route   GET /api/v1/reports/accounts
+ * @access  Admin
+ */
+exports.adminGetAccountReports = async (req, res, next) => {
+  const pool = req.app.locals.pool;
+  try {
+    const { status } = req.query;
+    const validStatuses = ["pending", "reviewed", "rejected"];
+    const where =
+      status && validStatuses.includes(status)
+        ? `WHERE r.status = '${status}'`
+        : "";
+
+    const sql = `
+      SELECT 
+        r.report_id, r.reporter_id, r.target_id, r.reason, r.status, r.created_at,
+        u1.display_name AS reporter_name,
+        u2.display_name AS target_name
+      FROM reports r
+      JOIN users u1 ON u1.user_id = r.reporter_id
+      JOIN users u2 ON u2.user_id = r.target_id
+      ${where} AND r.target_type = 'user'
+      ORDER BY r.created_at DESC;
+    `;
+
+    const { rows } = await pool.query(sql);
+    return res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
