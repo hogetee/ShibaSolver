@@ -25,9 +25,9 @@ exports.getCommentsByUser = async (req, res, next) => {
     const offset = (page - 1) * limit;
     const sort = String(req.query.sort || 'latest').toLowerCase();
 
-    let orderBy = `c.created_at DESC, c.comment_id DESC`;
-    if (sort === 'oldest') orderBy = `c.created_at ASC, c.comment_id ASC`;
-    if (sort === 'popular') orderBy = `total_votes DESC, c.created_at ASC, c.comment_id ASC`;
+    let orderBy = `created_at DESC, comment_id DESC`;
+    if (sort === 'oldest') orderBy = `created_at ASC, comment_id ASC`;
+    if (sort === 'popular') orderBy = `total_votes DESC, created_at ASC, comment_id ASC`;
 
     const sql = `
       WITH agg AS (
