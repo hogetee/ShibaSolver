@@ -5,7 +5,7 @@ function isNonEmptyString(s) {
 
 /**
  * @desc    Get all comments of the user
- * @route   GET /api/v1/comments/user/:userId
+ * @route   GET /api/v1/comments/user/:userId?limit=10&page=1&sort=latest|oldest|popular
  * @access  Private
  */
 exports.getCommentsByUser = async (req, res, next) => {
@@ -20,38 +20,53 @@ exports.getCommentsByUser = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid userId" });
     }
 
+    const limit = Math.min(Math.max(parseInt(req.query.limit ?? '10', 10), 1), 100);
+    const page  = Math.max(parseInt(req.query.page ?? '1', 10), 1);
+    const offset = (page - 1) * limit;
+    const sort = String(req.query.sort || 'latest').toLowerCase();
+
+    let orderBy = `c.created_at DESC, c.comment_id DESC`;
+    if (sort === 'oldest') orderBy = `c.created_at ASC, c.comment_id ASC`;
+    if (sort === 'popular') orderBy = `total_votes DESC, c.created_at ASC, c.comment_id ASC`;
+
     const sql = `
-      SELECT 
-          c.comment_id,
-          c.user_id,
-          c.post_id,
-          c.parent_comment,
-          c.text,
-          c.comment_image,
-          c.is_solution,
-          c.is_updated,
-          c.created_at,
-          COALESCE(SUM(CASE WHEN r.rating_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
-          COALESCE(SUM(CASE WHEN r.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
-          COALESCE(COUNT(r.rating_id), 0) AS total_votes
-      FROM comments c
-      LEFT JOIN ratings r ON c.comment_id = r.comment_id
-      WHERE c.user_id = $1 AND c.is_deleted = FALSE
-      GROUP BY c.comment_id
-      ORDER BY c.created_at DESC;
+      WITH agg AS (
+        SELECT 
+          c.comment_id, c.user_id, c.post_id, c.parent_comment, c.text,
+          c.comment_image, c.is_solution, c.is_updated, c.created_at,
+          COALESCE(SUM(CASE WHEN r.rating_type='like' THEN 1 ELSE 0 END),0) AS likes,
+          COALESCE(SUM(CASE WHEN r.rating_type='dislike' THEN 1 ELSE 0 END),0) AS dislikes
+        FROM comments c
+        LEFT JOIN ratings r ON c.comment_id = r.comment_id
+        WHERE c.user_id = $1 AND c.is_deleted = FALSE
+        GROUP BY c.comment_id
+      ),
+      paged AS (
+        SELECT *, (likes + dislikes) AS total_votes
+        FROM agg
+        ORDER BY ${orderBy}
+        LIMIT $2 OFFSET $3
+      )
+      SELECT p.*, t.total
+      FROM paged p
+      CROSS JOIN (SELECT COUNT(*)::int AS total FROM agg) t;
     `;
 
-    const { rows } = await pool.query(sql, [paramUserId]);
+    const { rows } = await pool.query(sql, [paramUserId, limit, offset]);
+    const total = rows[0]?.total ?? 0;
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
 
     return res.status(200).json({
       success: true,
-      count: rows.length,
-      viewingSelf: paramUserId === authUserId,
-      data: rows,
+      meta: {
+        page, limit, total, totalPages,
+        hasNext: page < totalPages,
+        nextPage: page < totalPages ? page + 1 : null
+      },
+      viewingSelf: authUserId != null && Number(paramUserId) === Number(authUserId),
+      data: rows.map(({ total, ...r }) => r)
     });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 };
 
 /**
