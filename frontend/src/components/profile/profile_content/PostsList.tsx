@@ -1,10 +1,12 @@
 "use client";
 
 import Post, { PostData } from "@/components/post/Post";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import useUserPosts from "@/hooks/useUserPosts";
 
 export default function PostsList({ username }: { username?: string }) {
-  const { posts, isLoading, error,refetch } = useUserPosts(username);
+  const { posts, isLoading, error, hasMore, loadMore, refetch } = useUserPosts(username);
+  const { loadingRef } = useInfiniteScroll({ hasMore, isLoading, onLoadMore: loadMore });
 
   console.log("PostsList Debug:", { username, posts, isLoading, error });
   

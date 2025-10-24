@@ -10,8 +10,8 @@ type UseUserPostsResult = {
   posts: PostData[];
   isLoading: boolean;
   error: string | null;
-  // hasMore: boolean;
-  // loadMore: () => void;
+  hasMore: boolean;
+  loadMore: () => void;
   refetch: () => void;
 };
 
@@ -25,10 +25,11 @@ export default function useUserPosts(
   const [userData, setUserData] = useState<any>(null);
   // Below are to be updated if pagination is implemented
   // const [nonce, setNonce] = useState(0);
-  // const [hasMore, setHasMore] = useState(true);
-  // const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
 
   const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
+  const POSTS_PER_PAGE = 5;
 
   useEffect(() => {
     if (!username) {
@@ -72,7 +73,7 @@ export default function useUserPosts(
 
       try {
         const postsResponse = await fetch(
-          `${BASE_URL}/api/v1/users/${userId}/posts`
+          `${BASE_URL}/api/v1/users/${userId}/posts?page=${pageNum}&limit=${POSTS_PER_PAGE}`
         );
         if (!postsResponse.ok) {
           throw new Error(`Error fetching posts: ${postsResponse.statusText}`);
@@ -82,6 +83,10 @@ export default function useUserPosts(
         console.log("Posts data fetched:", postsData);
 
         const postsArray = postsData.data as PostData[];
+
+        if (postsArray.length < POSTS_PER_PAGE) {
+          setHasMore(false);
+        }
 
         const currentUserData = await fetchUserData();
         console.log("User data after fetching posts:", currentUserData?.data);
@@ -102,20 +107,32 @@ export default function useUserPosts(
           disliked_by_user: Boolean(post.disliked_by_user),
         }));
 
-        setPosts(transformedPosts);
+        if (reset) {
+          setPosts(transformedPosts);
+        } else {
+          setPosts(prevPosts => [...prevPosts, ...transformedPosts]);
+        }
+
+        setPage(pageNum + 1);
       } catch (err) {
         setError((err as Error).message || "Failed to fetch posts");
       } finally {
         setLoading(false);
       }
     },
-    [userId, BASE_URL]
+    [userId, BASE_URL, fetchUserData]
   );
 
+  const loadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      fetchPosts(page, false);
+    }
+  }, [fetchPosts, page, loading, hasMore]);
+
   const refetch = useCallback(() => {
-    // setPage(1);
+    setPage(1);
     setPosts([]);
-    // setHasMore(true);
+    setHasMore(true);
     setError(null);
     fetchPosts(1, false);
   }, [fetchPosts]);
@@ -126,5 +143,5 @@ export default function useUserPosts(
     }
   }, [username, refetch]);
 
-  return { posts, isLoading: loading, error, refetch };
+  return { posts, isLoading: loading, error, hasMore, loadMore, refetch };
 }
