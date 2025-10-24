@@ -21,6 +21,7 @@ export default function SignupPage() {
     checkAuth();
   }, [router]);
 
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 font-display">
       <div className="bg-purple-100 rounded-2xl p-8 max-w-md w-full text-center shadow-lg">
