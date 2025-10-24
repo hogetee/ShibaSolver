@@ -31,37 +31,36 @@ export default function TopMenu() {
   }, []);
 
   const checkAuthStatus = () => {
-    const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("userData");
     if (userData) {
-    try {
-      const parsedUserData = JSON.parse(userData);
-      console.log("Parsed user data:", parsedUserData); // Debug log
-      
-      setIsLoggedIn(true);
-      setUser({ 
-        username: parsedUserData.user_name, 
-        image: parsedUserData.profile_picture 
-      });
-      
-      console.log("Setting user:", { 
-        username: parsedUserData.user_name, 
-        image: parsedUserData.profile_picture 
-      });
-    } catch (error) {
-      console.error("Error parsing userData:", error);
+      try {
+        const parsedUserData = JSON.parse(userData);
+        console.log("Parsed user data:", parsedUserData);
+
+        setIsLoggedIn(true);
+        setUser({
+          username: parsedUserData.user_name,
+          image: parsedUserData.profile_picture,
+        });
+
+        console.log("Setting user:", {
+          username: parsedUserData.user_name,
+          image: parsedUserData.profile_picture,
+        });
+      } catch (error) {
+        console.error("Error parsing userData:", error);
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    } else {
       setIsLoggedIn(false);
       setUser(null);
     }
-  } else {
-    setIsLoggedIn(false);
-    setUser(null);
-  }
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
+    localStorage.removeItem("username");
     setIsLoggedIn(false);
     setUser(null);
   };

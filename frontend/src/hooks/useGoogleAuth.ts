@@ -40,9 +40,9 @@ export function useGoogleAuth() {
                     localStorage.setItem('userData', JSON.stringify(userInfo.data));
                     localStorage.setItem('authToken', data.data.auth_token);
                   }
-                  router.push(`/user/${username}`);
+                  window.location.href = `/user/${username}`;
                 } else {
-                  router.push('/register');
+                  window.location.href = '/register';
                 }
               });
           })
