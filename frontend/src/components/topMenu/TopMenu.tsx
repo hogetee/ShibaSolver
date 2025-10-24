@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   HomeOutlined,
   Home,
@@ -13,8 +13,8 @@ import {
   NotificationsNone,
   Notifications,
   Search as SearchIcon,
-} from '@mui/icons-material';
-import { IconButton, Avatar } from '@mui/material';
+} from "@mui/icons-material";
+import { IconButton, Avatar } from "@mui/material";
 
 type User = {
   username: string;
@@ -22,57 +22,103 @@ type User = {
 };
 
 export default function TopMenu() {
-  const pathname = usePathname() ?? '';
+  const pathname = usePathname() ?? "";
   const [user, setUser] = useState<User | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  /*
   useEffect(() => {
-    // Simulate client-side login state
-    setUser({
-      username: 'Suk014',
-      image: '/image/DefaulAvatar.jpg',
-    });
+    checkAuthStatus();
   }, []);
-*/
+
+  const checkAuthStatus = () => {
+    const token = localStorage.getItem("authToken");
+    const userData = localStorage.getItem("userData");
+    if (userData) {
+    try {
+      const parsedUserData = JSON.parse(userData);
+      console.log("Parsed user data:", parsedUserData); // Debug log
+      
+      setIsLoggedIn(true);
+      setUser({ 
+        username: parsedUserData.user_name, 
+        image: parsedUserData.profile_picture 
+      });
+      
+      console.log("Setting user:", { 
+        username: parsedUserData.user_name, 
+        image: parsedUserData.profile_picture 
+      });
+    } catch (error) {
+      console.error("Error parsing userData:", error);
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+  } else {
+    setIsLoggedIn(false);
+    setUser(null);
+  }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    setIsLoggedIn(false);
+    setUser(null);
+  };
 
   const isActive = (path: string) => {
-    if (path === '/') return pathname === '/';
+    if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
   };
 
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
       {/* Website Name */}
-      <Link href="/" className="font-sans font-black text-3xl mr-6 text-white px-4">
+      <Link
+        href="/"
+        className="font-sans font-black text-3xl mr-6 text-white px-4"
+      >
         Shiba
       </Link>
 
       {/* Search bar with button */}
       <div className="relative flex-grow mx-8">
         <input
-            type="text"
-            placeholder="Search..."
-            className="w-full rounded-full px-5 pr-10 py-1.5 text-black focus:outline-none bg-white border border-gray-300"
+          type="text"
+          placeholder="Search..."
+          className="w-full rounded-full px-5 pr-10 py-1.5 text-black focus:outline-none bg-white border border-gray-300"
         />
         <button
-            type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          type="submit"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
         >
-            <SearchIcon fontSize="small" />
+          <SearchIcon fontSize="small" />
         </button>
-        </div>
+      </div>
 
       {/* Navigation Icons */}
       <div className="flex items-center space-x-3 ml-6">
         <Link href="/" passHref>
-          <IconButton size="large" aria-label="home" className="!text-accent-200">
-            {isActive('/') ? <Home sx={{ fontSize: 36 }} /> : <HomeOutlined sx={{ fontSize: 36 }} />}
+          <IconButton
+            size="large"
+            aria-label="home"
+            className="!text-accent-200"
+          >
+            {isActive("/") ? (
+              <Home sx={{ fontSize: 36 }} />
+            ) : (
+              <HomeOutlined sx={{ fontSize: 36 }} />
+            )}
           </IconButton>
         </Link>
 
         <Link href="/favorites" passHref>
-          <IconButton size="large" aria-label="favorites" className="!text-accent-200">
-            {isActive('/favorites') ? (
+          <IconButton
+            size="large"
+            aria-label="favorites"
+            className="!text-accent-200"
+          >
+            {isActive("/favorites") ? (
               <Favorite sx={{ fontSize: 36 }} />
             ) : (
               <FavoriteBorder sx={{ fontSize: 36 }} />
@@ -81,14 +127,26 @@ export default function TopMenu() {
         </Link>
 
         <Link href="/settings" passHref>
-          <IconButton size="large" aria-label="settings" className="!text-accent-200">
-            {isActive('/settings') ? <Settings sx={{ fontSize: 36 }} /> : <SettingsOutlined sx={{ fontSize: 36 }} />}
+          <IconButton
+            size="large"
+            aria-label="settings"
+            className="!text-accent-200"
+          >
+            {isActive("/settings") ? (
+              <Settings sx={{ fontSize: 36 }} />
+            ) : (
+              <SettingsOutlined sx={{ fontSize: 36 }} />
+            )}
           </IconButton>
         </Link>
 
         <Link href="/notifications" passHref>
-          <IconButton size="large" aria-label="notifications" className="!text-accent-200">
-            {isActive('/notifications') ? (
+          <IconButton
+            size="large"
+            aria-label="notifications"
+            className="!text-accent-200"
+          >
+            {isActive("/notifications") ? (
               <Notifications sx={{ fontSize: 36 }} />
             ) : (
               <NotificationsNone sx={{ fontSize: 36 }} />
@@ -97,15 +155,22 @@ export default function TopMenu() {
         </Link>
 
         {/* Profile Picture */}
-         {user ? (
-          <Link href={`/user/${user.username}`} passHref>
+        {isLoggedIn ? (
+          <Link href={`/user/me`} passHref>
             <IconButton size="large" className="p-0 ml-3">
-              <Avatar alt={user.username} src={user.image || '/default-avatar.png'} className="w-8 h-8" />
+              <Avatar
+                alt={user?.username}
+                src={user?.image || "/default-avatar.png"}
+                className="w-8 h-8"
+              />
             </IconButton>
           </Link>
         ) : (
-          <Link href="/signup" className="font-display font-semibold text-xl 
-          mr-6 text-primary-0 rounded-full bg-white py-2 px-4 hover:bg-accent-200">
+          <Link
+            href="/signup"
+            className="font-display font-semibold text-xl 
+          mr-6 text-primary-0 rounded-full bg-white py-2 px-4 hover:bg-accent-200"
+          >
             Sign in
           </Link>
         )}
