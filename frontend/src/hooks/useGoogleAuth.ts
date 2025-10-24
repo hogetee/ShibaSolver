@@ -35,10 +35,14 @@ export function useGoogleAuth() {
               .then((userInfo) => {
                 const username = userInfo?.data?.user_name;
                 if (username) {
-                  if (typeof window !== 'undefined') localStorage.setItem('username', username);
-                  router.push(`/user/${username}`);
+                  if (typeof window !== 'undefined'){
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('userData', JSON.stringify(userInfo.data));
+                    localStorage.setItem('authToken', data.data.auth_token);
+                  }
+                  window.location.href = `/user/${username}`;
                 } else {
-                  router.push('/register');
+                  window.location.href = '/register';
                 }
               });
           })
