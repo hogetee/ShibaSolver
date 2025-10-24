@@ -13,6 +13,25 @@ export default function GoogleSignInButton({ onSuccess, className = "" }: Google
   useEffect(() => {
     const initializeGoogleAuth = () => {
       // Load Google OAuth script
+      if (window.google && buttonRef.current) {
+        // Clear any existing button content first
+        buttonRef.current.innerHTML = '';
+        
+        window.google.accounts.id.initialize({
+          client_id: '793748976757-g3vog3do94a090h7niis00a9o7mss299.apps.googleusercontent.com',
+          callback: onSuccess,
+        });
+
+        window.google.accounts.id.renderButton(buttonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'signin_with',
+          shape: 'rectangular',
+        });
+        return;
+      }
+
       if (!document.querySelector('script[src*="accounts.google.com/gsi/client"]')) {
         const script = document.createElement('script');
         script.src = 'https://accounts.google.com/gsi/client';
@@ -38,7 +57,9 @@ export default function GoogleSignInButton({ onSuccess, className = "" }: Google
       }
     };
 
-    initializeGoogleAuth();
+    const timer = setTimeout(initializeGoogleAuth, 100);
+    
+    return () => clearTimeout(timer);
   }, [onSuccess]);
 
   return (
