@@ -210,6 +210,18 @@ exports.getPostbyUserId = async (req, res, next) => {
     const userID = req.params.userID;
     const currentUserID = req.user?.uid || null;
 
+    //pagination parameter
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+     // --- Get total count for pagination ---
+    const countSql = `
+      SELECT COUNT(*) AS total
+      FROM posts
+      WHERE user_id = $1 AND is_deleted = FALSE;
+    `;
+
     //Posts with author info + aggregated ratings + my rating
     const postSql = `
       SELECT 
@@ -232,8 +244,9 @@ exports.getPostbyUserId = async (req, res, next) => {
       LEFT JOIN ratings r_me ON r_me.post_id = p.post_id AND r_me.user_id = $1
       WHERE p.user_id = $2 AND p.is_deleted = FALSE
       GROUP BY p.post_id, u.user_id, u.display_name, u.profile_picture
-      ORDER BY p.created_at DESC;
-    `;
+      ORDER BY p.created_at DESC
+      LIMIT $3 OFFSET $4;
+      `;
 
     //Tags for each post (aggregated as array)
     const tagSql = `
@@ -272,7 +285,7 @@ exports.getPostbyUserId = async (req, res, next) => {
 
     //Run all queries in parallel
     const [postsRes, tagsRes, topCommentsRes] = await Promise.all([
-      pool.query(postSql, [currentUserID, userID]),
+      pool.query(postSql, [currentUserID, userID, limit, offset]),
       pool.query(tagSql),
       pool.query(topCommentSql)
     ]);
@@ -292,7 +305,8 @@ exports.getPostbyUserId = async (req, res, next) => {
       tags: tagsByPost[p.post_id] || [],
       top_comment: topComments[p.post_id] || null,
     }));
-
+    
+    console.log('Feed data:', feed);
     return res.status(200).json({
       success: true,
       count: feed.length,
