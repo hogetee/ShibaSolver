@@ -59,7 +59,7 @@ exports.adminDeletePost = async (req, res, next) => {
     await client.query(
       `
       INSERT INTO admin_actions (admin_id, action_type, target_type, target_id)
-      VALUES ($1, 'delete_post', 'post', $2)
+      VALUES ($1, 'delete_post'::admin_action_type, 'post'::report_target_type, $2)
       `,
       [adminId, postId]
     );
