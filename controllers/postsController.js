@@ -297,8 +297,8 @@ exports.refreshFeed = async (req, res, next) => {
  */
 exports.addBookmark = async (req, res, next) => {
   try {
-    // const { user_id, post_id } = req.body;
-    const { post_id } = req.body;
+    
+    const post_id = Number(req.params.postId);
     const user_id = req.user.uid; // เอาจาก token
     if (!/^\d+$/.test(String(user_id)) || !/^\d+$/.test(String(post_id))) {
       return res
@@ -345,30 +345,103 @@ exports.addBookmark = async (req, res, next) => {
 
 exports.getBookmarks = async (req, res, next) => {
   try {
-    const user_id = req.user.uid;  // เอาจาก token
+    // Extract user_id from token
+    const user_id = req.user.uid;
+    if (!user_id) {
+      return res.status(400).json({ success: false, message: "Missing user_id from token" });
+    }
+
+    // Validate numeric user_id
     if (!/^\d+$/.test(String(user_id))) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid user_id" });
+      return res.status(400).json({ success: false, message: "Invalid user_id" });
     }
 
     const pool = req.app.locals.pool;
-    const { rows } = await pool.query(
-      `SELECT
-      b.user_id, b.post_id, b.created_at AS bookmarked_at,
-      p.post_id AS pid, p.title, p.description, p.post_image, p.is_solved, p.created_at AS post_created_at,
-      u.user_id AS author_id, u.user_name, u.display_name, u.profile_picture
+
+    const sql = `
+      SELECT 
+        p.post_id,
+        p.title,
+        p.description,
+        p.post_image,
+        p.is_solved,
+        p.created_at,
+        json_build_object(
+          'user_id', u.user_id,
+          'display_name', u.display_name,
+          'profile_picture', u.profile_picture
+        ) AS author,
+        COALESCE(SUM(CASE WHEN r_all.rating_type = 'like' THEN 1 ELSE 0 END), 0)    AS likes,
+        COALESCE(SUM(CASE WHEN r_all.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
+        CASE 
+          WHEN MAX(CASE WHEN r_me.rating_type = 'like' THEN 1 END) = 1 THEN TRUE
+          WHEN MAX(CASE WHEN r_me.rating_type = 'dislike' THEN 1 END) = 1 THEN FALSE
+          ELSE NULL
+        END AS my_rating,
+        ARRAY_AGG(DISTINCT t.tag_name) FILTER (WHERE t.tag_name IS NOT NULL) AS tags,
+        b.created_at AS bookmarked_at
       FROM public.bookmarks b
       JOIN public.posts p ON p.post_id = b.post_id
       JOIN public.users u ON u.user_id = p.user_id
-      WHERE b.user_id = $1
+      LEFT JOIN public.ratings r_all ON r_all.post_id = p.post_id
+      LEFT JOIN public.ratings r_me ON r_me.post_id = p.post_id AND r_me.user_id = $2
+      LEFT JOIN public.post_tags pt ON pt.post_id = p.post_id
+      LEFT JOIN public.tags t ON t.tag_id = pt.tag_id
+      WHERE b.user_id = $1 and p.is_deleted = FALSE
       AND p.is_deleted = FALSE
-      ORDER BY b.created_at DESC`,
-      [user_id]
-    );
+      GROUP BY p.post_id, u.user_id, u.display_name, u.profile_picture, b.created_at
+      ORDER BY b.created_at DESC;
+    `;
 
-    return res.status(200).json({ success: true, count: rows.length, rows });
+    const { rows } = await pool.query(sql, [user_id, user_id]);
+
+    return res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (err) {
+    console.error("Error in getBookmarks:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching bookmarks"
+    });
+  }
+};
+
+
+/**
+ * @desc remove bookmark
+ * @route DELETE /api/v1/posts/bookmarks
+ * @access Private
+ */
+
+exports.removeBookmark = async (req, res, next) => {
+  try {
+    const post_id = Number(req.params.postId);
+    const user_id = req.user.uid; // from token
+    if (!/^\d+$/.test(String(user_id)) || !/^\d+$/.test(String(post_id))) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user_id or post_id" });
+    }
+
+    const pool = req.app.locals.pool;
+
+    const sql = ` 
+      DELETE FROM public.bookmarks
+      WHERE user_id = $1 AND post_id = $2 
+      RETURNING user_id, post_id, created_at;
+    `;
+    const { rows } = await pool.query(sql, [user_id, post_id]); 
+    if (rows.length === 1) {
+      return res.status(200).json({ success: true, data: rows[0] });
+    } else {
+      return res
+        .status(404)
+        .json({ success: false, message: "Bookmark not found" });
+    }
   } catch (e) {
     next(e);
-  }
+  } 
 };
