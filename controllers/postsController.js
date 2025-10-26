@@ -72,6 +72,18 @@ exports.createPost = async (req, res, next) => {
   const client = await pool.connect();
   try {
     const user_id = req.user.uid;
+    const userStateRes = await pool.query(
+      `SELECT user_state FROM users WHERE user_id = $1`,
+      [user_id]
+    );
+    if (userStateRes.rowCount === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const state = userStateRes.rows[0].user_state;
+    if (state === 'ban') {
+      return res.status(403).json({ success: false, message: "Your account has been banned" });
+    }
     const { title, description, post_image, tags } = req.body;
 
     if (!title || !description) {
