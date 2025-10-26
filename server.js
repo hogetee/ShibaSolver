@@ -3,7 +3,9 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const rateLimit = require('express-rate-limit');
 
+const adminAuthRouter = require('./routers/adminAuthRouter');
 const adminsRouter = require("./routers/adminsRouter");
 const usersRouter = require("./routers/usersRouter");
 const postsRouter = require("./routers/postsRouter");
@@ -24,6 +26,13 @@ app.use(
   })
 );
 
+const adminLoginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  message: { success: false, message: 'Too many login attempts, try later.' }
+});
+app.use('/api/v1/admin/login', adminLoginLimiter);
+
 (async () => {
   const pool = await connectDB();
   app.locals.pool = pool;
@@ -34,6 +43,7 @@ app.use(
     });
   });
 
+  app.use('/api/v1/adminAuth', adminAuthRouter);
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/admins", adminsRouter);
   app.use("/api/v1/users", usersRouter);
