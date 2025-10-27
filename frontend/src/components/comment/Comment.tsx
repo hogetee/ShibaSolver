@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { useEffect } from "react";
 import { CommentContent, CommentProps } from "./types";
 import { useCommentActions } from "@/components/comment/useCommentActions";
 import { formatTimeAgo } from "@/components/comment/utils";
@@ -26,6 +29,7 @@ import { ViewRepliesButton } from "./ViewRepliesButton";
 const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
   const { user, isLoading, error, refetch } = useCurrentUser();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isOwner = user?.user_id == commentData.author.user_id;
 
@@ -78,6 +82,39 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
     image: null,
   });
 
+  useEffect(() => {
+      const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+      if (savedScrollPosition) {
+        window.scrollTo(0, parseInt(savedScrollPosition));
+        sessionStorage.removeItem("scrollPosition");
+      }
+    }, []);
+  
+  const handleSubmitWithRefresh = async (
+    text: string,
+    imageUrl?: string | null | undefined
+  ) => {
+    setIsSubmitting(true);
+
+    try {
+      await handleCreateNewReply(Number(postId), text, imageUrl);
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const scrollPosition = window.scrollY;
+      sessionStorage.setItem("scrollPosition", scrollPosition.toString());
+      window.location.reload();
+
+      console.log("Reply created and page refreshed.");
+      return true;
+    } catch (error) {
+      console.error("Failed to create reply:", error);
+      setIsSubmitting(false);
+      alert("Failed to create reply. Please try again.");
+      return false;
+    }
+  };
+
   return (
     <div>
       {/* for debugging */}
@@ -87,7 +124,7 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
         {String(isEditing)}
       </div> */}
 
-      <div className="flex items-start gap-3 relative font-display">
+      <div className="flex items-start gap-3 relative font-display border-t pb-2 pt-4">
         {hasReplies && (
           <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
         )}
@@ -109,15 +146,6 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
                 style={{ color: "var(--color-accent-400)" }}
               >
                 {commentData.author.display_name}
-                {/* {commentData.comment_image } */}
-                {displayContent?.image && (
-                  <div className="mt-2">
-                    <img
-                      src={displayContent.image}
-                      className="max-w-xs h-auto rounded-lg border"
-                    />
-                  </div>
-                )}
               </span>
               <span className="text-base text-gray-400">
                 {formatTimeAgo(commentData.created_at)}
@@ -211,10 +239,15 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
                       }
                     : undefined
                 }
-                onSubmit={(text, attachment) =>
-                  handleCreateNewReply(Number(postId), text, attachment)
-                }
+                onSubmit={handleSubmitWithRefresh}
+                disabled={isSubmitting}
               />
+              {isSubmitting && (
+                <div className="flex items-center justify-center mt-2 text-accent-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-600 mr-2"></div>
+                  Creating reply...
+                </div>
+              )}
             </div>
           )}
           {/* {isReplying && (

@@ -9,9 +9,6 @@ export type PostComment = {
   user_id: number;
   post_id: number;
   parent_comment: number | null;
-  // Add user details here
-  user_name: string;
-  profile_picture: string | null;
   text: string;
   comment_image: string | null;
   is_solution: boolean;
@@ -84,18 +81,15 @@ export default function usePostComments(
               user_id: 1,
               post_id: Number(postId),
               parent_comment: null,
-              // Add mock user details
-              user_name: "Mock User",
-              profile_picture: null,
-              text: "This is a mock comment from a mock user.",
+              text: "Mock comment",
               comment_image: null,
               is_solution: false,
               is_updated: false,
               created_at: new Date().toISOString(),
-              likes: 10,
-              dislikes: 1,
-              total_votes: 11,
-              ratio: 0.909
+              likes: 0,
+              dislikes: 0,
+              total_votes: 0,
+              ratio: null
             }
           ];
           if (!aborted) setComments(mock);
@@ -141,11 +135,8 @@ export default function usePostComments(
           user_id: Number(c.user_id),
           post_id: Number(c.post_id),
           parent_comment: c.parent_comment == null ? null : Number(c.parent_comment),
-          // Map the new user fields
-          user_name: String(c.user_name ?? "Anonymous"),
-          profile_picture: String(c.profile_picture ?? null),
           text: String(c.text ?? ""),
-          comment_image:String( c.comment_image ?? null),
+          comment_image: c.comment_image ?? null,
           is_solution: Boolean(c.is_solution),
           is_updated: Boolean(c.is_updated),
           created_at: String(c.created_at),

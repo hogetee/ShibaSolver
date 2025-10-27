@@ -38,11 +38,11 @@ export default function CommentContainer({ postId, sort = "latest" }: Props) {
   const mapped = useMemo<CommentData[]>(() => comments.map(mapPostCommentToCommentData), [comments]);
   
 
-  if (isLoading) return <div className="mt-5 pt-4">Loading comments…</div>;
-  if (error) return <div className="mt-5 pt-4 text-red-600">Failed to load comments: {error}</div>;
+  if (isLoading) return <div className="mt-5 h-200 flex items-center justify-center font-display text-xl animate-pulse">Loading comment section...</div>;
+  if (error) return <div className="mt-5 h-200 flex items-center justify-center font-display text-xl animate-pulse">Failed to load comments: {error}</div>;
   if (restricted) {
     return (
-      <div className="mt-5 pt-4 text-gray-700">
+      <div className="mt-5 h-200 flex items-center justify-center font-display text-xl animate-pulse">
         {reason === "LOGIN_REQUIRED" && "Please log in to view comments on older posts."}
         {reason === "PREMIUM_REQUIRED" && "Upgrade to premium to view comments on older posts."}
       </div>
