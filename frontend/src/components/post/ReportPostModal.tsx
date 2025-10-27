@@ -46,21 +46,23 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
   }, [resetReportStatus]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50">
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl"
       >
+        {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+          aria-label="Close modal"
         >
-          <XMarkIcon className="w-6 h-6" />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
-
+        
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Report Post</h2>
         <p className="text-sm text-gray-600 mb-6">
           Why are you reporting this post? Your report is anonymous.
