@@ -1,0 +1,143 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useReportPost } from '@/hooks/useReportPost';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+
+interface ReportPostModalProps {
+  postId: string;
+  onClose: () => void;
+}
+
+// รายการเหตุผลในการ Report (ตัวอย่าง)
+const reportReasons = [
+  "Spam or Misleading",
+  "Harassment or Bullying",
+  "Hate Speech or Discrimination",
+  "Violent Content",
+  "Nudity or Sexual Content",
+  "Intellectual Property Violation",
+  "Other", // เพิ่มเหตุผลอื่นๆ
+];
+
+const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
+  const { reportPost, isReporting, error, successMessage, resetReportStatus } = useReportPost();
+  const [selectedReason, setSelectedReason] = useState<string>('');
+  const [otherReason, setOtherReason] = useState<string>(''); // State สำหรับเหตุผล 'Other'
+
+  const handleSubmitReport = async () => {
+    const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
+    if (!reasonToSend) {
+      alert('Please select or specify a reason for reporting.');
+      return;
+    }
+
+    try {
+      await reportPost(postId, reasonToSend);
+      // ถ้าสำเร็จ อาจจะแสดงข้อความ Success หรือปิด Modal ทันที
+      // alert('Report submitted successfully!'); // แสดง alert ชั่วคราว
+      // onClose(); // ปิด Modal อัตโนมัติเมื่อสำเร็จ
+    } catch (err) {
+      // Error message จะถูกจัดการใน Hook แต่เราสามารถแสดง alert ที่นี่ได้
+      // alert(`Error reporting post: ${err.message}`);
+    }
+  };
+
+  // Reset สถานะเมื่อ Modal เปิด
+  React.useEffect(() => {
+    resetReportStatus();
+  }, [resetReportStatus]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <XMarkIcon className="w-6 h-6" />
+        </button>
+
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Report Post</h2>
+        <p className="text-sm text-gray-600 mb-6">
+          Why are you reporting this post? Your report is anonymous.
+        </p>
+
+        {/* แสดงผลเมื่อ Report สำเร็จ */}
+        {successMessage && (
+          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
+            {successMessage}
+            <button onClick={onClose} className="ml-4 text-sm font-medium underline">Close</button>
+          </div>
+        )}
+
+        {/* แสดงผลเมื่อเกิด Error */}
+        {error && (
+           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+            Error: {error}
+          </div>
+        )}
+
+        {/* ถ้ายังไม่ Success หรือ Error ให้แสดง Form */}
+        {!successMessage && !error && (
+          <form onSubmit={(e) => { e.preventDefault(); handleSubmitReport(); }}>
+            <div className="space-y-4 mb-6">
+              {reportReasons.map((reason) => (
+                <label key={reason} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="reportReason"
+                    value={reason}
+                    checked={selectedReason === reason}
+                    onChange={(e) => setSelectedReason(e.target.value)}
+                    className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                    disabled={isReporting}
+                  />
+                  <span className="text-sm text-gray-700">{reason}</span>
+                </label>
+              ))}
+              {/* ช่องกรอกเหตุผลเพิ่มเติมถ้าเลือก 'Other' */}
+              {selectedReason === 'Other' && (
+                <textarea
+                  value={otherReason}
+                  onChange={(e) => setOtherReason(e.target.value)}
+                  placeholder="Please specify the reason..."
+                  rows={3}
+                  className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                  maxLength={200}
+                  disabled={isReporting}
+                />
+              )}
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isReporting}
+                className="px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isReporting || !selectedReason || (selectedReason === 'Other' && !otherReason.trim())}
+                className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:bg-red-400"
+              >
+                {isReporting ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ReportPostModal;

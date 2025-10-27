@@ -16,6 +16,7 @@ interface PostHeaderProps {
   isCurrentUserAuthor: boolean;
   onEditClick: () => void;
   onDeleteClick: () => void;
+  onReportClick: () => void; 
 }
 
 const PostHeader = ({
@@ -24,6 +25,7 @@ const PostHeader = ({
   isCurrentUserAuthor,
   onEditClick,
   onDeleteClick,
+  onReportClick
 }: PostHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
@@ -126,12 +128,12 @@ const PostHeader = ({
                 {bookmarked ? 'Bookmarked' : 'Bookmark'}
               </button>
 
-              {/* Report */}
+              {/* ✅ แก้ไข Report Button */}
               <button
-                onClick={(e) => {
-                  stopAll(e);
-                  alert('Report feature coming soon!');
-                  setIsMenuOpen(false);
+                onClick={(e) => { 
+                  stopAll(e); 
+                  onReportClick(); // เรียกใช้ Prop ใหม่
+                  setIsMenuOpen(false); 
                 }}
                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
