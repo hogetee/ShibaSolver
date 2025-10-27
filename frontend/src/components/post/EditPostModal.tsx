@@ -226,7 +226,7 @@ const handleRemoveImage = () => {
             <button
               type="submit"
               disabled={isSaving || uploading}
-              className="rounded-md bg-purple-700 px-8 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
+              className="rounded-md bg-purple-700 px-8 py-2 font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
             >
               {isSaving ? 'Saving…' : 'Save Changes'}
             </button>

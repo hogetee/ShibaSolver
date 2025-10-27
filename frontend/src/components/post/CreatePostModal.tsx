@@ -206,7 +206,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
             <button
               type="submit"
               disabled={isCreating || uploading}
-              className="rounded-md bg-purple-700 px-8 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
+              className="rounded-md bg-purple-700 px-8 py-2 font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
             >
               {isCreating ? 'Submitting...' : 'Submit'}
             </button>

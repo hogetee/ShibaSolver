@@ -63,8 +63,8 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
           </svg>
         </button>
         
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Report Post</h2>
-        <p className="text-sm text-gray-600 mb-6">
+        <h2 className="text-3xl font-semibold text-gray-900 mb-4">Report Post</h2>
+        <p className="text-l text-gray-600 mb-6">
           Why are you reporting this post? Your report is anonymous.
         </p>
 
@@ -98,36 +98,31 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
                     className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                     disabled={isReporting}
                   />
-                  <span className="text-sm text-gray-700">{reason}</span>
+                  <span className="text-m text-gray-700">{reason}</span>
                 </label>
               ))}
               {/* ช่องกรอกเหตุผลเพิ่มเติมถ้าเลือก 'Other' */}
               {selectedReason === 'Other' && (
+                <div>
                 <textarea
                   value={otherReason}
                   onChange={(e) => setOtherReason(e.target.value)}
                   placeholder="Please specify the reason..."
-                  rows={3}
-                  className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                  maxLength={200}
+                  rows={5}
+                  maxLength={500}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
                   disabled={isReporting}
                 />
+                <p className="text-right text-xs text-gray-400 mt-1">{otherReason.length}/500</p>
+                </div>
               )}
             </div>
 
-            <div className="flex justify-end gap-4">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isReporting}
-                className="px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-              >
-                Cancel
-              </button>
+            <div className="flex justify-end gap-4">   
               <button
                 type="submit"
                 disabled={isReporting || !selectedReason || (selectedReason === 'Other' && !otherReason.trim())}
-                className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:bg-red-400"
+                className="px-6 py-2 rounded-md text-white font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isReporting ? 'Submitting...' : 'Submit Report'}
               </button>
