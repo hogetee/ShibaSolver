@@ -34,11 +34,8 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
 
     try {
       await reportPost(postId, reasonToSend);
-      // ถ้าสำเร็จ อาจจะแสดงข้อความ Success หรือปิด Modal ทันที
-      // alert('Report submitted successfully!'); // แสดง alert ชั่วคราว
-      // onClose(); // ปิด Modal อัตโนมัติเมื่อสำเร็จ
+      onClose(); // <-- นี่คือคำสั่งให้ปิด Modal ครับ!
     } catch (err) {
-      // Error message จะถูกจัดการใน Hook แต่เราสามารถแสดง alert ที่นี่ได้
       // alert(`Error reporting post: ${err.message}`);
     }
   };
