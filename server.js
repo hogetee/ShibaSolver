@@ -3,6 +3,9 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const swaggerJsDoc = require("swagger-jsdoc");
+const swaggerUI = require("swagger-ui-express");
+
 
 const adminsRouter = require("./routers/adminsRouter");
 const usersRouter = require("./routers/usersRouter");
@@ -23,6 +26,23 @@ app.use(
     credentials: true,
   })
 );
+
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: "3.0.0",
+    info: {
+      title: "ShibaSolver API",
+      version: "1.0.0",
+      description: "API documentation for ShibaSolver"
+    },
+    servers: [
+      { url: `http://localhost:${process.env.PORT || 5000}` }
+    ],
+  },
+  apis: ["./routers/*.js"],
+};
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));  
 
 (async () => {
   const pool = await connectDB();
