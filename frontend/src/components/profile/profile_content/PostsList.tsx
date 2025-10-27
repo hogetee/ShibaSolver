@@ -3,22 +3,31 @@
 import Post, { PostData } from "@/components/post/Post";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import useUserPosts from "@/hooks/useUserPosts";
+import Pagination from "./Pagination";
 
 export default function PostsList({ username }: { username?: string }) {
-  const { posts, isLoading, error, hasMore, loadMore, refetch } = useUserPosts(username);
-  const { loadingRef } = useInfiniteScroll({ hasMore, isLoading, onLoadMore: loadMore });
+  const {
+    posts,
+    isLoading,
+    error,
+    currentPage,
+    totalPages,
+    totalPosts,
+    setPage,
+    refetch,
+  } = useUserPosts(username);
 
   console.log("PostsList Debug:", { username, posts, isLoading, error });
-  
+
   const handlePostUpdate = (updatedPost: PostData) => {
     // You could update the local state here if needed
     // For now, we'll just refetch to ensure consistency
-    
+    refetch();
   };
 
   const handlePostDelete = (postId: string) => {
     // Refetch the posts to update the list
-    
+    refetch();
   };
 
   if (!username) {
@@ -38,7 +47,10 @@ export default function PostsList({ username }: { username?: string }) {
           <div className="w-full space-y-6">
             {/* Show multiple skeleton loaders */}
             {[1, 2, 3].map((i) => (
-              <div key={i} className="w-full min-h-[200px] bg-white/10 rounded-2xl p-6 animate-pulse">
+              <div
+                key={i}
+                className="w-full min-h-[200px] bg-white/10 rounded-2xl p-6 animate-pulse"
+              >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-white/20 rounded-full" />
                   <div className="flex-1">
@@ -56,8 +68,8 @@ export default function PostsList({ username }: { username?: string }) {
           <div className="flex flex-col items-center justify-center py-8">
             <p className="text-red-400 text-lg mb-2">Error loading posts</p>
             <p className="text-red-400 text-lg">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
             >
               Retry
@@ -70,11 +82,21 @@ export default function PostsList({ username }: { username?: string }) {
         ) : (
           posts.map((post) => (
             <div key={post.post_id} className="w-full">
-              <Post postData={post}
-              onPostUpdate={handlePostUpdate}
-                  onPostDelete={handlePostDelete}/>
+              <Post
+                postData={post}
+                onPostUpdate={handlePostUpdate}
+                onPostDelete={handlePostDelete}
+              />
             </div>
           ))
+        )}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            className="mt-2 mb-1"
+          />
         )}
       </div>
     </div>

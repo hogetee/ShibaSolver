@@ -40,6 +40,15 @@ export const userService = {
         console.log("userService.getUserIdByUsername:", { username });
         console.log("Response data:", data.data.user_id);
         return data.data.user_id;
+    },
+
+    async getUserPostsCount(userId: number): Promise<number> {
+        const response = await fetch(`${BASE_URL}/api/v1/users/${userId}/posts`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch user posts count");
+        }
+        const data = await response.json();
+        return data.count;
     }
 
 }
