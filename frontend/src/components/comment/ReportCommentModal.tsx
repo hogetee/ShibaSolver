@@ -1,15 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useReportPost } from '@/hooks/useReportPost';
+import React, { useState, useEffect } from 'react';
+import { useReportComment } from '@/hooks/useReportComment'; 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
-interface ReportPostModalProps {
-  postId: string;
+interface ReportCommentModalProps {
+  commentId: string; 
   onClose: () => void;
 }
 
-// รายการเหตุผลในการ Report (ตัวอย่าง)
 const reportReasons = [
   "Spam or Misleading",
   "Harassment or Bullying",
@@ -17,13 +16,13 @@ const reportReasons = [
   "Violent Content",
   "Nudity or Sexual Content",
   "Intellectual Property Violation",
-  "Other", // เพิ่มเหตุผลอื่นๆ
+  "Other",
 ];
 
-const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
-  const { reportPost, isReporting, error, successMessage, resetReportStatus } = useReportPost();
+const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => {
+  const { reportComment, isReporting, error, resetReportStatus } = useReportComment(); 
   const [selectedReason, setSelectedReason] = useState<string>('');
-  const [otherReason, setOtherReason] = useState<string>(''); // State สำหรับเหตุผล 'Other'
+  const [otherReason, setOtherReason] = useState<string>('');
 
   const handleSubmitReport = async () => {
     const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
@@ -33,20 +32,22 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
     }
 
     try {
-      await reportPost(postId, reasonToSend);
-      onClose(); // <-- นี่คือคำสั่งให้ปิด Modal ครับ!
+      const response = await reportComment(commentId, reasonToSend);
+      onClose(); 
+
     } catch (err) {
-      // alert(`Error reporting post: ${err.message}`);
+      // Error จะถูก set โดย Hook และแสดงใน UI
     }
   };
 
-  // Reset สถานะเมื่อ Modal เปิด
-  React.useEffect(() => {
+  useEffect(() => {
     resetReportStatus();
   }, [resetReportStatus]);
 
   return (
-    <div className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50 font-display">
+    <div
+      className="fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50"
+    >
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl"
@@ -62,34 +63,23 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        
-        <h2 className="text-3xl font-semibold text-gray-900 mb-4">Report Post</h2>
+
+        <h2 className="text-3xl font-semibold text-gray-900 mb-4">Report Comment</h2>
         <p className="text-l text-gray-600 mb-6">
-          Why are you reporting this post? Your report is anonymous.
+          Why are you reporting this comment? Your report is anonymous.
         </p>
 
-        {/* แสดงผลเมื่อ Report สำเร็จ */}
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
-            {successMessage}
-            <button onClick={onClose} className="ml-4 text-sm font-medium underline">Close</button>
-          </div>
-        )}
-
-        {/* แสดงผลเมื่อเกิด Error */}
         {error && (
            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
             Error: {error}
           </div>
         )}
 
-        {/* ถ้ายังไม่ Success หรือ Error ให้แสดง Form */}
-        {!successMessage && !error && (
-          <form onSubmit={(e) => { e.preventDefault(); handleSubmitReport(); }}>
-            <div className="space-y-4 mb-6">
-              {reportReasons.map((reason) => (
-                <label key={reason} className="flex items-center gap-3 cursor-pointer">
-                  <input
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmitReport(); }}>
+          <div className="space-y-4 mb-6">
+            {reportReasons.map((reason) => (
+              <label key={reason} className="flex items-center gap-3 cursor-pointer">
+                <input
                     type="radio"
                     name="reportReason"
                     value={reason}
@@ -99,11 +89,10 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
                     disabled={isReporting}
                   />
                   <span className="text-m text-gray-700">{reason}</span>
-                </label>
-              ))}
-              {/* ช่องกรอกเหตุผลเพิ่มเติมถ้าเลือก 'Other' */}
-              {selectedReason === 'Other' && (
-                <div>
+              </label>
+            ))}
+            {selectedReason === 'Other' && (
+              <div>
                 <textarea
                   value={otherReason}
                   onChange={(e) => setOtherReason(e.target.value)}
@@ -114,24 +103,23 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
                   disabled={isReporting}
                 />
                 <p className="text-right text-xs text-gray-400 mt-1">{otherReason.length}/500</p>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
 
-            <div className="flex justify-end gap-4">   
-              <button
+          <div className="flex justify-end gap-4">
+            <button
                 type="submit"
                 disabled={isReporting || !selectedReason || (selectedReason === 'Other' && !otherReason.trim())}
                 className="px-6 py-2 rounded-md text-white font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isReporting ? 'Submitting...' : 'Submit Report'}
               </button>
-            </div>
-          </form>
-        )}
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-export default ReportPostModal;
+export default ReportCommentModal;

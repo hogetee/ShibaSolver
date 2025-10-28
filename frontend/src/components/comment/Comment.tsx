@@ -14,6 +14,7 @@ import { SolutionTag } from "./SolutionTag";
 import CommentContentDisplay from "./CommentContent";
 import CommentEditor from "./CommentEditor";
 import useCurrentUser from "@/hooks/useCurrentUser";
+import ReportCommentModal from '@/components/comment/ReportCommentModal';
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -30,6 +31,7 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
   const { user, isLoading, error, refetch } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const isOwner = user?.user_id == commentData.author.user_id;
 
@@ -115,6 +117,13 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
     }
   };
 
+  const handleReportModalOpen = () => {
+    setIsReportModalOpen(true);
+  };
+  const handleReportModalClose = () => {
+    setIsReportModalOpen(false);
+  }
+
   return (
     <div>
       {/* for debugging */}
@@ -194,7 +203,7 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
                   />
 
                   {/* 4. More Actions Menu */}
-                  {!isLoading && isOwner && (
+                  {!isLoading && (
                     <MoreActionsMenu
                       anchorEl={anchorEl}
                       handleMenuOpen={handleMenuOpen}
@@ -204,6 +213,8 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
                       handleSetSolution={handleSetSolution}
                       handleDeleteModalOpen={handleDeleteModalOpen}
                       handleDeleteModalClose={handleDeleteModalClose}
+                      owner={isOwner}
+                      handleReportClick={handleReportModalOpen}
                     />
                   )}
                 </div>
@@ -368,6 +379,13 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
             </DialogActions>
           </Dialog>
         </ThemeProvider>
+      )}
+
+      {isReportModalOpen && (
+        <ReportCommentModal
+          commentId={String(commentData.id)} 
+          onClose={handleReportModalClose}
+        />
       )}
     </div>
   );

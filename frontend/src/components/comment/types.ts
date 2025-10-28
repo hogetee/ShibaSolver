@@ -52,6 +52,8 @@ export interface MoreActionsButtonProps {
     handleSetSolution: () => void;
     handleDeleteModalOpen: () => void;
     handleDeleteModalClose: () => void;
+    owner?: boolean;
+    handleReportClick: () => void;
 }
 
 // New interfaces for reply functionality
