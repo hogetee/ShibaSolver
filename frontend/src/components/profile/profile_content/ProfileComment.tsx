@@ -7,6 +7,7 @@ import { CommentContent } from "@/components/comment/types";
 import { LikeButton } from "@/components/comment/LikeButton";
 import { DislikeButton } from "@/components/comment/DislikeButton";
 import { useCommentActions } from "@/components/comment/useCommentActions";
+import { slugify } from "@/utils/slugify";
 
 export interface profileCommentData {
   id: string;
@@ -42,7 +43,7 @@ export default function ProfileComment({
 
   const handlePostClick = () => {
     if (commentData.post_id) {
-      router.push(`/posts/${commentData.post_id}`);
+      router.push(`/post/${commentData.post_id}/${slugify(commentData.post_title)}`);
     }
   };
 
@@ -112,14 +113,14 @@ export default function ProfileComment({
             <LikeButton
               count={likes}
               userStatus={userLikeStatus}
-              onClick={toggleLike}
+              onClick={handlePostClick}
             />
 
             {/* 2. Dislike Button */}
             <DislikeButton
               count={dislikes}
               userStatus={userLikeStatus}
-              onClick={toggleDislike}
+              onClick={handlePostClick}
             />
           </div>
         </div>
