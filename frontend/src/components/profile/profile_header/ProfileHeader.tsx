@@ -1,3 +1,6 @@
+'use client'; 
+
+import React, { useState } from 'react'; 
 import ProfilePic from "./ProfilePic";
 import BioCard from "./BioCard";
 import InfoBlock from "./InfoBlock";
@@ -5,6 +8,8 @@ import Shibameter from "./Shibameter";
 import TopSubject from "./TopSubjects";
 import EditProfileButton from "./EditProfileButton";
 import useCurrentUser from "@/hooks/useCurrentUser";
+import { FlagIcon } from '@heroicons/react/24/outline'; 
+import ReportUserModal from './ReportUserModal';
 
 type UserProfile = {
   id: number;
@@ -32,7 +37,10 @@ export default function ProfileHeader({ dummyUser }: Props) {
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentUser && currentUser.user_name === dummyUser.username;
 
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
   return (
+  <>
     <div className="w-[100%] px-6 pt-8 font-display flex justify-center">
       <div className="w-full max-w-4xl flex flex-col md:flex-row gap-6 md:gap-8 items-stretch">
         {/* Left: Avatar */}
@@ -69,12 +77,45 @@ export default function ProfileHeader({ dummyUser }: Props) {
           <div className="flex items-start">
             <TopSubject subjects={dummyUser.topSubjects} />
           </div>
+            {!currentUserLoading && !isOwnProfile && (
+              <div className="flex justify-center mt-2">
+                <button
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="flex items-center justify-center gap-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 transition-colors"
+                >
+                  <FlagIcon className="w-4 h-4" />
+                  Report
+                </button>
+              </div>
+            )}
         </div>
         {/* Bottom on small: Top Subjects */}
         <div className="md:hidden">
           <TopSubject subjects={dummyUser.topSubjects} />
+            {!currentUserLoading && !isOwnProfile && (
+              <div className="flex justify-center mt-4"> {/* จัดให้อยู่ตรงกลาง */}
+                <button
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="flex items-center justify-center gap-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 transition-colors"
+                >
+                  <FlagIcon className="w-4 h-4" />
+                  Report this user
+                </button>
+              </div>
+            )}
         </div>
+            
       </div>
     </div>
+
+    {/* ... (Modal Logic - เหมือนเดิม) ... */}
+      {isReportModalOpen && (
+        <ReportUserModal
+          userId={String(dummyUser.id)} 
+          userName={dummyUser.displayName}
+          onClose={() => setIsReportModalOpen(false)}
+        />
+    )}
+  </>
   );
 }
