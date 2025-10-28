@@ -3,6 +3,7 @@ import Comment from "@/components/comment/Comment";
 import { CommentData } from "@/components/comment/types";
 import useUserComments from "@/hooks/useUserComments";
 import Pagination from "./Pagination";
+import ProfileComment from "./ProfileComment";
 
 export default function CommentsList({ username }: { username?: string }) {
   const {
@@ -42,7 +43,7 @@ export default function CommentsList({ username }: { username?: string }) {
   return (
     <div className="p-4 rounded-lg min-h-[289px]">
       {isLoading ? (
-        <div className="w-full">
+        <div className="flex flex-col gap-4" >
           {[1, 2, 3].map((i) => (
             <div key={i} className="w-full min-h-[12rem] bg-white/10 rounded-2xl p-6 animate-pulse">
               <div className="h-4 bg-white/20 rounded w-1/2 mb-3" />
@@ -66,12 +67,11 @@ export default function CommentsList({ username }: { username?: string }) {
           <p className="text-white text-xl">No comments available.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4" >
           {comments.map((c) => (
-            <div key={c.id} className="bg-white rounded-lg p-4 text-white">
-              <Comment
+            <div key={c.id || `comment-${c.created_at}-${c.text?.substring(0, 10)}`} className="bg-white rounded-lg p-4 text-white">
+              <ProfileComment
                 commentData={c}
-                postId={""} // Post ID is not used in this context
                 onDelete={handleCommentDelete}
               />
             </div>

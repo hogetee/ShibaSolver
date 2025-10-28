@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { userService } from "@/utils/userService";
-import { CommentData } from "@/components/comment/types";
+import { profileCommentData } from "@/components/profile/profile_content/ProfileComment";
+import { postService } from "@/utils/postService";
+import { set } from "mongoose";
 
 type UseUserCommentsResult = {
-  comments: CommentData[];
+  comments: profileCommentData[];
   isLoading: boolean;
   error: string | null;
   currentPage: number;
@@ -18,7 +20,7 @@ type UseUserCommentsResult = {
 export default function useUserComments(
   username?: string | null
 ): UseUserCommentsResult {
-  const [comments, setComments] = useState<CommentData[]>([]);
+  const [comments, setComments] = useState<profileCommentData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -91,9 +93,12 @@ export default function useUserComments(
         }
 
         const commentsData = await commentResponse.json();
-        const commentsArray = commentsData.data as CommentData[];
-
+        const commentsArray = commentsData.data as profileCommentData[];
+        console.log("Fetched comments data:", commentsData);
         const totalCommentsCount = commentsData.meta.total as number;
+        const totalPagesCount = commentsData.meta.totalPages as number;
+        setTotalComments(totalCommentsCount);
+        setTotalPages(totalPagesCount);
 
         const currentUserData = await fetchUserData();
 
@@ -104,15 +109,36 @@ export default function useUserComments(
           currentUserData?.data?.profile_picture
         );
 
-        const transformedComments = commentsArray.map((comment) => ({
-          ...comment,
-          author: comment.author || {
-            display_name: currentUserData?.data?.display_name || "Unknown",
-            profile_picture:
-              currentUserData?.data?.profile_picture ||
-              "https://www.gravatar.com/avatar/?d=mp",
-          },
-        }));
+        const transformedComments = await Promise.all(
+          commentsArray.map(async (comment) => {
+            let postTitle = "Unknown Post";
+
+            // Get post title if post_id exists
+            if (comment.post_id) {
+              try {
+                postTitle = await postService.getPostTitleById(comment.post_id);
+              } catch (error) {
+                console.error(
+                  `Failed to fetch post title for ${comment.post_id}:`,
+                  error
+                );
+                postTitle = "Post Not Found";
+              }
+            }
+
+            return {
+              ...comment,
+              post_id: comment.post_id, // Use the actual post_id from comment
+              post_title: postTitle, // Use the fetched post title
+              author: comment.author || {
+                display_name: currentUserData?.data?.display_name || "Unknown",
+                profile_picture:
+                  currentUserData?.data?.profile_picture ||
+                  "https://www.gravatar.com/avatar/?d=mp",
+              },
+            };
+          })
+        );
 
         setComments(transformedComments);
         setCurrentPage(pageNum);
