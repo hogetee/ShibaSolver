@@ -21,7 +21,7 @@ export default function useUserPosts(
   username?: string | null
 ): UseUserPostsResult {
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
@@ -85,9 +85,10 @@ export default function useUserPosts(
 
         const postsArray = postsData.data as PostData[];
 
-        const totalPostsCount = await userService.getUserPostsCount(parseInt(userId));
+        const totalPostsCount = postsData.meta.total as number;
+        const totalPagesCount = postsData.meta.totalPages as number;
         setTotalPosts(totalPostsCount);
-        setTotalPages(Math.ceil(totalPostsCount / POSTS_PER_PAGE));
+        setTotalPages(totalPagesCount);
 
         const currentUserData = await fetchUserData();
         console.log("User data after fetching posts:", currentUserData?.data);

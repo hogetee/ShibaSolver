@@ -42,7 +42,7 @@ export default function CommentsList({ username }: { username?: string }) {
 
   return (
     <div className="p-4 rounded-lg min-h-[289px]">
-      {isLoading ? (
+      {isLoading || !comments ? (
         <div className="flex flex-col gap-4" >
           {[1, 2, 3].map((i) => (
             <div key={i} className="w-full min-h-[12rem] bg-white/10 rounded-2xl p-6 animate-pulse">
@@ -62,13 +62,13 @@ export default function CommentsList({ username }: { username?: string }) {
             Retry
           </button>
         </div>
-      ) : !comments || comments.length === 0 ? (
+      ) : comments && comments.length === 0 ? (
         <div className="flex justify-center items-center h-32">
           <p className="text-white text-xl">No comments available.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4" >
-          {comments.map((c) => (
+          {comments?.map((c) => (
             <div key={c.id || `comment-${c.created_at}-${c.text?.substring(0, 10)}`} className="bg-white rounded-lg p-4 text-white">
               <ProfileComment
                 commentData={c}

@@ -43,7 +43,7 @@ export default function PostsList({ username }: { username?: string }) {
   return (
     <div className="w-full max-w-4xl mx-auto min-h-[280px]">
       <div className="flex flex-col items-center w-full gap-6">
-        {isLoading ? (
+        {isLoading || !posts ? (
           <div className="w-full space-y-6">
             {/* Show multiple skeleton loaders */}
             {[1, 2, 3].map((i) => (
@@ -75,12 +75,12 @@ export default function PostsList({ username }: { username?: string }) {
               Retry
             </button>
           </div>
-        ) : !posts || posts.length === 0 ? (
+        ) : posts && posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8">
             <p className="text-white text-lg">No posts available.</p>
           </div>
         ) : (
-          posts.map((post) => (
+          posts?.map((post) => (
             <div key={post.post_id} className="w-full">
               <Post
                 postData={post}

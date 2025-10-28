@@ -21,7 +21,7 @@ export default function useUserComments(
   username?: string | null
 ): UseUserCommentsResult {
   const [comments, setComments] = useState<profileCommentData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
