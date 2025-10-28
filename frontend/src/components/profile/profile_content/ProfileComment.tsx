@@ -43,7 +43,9 @@ export default function ProfileComment({
 
   const handlePostClick = () => {
     if (commentData.post_id) {
-      router.push(`/post/${commentData.post_id}/${slugify(commentData.post_title)}`);
+      router.push(
+        `/post/${commentData.post_id}/${slugify(commentData.post_title)}`
+      );
     }
   };
 
@@ -52,24 +54,25 @@ export default function ProfileComment({
     image: commentData.comment_image,
   };
 
-  const {
-    likes,
-    dislikes,
-    userLikeStatus,
-    toggleLike,
-    toggleDislike,
-  } = useCommentActions(
-    commentData.id,
-    commentData.likes,
-    commentData.dislikes,
-    commentData.is_solution,
-    onDelete,
-    "none",
-    content
-  );
+  const { likes, dislikes, userLikeStatus, toggleLike, toggleDislike } =
+    useCommentActions(
+      commentData.id,
+      commentData.likes,
+      commentData.dislikes,
+      commentData.is_solution,
+      onDelete,
+      "none",
+      content
+    );
 
   return (
     <div>
+      <div
+        className="font-semibold text-2xl mx-13 my-2"
+        style={{ color: "var(--color-dark-900)" }}
+      >
+        {commentData.post_title}
+      </div>
       <div className="flex items-start gap-3 relative font-display">
         <img
           src={commentData.author.profile_picture}
@@ -85,10 +88,10 @@ export default function ProfileComment({
           <div className="flex items-start justify-between">
             <div className="flex items-baseline  gap-3">
               <span
-                className="font-semibold text-xl"
-                style={{ color: "var(--color-dark-900)" }}
+                className="font-semibold text-lg"
+                style={{ color: "var(--color-accent-400)" }}
               >
-                {commentData.post_title}
+                {commentData.author.display_name}
               </span>
               <span className="text-base text-gray-400">
                 {formatTimeAgo(commentData.created_at)}
