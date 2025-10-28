@@ -212,15 +212,8 @@ exports.getPostbyUserId = async (req, res, next) => {
 
     //pagination parameter
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 100;
     const offset = (page - 1) * limit;
-
-     // --- Get total count for pagination ---
-    const countSql = `
-      SELECT COUNT(*) AS total
-      FROM posts
-      WHERE user_id = $1 AND is_deleted = FALSE;
-    `;
 
     //Posts with author info + aggregated ratings + my rating
     const postSql = `
@@ -305,12 +298,25 @@ exports.getPostbyUserId = async (req, res, next) => {
       tags: tagsByPost[p.post_id] || [],
       top_comment: topComments[p.post_id] || null,
     }));
+
+    const totalRes = await pool.query(
+      `SELECT COUNT(*) AS total FROM posts WHERE user_id = $1 AND is_deleted = FALSE;`,
+      [userID]
+    );
+
+    const total = parseInt(totalRes.rows[0].total, 10);
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
     
     console.log('Feed data:', feed);
     return res.status(200).json({
       success: true,
       count: feed.length,
-      data: feed
+      meta: {
+        page, limit, total, totalPages,
+        hasNext: page < totalPages,
+        nextPage: page < totalPages ? page + 1 : null
+      },
+      data: feed.map(({ total, ...r }) => r)
     });
 
   } catch (err) {
