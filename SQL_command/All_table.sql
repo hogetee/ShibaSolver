@@ -161,3 +161,9 @@ CREATE INDEX idx_comments_post_id ON comments(post_id);
 CREATE INDEX idx_ratings_post_id ON ratings(post_id);
 CREATE INDEX idx_ratings_comment_id ON ratings(comment_id);
 CREATE INDEX idx_post_tags_post_id ON post_tags(post_id);
+
+--=== For text search ===--
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS users_search_trgm_idx
+ON users USING gin (display_name gin_trgm_ops, user_name gin_trgm_ops);
