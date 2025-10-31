@@ -18,52 +18,59 @@ import { IconButton, Avatar } from "@mui/material";
 
 type User = {
   username: string;
-  image: string;
+  image?: string;
 };
 
 export default function TopMenu() {
   const pathname = usePathname() ?? "";
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isClient, setIsClient] = useState(false); // ✅ added
 
+  // ✅ Mark as client after first render
   useEffect(() => {
-    checkAuthStatus();
+    setIsClient(true);
   }, []);
 
-  const checkAuthStatus = () => {
-    const userData = localStorage.getItem("userData");
-    if (userData) {
+  useEffect(() => {
+    const checkAuthStatus = () => {
       try {
-        const parsedUserData = JSON.parse(userData);
-        console.log("Parsed user data:", parsedUserData);
+        const storedUserData = localStorage.getItem("userData");
+        const storedUsername = localStorage.getItem("username");
 
-        setIsLoggedIn(true);
-        setUser({
-          username: parsedUserData.user_name,
-          image: parsedUserData.profile_picture,
-        });
+        if (storedUserData) {
+          const parsed = JSON.parse(storedUserData);
+          setUser({
+            username: parsed.user_name || storedUsername || "Guest",
+            image: parsed.profile_picture || "/default-avatar.png",
+          });
+          setIsLoggedIn(true);
+          return;
+        }
 
-        console.log("Setting user:", {
-          username: parsedUserData.user_name,
-          image: parsedUserData.profile_picture,
-        });
-      } catch (error) {
-        console.error("Error parsing userData:", error);
+        if (storedUsername) {
+          setUser({
+            username: storedUsername,
+            image: "/default-avatar.png",
+          });
+          setIsLoggedIn(true);
+          return;
+        }
+
+        setIsLoggedIn(false);
+        setUser(null);
+      } catch (err) {
+        console.error("Error checking auth status:", err);
         setIsLoggedIn(false);
         setUser(null);
       }
-    } else {
-      setIsLoggedIn(false);
-      setUser(null);
-    }
-  };
+    };
 
-  const handleSignOut = () => {
-    localStorage.removeItem("userData");
-    localStorage.removeItem("username");
-    setIsLoggedIn(false);
-    setUser(null);
-  };
+    checkAuthStatus();
+
+    window.addEventListener("storage", checkAuthStatus);
+    return () => window.removeEventListener("storage", checkAuthStatus);
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/";
@@ -72,7 +79,6 @@ export default function TopMenu() {
 
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
-      {/* Website Name */}
       <Link
         href="/"
         className="font-sans font-black text-3xl mr-6 text-white px-4"
@@ -80,7 +86,6 @@ export default function TopMenu() {
         Shiba
       </Link>
 
-      {/* Search bar with button */}
       <div className="relative flex-grow mx-8">
         <input
           type="text"
@@ -95,67 +100,34 @@ export default function TopMenu() {
         </button>
       </div>
 
-      {/* Navigation Icons */}
       <div className="flex items-center space-x-3 ml-6">
         <Link href="/" passHref>
-          <IconButton
-            size="large"
-            aria-label="home"
-            className="!text-accent-200"
-          >
-            {isActive("/") ? (
-              <Home sx={{ fontSize: 36 }} />
-            ) : (
-              <HomeOutlined sx={{ fontSize: 36 }} />
-            )}
+          <IconButton size="large" aria-label="home" className="!text-accent-200">
+            {isActive("/") ? <Home sx={{ fontSize: 36 }} /> : <HomeOutlined sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
         <Link href="/favorites" passHref>
-          <IconButton
-            size="large"
-            aria-label="favorites"
-            className="!text-accent-200"
-          >
-            {isActive("/favorites") ? (
-              <Favorite sx={{ fontSize: 36 }} />
-            ) : (
-              <FavoriteBorder sx={{ fontSize: 36 }} />
-            )}
+          <IconButton size="large" aria-label="favorites" className="!text-accent-200">
+            {isActive("/favorites") ? <Favorite sx={{ fontSize: 36 }} /> : <FavoriteBorder sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
         <Link href="/settings" passHref>
-          <IconButton
-            size="large"
-            aria-label="settings"
-            className="!text-accent-200"
-          >
-            {isActive("/settings") ? (
-              <Settings sx={{ fontSize: 36 }} />
-            ) : (
-              <SettingsOutlined sx={{ fontSize: 36 }} />
-            )}
+          <IconButton size="large" aria-label="settings" className="!text-accent-200">
+            {isActive("/settings") ? <Settings sx={{ fontSize: 36 }} /> : <SettingsOutlined sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
         <Link href="/notifications" passHref>
-          <IconButton
-            size="large"
-            aria-label="notifications"
-            className="!text-accent-200"
-          >
-            {isActive("/notifications") ? (
-              <Notifications sx={{ fontSize: 36 }} />
-            ) : (
-              <NotificationsNone sx={{ fontSize: 36 }} />
-            )}
+          <IconButton size="large" aria-label="notifications" className="!text-accent-200">
+            {isActive("/notifications") ? <Notifications sx={{ fontSize: 36 }} /> : <NotificationsNone sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
-        {/* Profile Picture */}
-        {isLoggedIn ? (
-          <Link href={`/user/me`} passHref>
+        {/* ✅ Prevent hydration mismatch */}
+        {!isClient ? null : isLoggedIn ? (
+          <Link href={`/user/${user?.username}`} passHref>
             <IconButton size="large" className="p-0 ml-3">
               <Avatar
                 alt={user?.username}
@@ -167,8 +139,7 @@ export default function TopMenu() {
         ) : (
           <Link
             href="/signup"
-            className="font-display font-semibold text-xl 
-          mr-6 text-primary-0 rounded-full bg-white py-2 px-4 hover:bg-accent-200"
+            className="font-display font-semibold text-xl mr-6 text-primary-0 rounded-full bg-white py-2 px-4 hover:bg-accent-200"
           >
             Sign in
           </Link>
