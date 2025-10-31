@@ -1,21 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import {
-  MoreVertical,
-  Bookmark,
-  Flag,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
+import { MoreVertical, Bookmark, Flag, Pencil, Trash2 } from 'lucide-react';
 
-// ✅ 1. อัปเดต "คู่มือ" (Interface) ให้รับ Prop ที่จำเป็น
+// --- API base URL ---
+const API_BASE = 'http://localhost:5003/api/v1';
+
 interface PostHeaderProps {
   isSolved: boolean;
   tags: string[];
   isCurrentUserAuthor: boolean;
   onEditClick: () => void;
   onDeleteClick: () => void;
+  postId?: string; // ✅ needed for bookmark API
 }
 
 const PostHeader = ({
@@ -24,12 +21,14 @@ const PostHeader = ({
   isCurrentUserAuthor,
   onEditClick,
   onDeleteClick,
+  postId,
 }: PostHeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [loadingBookmark, setLoadingBookmark] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const toggleBookmark = () => setBookmarked(prev => !prev);
+  const toggleBookmarkLocal = () => setBookmarked(prev => !prev);
 
   // --- Close menu when clicking outside ---
   useEffect(() => {
@@ -60,17 +59,69 @@ const PostHeader = ({
 
   // --- Helper: stop all propagation paths ---
   const stopAll = (e: React.MouseEvent) => {
-    e.preventDefault();   // prevent Link default behavior
-    e.stopPropagation();  // stop bubbling up
-    e.nativeEvent.stopImmediatePropagation?.(); // stop React synthetic + native
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation?.();
+  };
+
+  // ✅ Fetch bookmark status on mount
+  useEffect(() => {
+    const fetchBookmarkStatus = async () => {
+      if (!postId) return;
+      try {
+        const res = await fetch(`${API_BASE}/posts/${postId}/bookmark/status`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setBookmarked(data.bookmarked || false);
+      } catch (err) {
+        console.error('Failed to fetch bookmark status:', err);
+      }
+    };
+    fetchBookmarkStatus();
+  }, [postId]);
+
+  // ✅ Toggle bookmark API call
+  const handleToggleBookmark = async (e: React.MouseEvent) => {
+    stopAll(e);
+    if (!postId || loadingBookmark) return;
+
+    const newState = !bookmarked;
+    setBookmarked(newState); // optimistic update
+    setLoadingBookmark(true);
+
+    try {
+      const endpoint = `${API_BASE}/posts/${postId}/bookmark`;
+      const method = newState ? 'POST' : 'DELETE';
+
+      const res = await fetch(endpoint, {
+        method,
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        // revert optimistic update
+        setBookmarked(!newState);
+        const errText = await res.text();
+        console.error('Bookmark failed:', errText);
+        alert('Failed to update bookmark');
+      }
+    } catch (err) {
+      console.error('Bookmark error:', err);
+      setBookmarked(!newState);
+    } finally {
+      setLoadingBookmark(false);
+      setIsMenuOpen(false);
+    }
   };
 
   return (
     <div
       className="flex justify-between items-center mb-4"
-      onClick={stopAll} // ✅ ensure the whole header stops bubbling
+      onClick={stopAll}
     >
-      {/* --- Left: tags and solved status --- */}
+      {/* --- Left: tags + solved status --- */}
       <div className="flex items-center gap-2 pointer-events-auto">
         <span
           className={`${
@@ -94,7 +145,7 @@ const PostHeader = ({
       <div className="relative pointer-events-auto" ref={menuRef}>
         <button
           onClick={(e) => {
-            stopAll(e); // ✅ fully stop bubbling
+            stopAll(e);
             setIsMenuOpen(prev => !prev);
           }}
           title="More options"
@@ -106,27 +157,26 @@ const PostHeader = ({
         {isMenuOpen && (
           <div
             className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10"
-            onClick={stopAll} // ✅ protect menu clicks
+            onClick={stopAll}
           >
             <div className="py-1">
-              {/* Bookmark */}
+              {/* --- Bookmark --- */}
               <button
-                onClick={(e) => {
-                  stopAll(e);
-                  toggleBookmark();
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={handleToggleBookmark}
+                disabled={loadingBookmark}
+                className={`flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
+                  loadingBookmark ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
                 <Bookmark
                   className={`w-4 h-4 mr-3 ${
-                    bookmarked ? 'text-accent-600' : ''
+                    bookmarked ? 'text-yellow-500 fill-yellow-500' : ''
                   }`}
                 />
                 {bookmarked ? 'Bookmarked' : 'Bookmark'}
               </button>
 
-              {/* Report */}
+              {/* --- Report --- */}
               <button
                 onClick={(e) => {
                   stopAll(e);
@@ -139,37 +189,34 @@ const PostHeader = ({
                 Report
               </button>
 
+              {/* --- Author-only options --- */}
+              {isCurrentUserAuthor && (
+                <>
+                  <div className="border-t border-gray-100 my-1" />
+                  <button
+                    onClick={(e) => {
+                      stopAll(e);
+                      onEditClick();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <Pencil className="w-4 h-4 mr-3" />
+                    Edit
+                  </button>
 
-              {isCurrentUserAuthor && ( 
-              <>
-              <div className="border-t border-gray-100 my-1" />
-
-                {/* Edit */}
-                <button
-                  onClick={(e) => {
-                    stopAll(e);
-                    onEditClick();
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <Pencil className="w-4 h-4 mr-3" />
-                  Edit
-                </button>
-
-                {/* Delete */}
-                <button
-                  onClick={(e) => {
-                    stopAll(e);
-                    onDeleteClick();
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4 mr-3" />
-                  Delete
-                </button>
-              </>
+                  <button
+                    onClick={(e) => {
+                      stopAll(e);
+                      onDeleteClick();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-3" />
+                    Delete
+                  </button>
+                </>
               )}
             </div>
           </div>

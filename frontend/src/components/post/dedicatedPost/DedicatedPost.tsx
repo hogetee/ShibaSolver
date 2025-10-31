@@ -100,6 +100,7 @@ const DedicatedPost = ({
           isCurrentUserAuthor={isCurrentUserAuthor}
           onEditClick={() => setIsEditModalOpen(true)}
           onDeleteClick={() => setIsDeleteModalOpen(true)}
+          postId={postData.post_id}
         />
 
         {/* Title + description + image */}

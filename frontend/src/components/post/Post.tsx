@@ -123,6 +123,7 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
           isCurrentUserAuthor={isCurrentUserAuthor}
           onEditClick={() => setIsEditModalOpen(true)}
           onDeleteClick={() => setIsDeleteModalOpen(true)}
+          postId={postData.post_id}
         />
       
       {/* ✅ Only title/description clickable */}
