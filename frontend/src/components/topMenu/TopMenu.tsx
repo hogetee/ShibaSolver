@@ -15,6 +15,7 @@ import {
   Search as SearchIcon,
 } from "@mui/icons-material";
 import { IconButton, Avatar } from "@mui/material";
+import SearchComponent from "./SearchComponent";
 
 type User = {
   username: string;
@@ -81,7 +82,10 @@ export default function TopMenu() {
       </Link>
 
       {/* Search bar with button */}
-      <div className="relative flex-grow mx-8">
+      <div className="relative flex-grow mx-8 max-w-xl">
+        <SearchComponent onSelect={(x) => console.log(x)} />
+      </div>
+      {/* <div className="relative flex-grow mx-8">
         <input
           type="text"
           placeholder="Search..."
@@ -93,7 +97,7 @@ export default function TopMenu() {
         >
           <SearchIcon fontSize="small" />
         </button>
-      </div>
+      </div> */}
 
       {/* Navigation Icons */}
       <div className="flex items-center space-x-3 ml-6">
