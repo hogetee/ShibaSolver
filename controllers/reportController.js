@@ -187,7 +187,7 @@ exports.reportPostOrComment = async (req, res, next) => {
 
 /**
  * @desc    Admin: view all user account reports
- * @route   GET /api/v1/reports/accounts
+ * @route   GET /api/v1/reports/accounts?status=pending|accepted|rejected
  * @access  Admin
  */
 exports.adminGetAccountReports = async (req, res, next) => {
@@ -221,14 +221,14 @@ exports.adminGetAccountReports = async (req, res, next) => {
 
 /**
  * @desc    Admin: view all post reports
- * @route   GET /api/v1/reports/posts
+ * @route   GET /api/v1/reports/posts?status=pending|accepted|rejected
  * @access  Admin
  */
 exports.adminGetPostReports = async (req, res, next) => {
   const pool = req.app.locals.pool;
   try {
     const { status } = req.query;
-    const validStatuses = ["pending", "reviewed", "rejected"];
+    const validStatuses = ["pending", "accepted", "rejected"];
     const where =
       status && validStatuses.includes(status)
         ? `WHERE r.status = '${status}'`
@@ -245,6 +245,42 @@ exports.adminGetPostReports = async (req, res, next) => {
       JOIN posts p ON p.post_id = r.target_id
       JOIN users u2 ON u2.user_id = p.user_id
       ${where} AND r.target_type = 'post'
+      ORDER BY r.created_at DESC;
+    `;
+
+    const { rows } = await pool.query(sql);
+    return res.status(200).json({ success: true, count: rows.length, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc    Admin: view all comment reports
+ * @route   GET /api/v1/reports/comments?status=pending|accepted|rejected
+ * @access  Admin
+ */
+exports.adminGetCommentReports = async (req, res, next) => {
+  const pool = req.app.locals.pool;
+  try {
+    const { status } = req.query;
+    const validStatuses = ["pending", "accepted", "rejected"];
+    const where =
+      status && validStatuses.includes(status)
+        ? `WHERE r.status = '${status}'`
+        : "";
+
+    const sql = `
+      SELECT 
+        r.report_id, r.reporter_id, r.target_id, r.reason, r.status, r.created_at,
+        u1.display_name AS reporter_name,
+        c.text AS comment_text,
+        u2.display_name AS comment_owner_name
+      FROM reports r
+      JOIN users u1 ON u1.user_id = r.reporter_id
+      JOIN comments c ON c.comment_id = r.target_id
+      JOIN users u2 ON u2.user_id = c.user_id
+      ${where} AND r.target_type = 'comment'
       ORDER BY r.created_at DESC;
     `;
 
