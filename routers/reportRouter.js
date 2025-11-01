@@ -11,5 +11,6 @@ router.post("/content", requireAuth, reportCtrl.reportPostOrComment);
 
 // Admin views account reports
 router.get("/accounts", adminProtect, reportCtrl.adminGetAccountReports);
+router.get("/posts", adminProtect, reportCtrl.adminGetPostReports);
 
 module.exports = router;
