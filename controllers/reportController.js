@@ -195,10 +195,13 @@ exports.adminGetAccountReports = async (req, res, next) => {
   try {
     const { status } = req.query;
     const validStatuses = ["pending", "accepted", "rejected"];
-    const where =
-      status && validStatuses.includes(status)
-        ? `WHERE r.status = '${status}'`
-        : "";
+    const conditions = [`r.target_type = 'user'`];
+
+    if (status && validStatuses.includes(status)) {
+      conditions.push(`r.status = '${status}'`);
+    }
+
+    const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
     const sql = `
       SELECT 
@@ -208,7 +211,7 @@ exports.adminGetAccountReports = async (req, res, next) => {
       FROM reports r
       JOIN users u1 ON u1.user_id = r.reporter_id
       JOIN users u2 ON u2.user_id = r.target_id
-      ${where} AND r.target_type = 'user'
+      ${whereClause}
       ORDER BY r.created_at DESC;
     `;
 
@@ -218,6 +221,7 @@ exports.adminGetAccountReports = async (req, res, next) => {
     next(err);
   }
 };
+
 
 /**
  * @desc    Admin: view all post reports
@@ -229,10 +233,13 @@ exports.adminGetPostReports = async (req, res, next) => {
   try {
     const { status } = req.query;
     const validStatuses = ["pending", "accepted", "rejected"];
-    const where =
-      status && validStatuses.includes(status)
-        ? `WHERE r.status = '${status}'`
-        : "";
+    const conditions = [`r.target_type = 'post'`];
+
+    if (status && validStatuses.includes(status)) {
+      conditions.push(`r.status = '${status}'`);
+    }
+
+    const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
     const sql = `
       SELECT 
@@ -244,7 +251,7 @@ exports.adminGetPostReports = async (req, res, next) => {
       JOIN users u1 ON u1.user_id = r.reporter_id
       JOIN posts p ON p.post_id = r.target_id
       JOIN users u2 ON u2.user_id = p.user_id
-      ${where} AND r.target_type = 'post'
+      ${whereClause}
       ORDER BY r.created_at DESC;
     `;
 
@@ -254,6 +261,7 @@ exports.adminGetPostReports = async (req, res, next) => {
     next(err);
   }
 };
+
 
 /**
  * @desc    Admin: view all comment reports
@@ -265,10 +273,13 @@ exports.adminGetCommentReports = async (req, res, next) => {
   try {
     const { status } = req.query;
     const validStatuses = ["pending", "accepted", "rejected"];
-    const where =
-      status && validStatuses.includes(status)
-        ? `WHERE r.status = '${status}'`
-        : "";
+    const conditions = [`r.target_type = 'comment'`];
+
+    if (status && validStatuses.includes(status)) {
+      conditions.push(`r.status = '${status}'`);
+    }
+
+    const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
     const sql = `
       SELECT 
@@ -280,7 +291,7 @@ exports.adminGetCommentReports = async (req, res, next) => {
       JOIN users u1 ON u1.user_id = r.reporter_id
       JOIN comments c ON c.comment_id = r.target_id
       JOIN users u2 ON u2.user_id = c.user_id
-      ${where} AND r.target_type = 'comment'
+      ${whereClause}
       ORDER BY r.created_at DESC;
     `;
 
