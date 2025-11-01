@@ -6,7 +6,7 @@ router.use(adminProtect);
 
 //GET
 router.get('/', adminsCtrl.getAllAdmins);
-router.get('/:id', adminsCtrl.getAdmin);
+//router.get('/:id', adminsCtrl.getAdmin);
 //DELETE
 router.delete('/posts/:postId', adminsCtrl.adminDeletePost);
 //PATCH
