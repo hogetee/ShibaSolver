@@ -4,6 +4,9 @@ const connectDB = require("./config/db");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const rateLimit = require('express-rate-limit');
+const { xss } = require("express-xss-sanitizer");
+const helmet = require("helmet");
+const hpp = require("hpp");
 
 const adminAuthRouter = require('./routers/adminAuthRouter');
 const adminsRouter = require("./routers/adminsRouter");
@@ -17,6 +20,8 @@ const ratingRouter = require("./routers/ratingRouter");
 dotenv.config({ path: "./config/config.env" });
 
 const app = express();
+//Set security headers
+app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -32,6 +37,10 @@ const adminLoginLimiter = rateLimit({
   message: { success: false, message: 'Too many login attempts, try later.' }
 });
 app.use('/api/v1/admin/login', adminLoginLimiter);
+//Prevent XSS attacks
+app.use(xss());
+//Prevent http param pollutions
+app.use(hpp());
 
 (async () => {
   const pool = await connectDB();
