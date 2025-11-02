@@ -1,27 +1,31 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import SearchIcon from "@mui/icons-material/Search";
-
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
+import { useSearch, PostResult, UserResult } from "@/hooks/useSearch";
+import { slugify } from "@/utils/slugify";
 type Mode = "post" | "user";
 
 
 
-type UserResult = {
-  id: string | number;
-  username: string;
-  avatarUrl?: string;
-};
-
-type PostResult = {
-    id: string | number;
-    title: string;
-    imageUrl?:string;
-};
-  
 
 type Props = {
   className?: string;
   onSelect?: (item: { type: Mode; value: any }) => void;
   initialMode?: Mode;
+};
+
+// MOCK
+const ALL_TAGS = ["Math", "Phys", "Chem", "Bio", "Eng"];
+// Color mapping for tags
+const tagColors: { [key: string]: string } = {
+  Math: "bg-indigo-600 text-white",
+  Phys: "bg-yellow-400 text-yellow-900",
+  Chem: "bg-green-500 text-white",
+  Bio: "bg-cyan-500 text-white",
+  Eng: "bg-red-500 text-white",
+  Default: "bg-gray-500 text-white",
 };
 
 export default function SearchComponent({
@@ -33,12 +37,15 @@ export default function SearchComponent({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>(initialMode);
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [userResults, setUserResults] = useState<UserResult[]>([]);
-  const [postResults, setPostResults] = useState<PostResult[]>([]);
+
+
+  const [selectedTags, setSelectedTags] = useState<string[]>(["Math", "Phys"]);
+  const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+  const popoverButtonRef = useRef<HTMLButtonElement | null>(null);
+
 
   const BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -53,100 +60,51 @@ export default function SearchComponent({
     return () => document.removeEventListener("mousedown", onClickAway);
   }, []);
 
-  // Debounced fetch (User mode)
   useEffect(() => {
-    if (!open) return;
-    const q = query.trim();
-    const controller = new AbortController();
-
-    const t = setTimeout(async () => {
-      setLoading(true);
-      setError(null);
-      const USE_MOCK = "true"; // toggle to "false" to call API
-      try {
-        if (mode === "user") {
-          if (USE_MOCK) {
-            await new Promise((r) => setTimeout(r, 200));
-            const mockNames = ["Nano", "Tee", "Aea", "Mika", "Pond", "Jane", "Ikkyu"];
-            const list: UserResult[] = mockNames
-              .filter((n) => (q ? n.toLowerCase().includes(q.toLowerCase()) : true))
-              .map((n, i) => ({
-                id: `user-${i + 1}`,
-                username: n,
-                avatarUrl: "/image/DefaultAvatar.png",
-              }));
-            setUserResults(list);
-          } else {
-            const params = new URLSearchParams();
-            if (q) params.set("search", q);
-            const res = await fetch(`${BASE_URL}/api/v1/users?${params}`, {
-              signal: controller.signal,
-              credentials: "include",
-            });
-            const body = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(body?.message || "Request failed");
-            const list: UserResult[] = (body?.data ?? []).map((u: any) => ({
-              id: u.user_id ?? u.id,
-              username: u.user_name ?? u.username ?? "user",
-              avatarUrl: u.profile_picture ?? "/image/DefaultAvatar.png",
-            }));
-            setUserResults(list);
-          }
-        } else {
-          if (USE_MOCK) {
-            await new Promise((r) => setTimeout(r, 200));
-            const titles = [
-              "How to solve these quadratic equations",
-              "Need help with derivatives",
-              "Understanding vectors in 3D",
-              "Best way to balance chemical equations",
-              "Any tips for dynamic programming?"
-            ];
-            const list: PostResult[] = titles
-              .filter((t) => (q ? t.toLowerCase().includes(q.toLowerCase()) : true))
-              .map((t, i) => ({
-                id: `post-${i + 1}`,
-                title: t,
-                imageUrl: undefined,
-              }));
-            setPostResults(list);
-          } else {
-            const params = new URLSearchParams();
-            if (q) params.set("search", q);
-            const res = await fetch(`${BASE_URL}/api/v1/posts?${params}`, {
-              signal: controller.signal,
-              credentials: "include",
-            });
-            const body = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(body?.message || "Request failed");
-            const list: PostResult[] = (body?.data ?? []).map((p: any) => ({
-              id: p.post_id ?? p.id,
-              title: p.title ?? "Untitled",
-              imageUrl: p.problem_image ?? p.imageUrl ?? undefined,
-            }));
-            setPostResults(list);
-          }
-        }
-      } catch (err: any) {
-        if (controller.signal.aborted) return;
-        setError(err?.message || "Failed to search");
-        if (mode === "user") setUserResults([]);
-        else setPostResults([]);
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+    function onClickAway(e: MouseEvent) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        popoverButtonRef.current &&
+        !popoverButtonRef.current.contains(e.target as Node)
+      ) {
+        setTagPopoverOpen(false);
       }
-    }, 250);
+    }
+    document.addEventListener("mousedown", onClickAway);
+    return () => document.removeEventListener("mousedown", onClickAway);
+  }, []);
 
-    return () => {
-      clearTimeout(t);
-      controller.abort();
-    };
-  }, [open, mode, query]);
+  const { userResults, postResults, loading, error } = useSearch({
+    mode,
+    query,
+    selectedTags: mode === "post" ? selectedTags : [],
+    enabled: open, // Only search when dropdown is open
+  });
 
   const results = useMemo(
     () => (mode === "user" ? userResults : postResults),
     [mode, userResults, postResults]
   );
+
+  const removeTag = (tag: string) => {
+    setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  };
+  const addTag = (tag: string) => {
+    setSelectedTags((prev) => [...prev, tag]);
+    setTagPopoverOpen(false); // Close popover after adding
+  };
+  const availableTagsForPopover = ALL_TAGS.filter(
+    (t) => !selectedTags.includes(t)
+  );
+
+  // Helper function to handle link click
+  const handleLinkClick = (type: Mode, value: PostResult | UserResult) => {
+    onSelect?.({ type, value });
+    // Close dropdown after navigation
+    setOpen(false);
+    setQuery("");
+  };
 
   return (
     <div ref={containerRef} className={`${className} relative`}>
@@ -221,7 +179,111 @@ export default function SearchComponent({
             </label>
           </div>
 
-          {/* Results list (User mode) */}
+          {/* Post mode: Tags and Results */}
+          {mode === "post" && (
+            <>
+              {/* Tag selector */}
+              <div className="px-5 pb-3 flex items-center flex-wrap gap-2 border-b border-gray-200 relative">
+                {/* --- Render Selected Tags --- */}
+                {selectedTags.map((tag) => {
+                  const colors = tagColors[tag] || tagColors.Default;
+                  return (
+                    <div
+                      key={tag}
+                      className={`pl-2.5 pr-1 py-1 text-sm font-medium rounded-lg flex items-center gap-1 ${colors}`}
+                    >
+                      <span>{tag}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${tag} filter`}
+                        onClick={() => removeTag(tag)}
+                        className="w-4 h-4 rounded-full opacity-70 hover:opacity-100 hover:bg-black/20 grid place-items-center transition-all"
+                      >
+                        <CloseIcon style={{ fontSize: "0.8rem" }} />
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* --- Add Tag Button and Popover --- */}
+                {availableTagsForPopover.length > 0 && (
+                  <div className="relative">
+                    <button
+                      ref={popoverButtonRef}
+                      type="button"
+                      aria-label="Add tag filter"
+                      onClick={() => setTagPopoverOpen((prev) => !prev)}
+                      className={`w-6 h-6 rounded-full grid place-items-center border-2 ${
+                        tagPopoverOpen
+                          ? "border-purple-600 text-purple-600"
+                          : "border-gray-400 text-gray-400"
+                      } hover:border-purple-600 hover:text-purple-600 transition`}
+                    >
+                      <AddIcon style={{ fontSize: "1rem" }} />
+                    </button>
+
+                    {/* --- Popover Dropdown --- */}
+                    {tagPopoverOpen && (
+                      <div
+                        ref={popoverRef}
+                        className="absolute top-full left-0 mt-2 w-32 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-20"
+                      >
+                        {availableTagsForPopover.map((tag) => (
+                          <button
+                            key={tag}
+                            onClick={() => addTag(tag)}
+                            className="w-full text-left px-3 py-2 text-gray-800 hover:bg-purple-100 transition-colors"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Post results list */}
+              <div className="max-h-72 overflow-y-auto pr-1">
+                {loading && (
+                  <div className="px-5 py-4 text-gray-500 text-sm">Searching…</div>
+                )}
+                {error && !loading && (
+                  <div className="px-5 py-4 text-red-600 text-sm">{error}</div>
+                )}
+                {!loading && !error && results.length === 0 && (
+                  <div className="px-5 py-4 text-gray-500 text-sm">
+                    {query ? "No posts found" : "Start typing to search posts"}
+                  </div>
+                )}
+
+                {(results as PostResult[]).map((p, idx) => {
+                  const slug = slugify(p.title);
+                  const href = `/post/${p.id}/${slug}`;
+                  
+                  return (
+                    <Link
+                      key={p.id ?? idx}
+                      href={href}
+                      className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
+                      onClick={() => handleLinkClick("post", p)}
+                    >
+                      <div className="text-black font-semibold text-lg">{p.title}</div>
+                      {p.imageUrl ? (
+                        <img
+                          src={p.imageUrl}
+                          alt=""
+                          className="w-12 h-12 rounded object-cover ml-4"
+                        />
+                      ) : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* User mode: Results */}
           {mode === "user" && (
             <div className="max-h-72 overflow-y-auto pr-1">
               {loading && (
@@ -235,56 +297,23 @@ export default function SearchComponent({
                   {query ? "No users found" : "Start typing to search users"}
                 </div>
               )}
+
               {(results as UserResult[]).map((u, idx) => (
-                <button
+                <Link
                   key={u.id ?? idx}
-                  className="w-full text-left px-5 py-4 hover:bg-purple-100/60 focus:bg-purple-100/60 transition flex items-center gap-4"
-                  onClick={() => onSelect?.({ type: "user", value: u })}
+                  href={`/user/${u.username}`}
+                  className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
+                  onClick={() => handleLinkClick("user", u)}
                 >
-                  <div className="w-12 h-12 rounded-full bg-purple-300 overflow-hidden">
+                  {u.avatarUrl ? (
                     <img
-                      src={u.avatarUrl || "/image/DefaultAvatar.png"}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="text-xl font-semibold text-purple-700">
-                    {u.username}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {mode === "post" && (
-            <div className="max-h-72 overflow-y-auto pr-1">
-              {loading && (
-                <div className="px-5 py-4 text-gray-500 text-sm">Searching…</div>
-              )}
-              {error && !loading && (
-                <div className="px-5 py-4 text-red-600 text-sm">{error}</div>
-              )}
-              {!loading && !error && results.length === 0 && (
-                <div className="px-5 py-4 text-gray-500 text-sm">
-                  {query ? "No posts found" : "Start typing to search posts"}
-                </div>
-              )}
-
-              {(results as PostResult[]).map((p, idx) => (
-                <button
-                  key={p.id ?? idx}
-                  className="w-full text-left px-5 py-4 hover:bg-purple-50 transition flex items-center justify-between"
-                  onClick={() => onSelect?.({ type: "post", value: p })}
-                >
-                  <div className="text-black font-semibold text-lg">{p.title}</div>
-                  {p.imageUrl ? (
-                    <img
-                      src={p.imageUrl}
+                      src={u.avatarUrl}
                       alt=""
                       className="w-12 h-12 rounded object-cover ml-4"
                     />
                   ) : null}
-                </button>
+                  <div className="text-black font-semibold text-lg">{u.username}</div>
+                </Link>
               ))}
             </div>
           )}
