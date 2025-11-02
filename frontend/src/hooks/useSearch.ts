@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type Mode = "post" | "user";
 
@@ -42,39 +42,56 @@ type UseSearchResult = {
   error: string | null;
 };
 
+// Move BASE_URL outside the component or use a constant
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export function useSearch({
   mode,
   query,
   selectedTags = [],
   enabled = true,
-  debounceMs = 500, // Increased from 250ms
-  minQueryLength = 2, // Only search if query has at least 2 characters
+  debounceMs = 500,
+  minQueryLength = 2,
 }: UseSearchOptions): UseSearchResult {
   const [userResults, setUserResults] = useState<UserResult[]>([]);
   const [postResults, setPostResults] = useState<PostResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  // Use refs to track previous values and avoid unnecessary state updates
+  const prevQueryRef = useRef<string>("");
+  const prevModeRef = useRef<Mode>(mode);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      // Clear results when disabled
+      setUserResults([]);
+      setPostResults([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
 
     const q = query.trim();
     const controller = new AbortController();
 
     // Early return: if query is too short, clear results and don't fetch
     if (q.length < minQueryLength) {
-      if (mode === "user") {
-        setUserResults([]);
-      } else {
-        setPostResults([]);
-      }
+      // Use functional updates to avoid dependency on current state
+      setUserResults((prev) => (prev.length > 0 ? [] : prev));
+      setPostResults((prev) => (prev.length > 0 ? [] : prev));
       setLoading(false);
       setError(null);
       return;
     }
+
+    // Skip if query and mode haven't changed
+    if (q === prevQueryRef.current && mode === prevModeRef.current) {
+      return;
+    }
+
+    prevQueryRef.current = q;
+    prevModeRef.current = mode;
 
     const t = setTimeout(async () => {
       setLoading(true);
@@ -133,12 +150,7 @@ export function useSearch({
           } else {
             const params = new URLSearchParams();
             params.set("query", q);
-            // Add pagination if needed
-            // params.set("page", "1");
-            // params.set("limit", "20");
             
-            // Note: If you want to filter by tags, you might need to modify the API
-            // or filter client-side after getting results
             const res = await fetch(`${BASE_URL}/api/v1/posts?${params}`, {
               signal: controller.signal,
               credentials: "include",
@@ -180,8 +192,11 @@ export function useSearch({
       } catch (err: any) {
         if (controller.signal.aborted) return;
         setError(err?.message || "Failed to search");
-        if (mode === "user") setUserResults([]);
-        else setPostResults([]);
+        if (mode === "user") {
+          setUserResults([]);
+        } else {
+          setPostResults([]);
+        }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -191,7 +206,7 @@ export function useSearch({
       clearTimeout(t);
       controller.abort();
     };
-  }, [mode, query, selectedTags, enabled, debounceMs, minQueryLength, BASE_URL]);
+  }, [mode, query, selectedTags, enabled, debounceMs, minQueryLength]);
 
   return {
     userResults,

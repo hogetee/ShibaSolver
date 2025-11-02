@@ -133,7 +133,7 @@ export default function SearchComponent({
 
       {/* Dropdown (open state) */}
       {open && (
-        <div className="absolute -top-5 left-0 w-full z-10 rounded-3xl shadow-xl bg-white backdrop-blur border border-gray-200 overflow-hidden">          {/* Header row with input and icon, same visual as compact bar */}
+        <div className="absolute -top-5 left-0 w-full z-10 rounded-3xl shadow-xl bg-white backdrop-blur border border-gray-200 ">          {/* Header row with input and icon, same visual as compact bar */}
           <div className="relative">
             <input
                 ref={inputRef}
