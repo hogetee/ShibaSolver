@@ -97,7 +97,7 @@ export function useSearch({
       setLoading(true);
       setError(null);
 
-      const USE_MOCK = true;
+      const USE_MOCK = false;
 
       try {
         if (mode === "user") {
@@ -115,8 +115,9 @@ export function useSearch({
           } else {
             const params = new URLSearchParams();
             params.set("search", q);
-            const res = await fetch(`${BASE_URL}/api/v1/users?${params}`, {
-              signal: controller.signal,
+            const res = await fetch(`${BASE_URL}/api/v1/users?query=${params}`, {
+              method: "GET",
+              // signal: controller.signal,
               credentials: "include",
             });
             const body = await res.json().catch(() => ({}));
