@@ -16,6 +16,7 @@ const reportReasons = [
   "Hate Speech or Discrimination",
   "Posting Inappropriate Content",
   "Spam",
+  "Misinformation or Giving False Information",
   "Other",
 ];
 

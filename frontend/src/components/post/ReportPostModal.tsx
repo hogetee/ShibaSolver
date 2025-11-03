@@ -17,7 +17,7 @@ const reportReasons = [
   "Violent Content",
   "Nudity or Sexual Content",
   "Intellectual Property Violation",
-  "Other", // เพิ่มเหตุผลอื่นๆ
+  "Other", 
 ];
 
 const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {

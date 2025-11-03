@@ -16,6 +16,7 @@ const reportReasons = [
   "Violent Content",
   "Nudity or Sexual Content",
   "Intellectual Property Violation",
+  "Misinformation or False Information",
   "Other",
 ];
 
