@@ -65,8 +65,8 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
         </button>
 
         <h2 className="text-3xl font-semibold text-gray-900 mb-4">Report User</h2>
-        <p className="text-l text-gray-600 mb-6">
-          Why are you reporting <span className="font-semibold">{userName}</span>? 
+        <p className="text-l text-gray-600 mb-4">
+          Why are you reporting <span className="font-semibold text-[#4B0082]">{userName}</span>? 
           Your report is anonymous.
         </p>
 

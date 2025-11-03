@@ -64,7 +64,7 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
         </button>
         
         <h2 className="text-3xl font-semibold text-gray-900 mb-4">Report Post</h2>
-        <p className="text-l text-gray-600 mb-6">
+        <p className="text-l text-gray-600 mb-4">
           Why are you reporting this post? Your report is anonymous.
         </p>
 

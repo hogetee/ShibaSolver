@@ -10,6 +10,7 @@ import EditProfileButton from "./EditProfileButton";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { FlagIcon } from '@heroicons/react/24/outline'; 
 import ReportUserModal from './ReportUserModal';
+import { Flag } from 'lucide-react';
 
 type UserProfile = {
   id: number;
@@ -81,9 +82,9 @@ export default function ProfileHeader({ dummyUser }: Props) {
               <div className="flex justify-center mt-2">
                 <button
                   onClick={() => setIsReportModalOpen(true)}
-                  className="flex items-center justify-center gap-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 transition-colors"
+                  className="flex items-center justify-center text-m font-bold text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 transition-colors"
                 >
-                  <FlagIcon className="w-4 h-4" />
+                  <Flag className="w-4 h-4 mr-3" />
                   Report
                 </button>
               </div>
