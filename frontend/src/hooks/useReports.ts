@@ -1,8 +1,32 @@
 import { useState } from "react";
 import { Report } from "@/components/report_log/ReportType";
+import { ApiReportResponse } from "@/components/report_log/ReportType";
+
 export default function useReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const mapApiResponseToReports = (apiData: ApiReportResponse['data']): Report[] => {
+    return apiData.map((item, index) => ({
+      id: item.report_id,
+      reportNumber: parseInt(item.report_id),
+      reportedBy: item.reporter_name,
+      reason: item.reason,
+      reportedDate: new Date(item.created_at).toLocaleDateString('en-GB'),
+      status: item.status === 'pending' ? 'unreviewed' as const : 'reviewed' as const,
+      type: "posts" as const,
+      targetContent: {
+        id: item.target_id,
+        title: item.post_title,
+        content: "", // Not provided by API
+        author: item.post_owner_name,
+        tags: [], // Not provided by API
+        likes: 0, // Not provided by API
+        comments: 0, // Not provided by API
+        solved: false, // Not provided by API
+      },
+    }));
+  };
 
   const mockReports: Report[] = [
     {
@@ -40,21 +64,29 @@ export default function useReports() {
     },
   ];
 
-  const fetchReports = (
+  const fetchReports = async (
     status: "unreviewed" | "reviewed",
     type: "posts" | "comments" | "account"
   ) => {
     setLoading(true);
 
-    //subject to change to actually report api
-    const filtered = mockReports.filter(
-      (report) => report.status === status && report.type === type
-    );
-
-    setTimeout(() => {
-      setReports(filtered);
+    try {
+      const apiStatus = status === "unreviewed" ? "pending" : "accepted";
+      const response = await fetch(`http://localhost:5003/api/v1/admins/${type}?status=${apiStatus}`);
+      const data: ApiReportResponse = await response.json();
+      
+      if (data.success) {
+        const mappedReports = mapApiResponseToReports(data.data);
+        setReports(mappedReports);
+      } else {
+        setReports([]);
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      setReports([]);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const removeReport = (reportId: string) => {

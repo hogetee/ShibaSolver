@@ -23,3 +23,19 @@ export interface Report {
     profilePicture?: string;
   };
 }
+
+export interface ApiReportResponse {
+  success: boolean;
+  count: number;
+  data: {
+    report_id: string;
+    reporter_id: string;
+    target_id: string;
+    reason: string;
+    status: string;
+    created_at: string;
+    reporter_name: string;
+    post_title: string;
+    post_owner_name: string;
+  }[];
+}
