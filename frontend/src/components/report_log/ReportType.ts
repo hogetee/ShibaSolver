@@ -5,7 +5,7 @@ export interface Report {
   reason: string;
   reportedDate: string;
   status: 'unreviewed' | 'reviewed';
-  type: 'posts' | 'account';
+  type: 'posts' | 'comments' | 'account';
   targetContent?: {
     id: string;
     title: string;
@@ -24,7 +24,7 @@ export interface Report {
   };
 }
 
-export interface ApiReportResponse {
+export interface ApiPostReportResponse {
   success: boolean;
   count: number;
   data: {
@@ -37,5 +37,36 @@ export interface ApiReportResponse {
     reporter_name: string;
     post_title: string;
     post_owner_name: string;
+  }[];
+}
+
+export interface ApiCommentReportResponse {
+  success: boolean;
+  count: number;
+  data: {
+    report_id: string;
+    reporter_id: string;
+    target_id: string;
+    reason: string;
+    status: string;
+    created_at: string;
+    reporter_name: string;
+    comment_text: string;
+    comment_owner_name: string;
+  }[];
+}
+
+export interface ApiAccountReportResponse {
+  success: boolean;
+  count: number;
+  data: {
+    report_id: string;
+    reporter_id: string;
+    target_id: string;
+    reason: string;
+    status: string;
+    created_at: string;
+    reporter_name: string;
+    target_name: string;
   }[];
 }

@@ -1,7 +1,7 @@
 import ReportCard from "./ReportCard";
 import useReports from "@/hooks/useReports";
 import { useEffect } from "react";
-
+import AccountReportCard from "./AccountReportCard";
 type ReviewStatus = "unreviewed" | "reviewed";
 type ReportType = "posts" | "comments" | "account";
 
@@ -9,11 +9,17 @@ export default function ReportList(
   reviewStatus: ReviewStatus,
   reportType: ReportType
 ) {
-  const { reports, loading, fetchReports, removeReport, rejectReport } =
+  const { reports, loading, fetchPostReports, fetchCommentReports, fetchAccountReports, removeReport, rejectReport } =
     useReports();
 
   useEffect(() => {
-    fetchReports(reviewStatus, reportType);
+    if (reportType === "posts") {
+      fetchPostReports(reviewStatus);
+    } else if (reportType === "comments") {
+      fetchCommentReports(reviewStatus);
+    } else if (reportType === "account") {
+      fetchAccountReports(reviewStatus);
+    }
   }, [reviewStatus, reportType]);
 
   return (
@@ -31,12 +37,21 @@ export default function ReportList(
           </div>
         ) : (
           reports.map((report) => (
-            <ReportCard
-              key={report.id}
-              report={report}
-              onRemove={removeReport}
-              onReject={rejectReport}
-            />
+            reportType === "account" ? (
+              <AccountReportCard
+                key={report.id}
+                report={report}
+                onRemove={removeReport}
+                onReject={rejectReport}
+              />
+            ) : (
+              <ReportCard
+                key={report.id}
+                report={report}
+                onRemove={removeReport}
+                onReject={rejectReport}
+              />
+            )
           ))
         )}
       </div>

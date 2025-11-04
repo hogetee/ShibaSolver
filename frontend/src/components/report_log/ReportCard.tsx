@@ -23,12 +23,7 @@ export default function ReportCard({
           </span>
           <span className="text-sm text-gray-600">
             Reported by:{" "}
-            <Link
-              href={`/user/${report.reportedBy}`}
-              className="font-medium text-accent-400 hover:text-accent-600 hover:underline cursor-pointer"
-            >
               {report.reportedBy}
-            </Link>
           </span>
         </div>
       </div>
@@ -52,13 +47,8 @@ export default function ReportCard({
       {report.targetContent && (
         <div className="mb-4">
           <h4 className="text-sm font-medium text-gray-900 mb-2">
-            Targeted Post created by{" "}
-            <Link
-              href={`/user/${report.targetContent.author}`}
-              className="text-accent-400 hover:text-accent-600 hover:underline cursor-pointer"
-            >
-              {report.targetContent.author}
-            </Link>
+            Reported {report.type === "posts" ? "Post" : "Comment"} by{" "}
+            {report.targetContent.author}
           </h4>
           <div className="border rounded-lg p-4 bg-gray-50">
             {/* Post Tags */}
@@ -109,31 +99,7 @@ export default function ReportCard({
         </div>
       )}
 
-      {/* Target User (for account reports) */}
-      {report.targetUser && (
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-2">
-            Reported Account
-          </h4>
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-gray-600 font-medium">
-                  {report.targetUser.username.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">
-                  @{report.targetUser.username}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {report.targetUser.email}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Action Buttons */}
       {report.status === "unreviewed" && (
@@ -142,7 +108,7 @@ export default function ReportCard({
             onClick={() => onRemove(report.id)}
             className="cursor-pointer px-10 sm:px-12 md:px-15 lg:px-17 py-2 bg-red-500 text-white rounded-lg font-xl font-black hover:bg-red-600 transition-colors"
           >
-            {report.type === "posts" ? "Remove Post" : "Ban Account"}
+            {report.type === "posts" ? "Remove Post" : "Remove Comment"}
           </button>
           <button
             onClick={() => onReject(report.id)}
