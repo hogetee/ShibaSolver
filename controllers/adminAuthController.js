@@ -36,6 +36,7 @@ exports.loginAdmin = async (req, res) => {
 
     return res.json({
       success: true,
+      token,
       data: { admin_id: admin.admin_id, name: admin.name, email: admin.email }
     });
   } catch (err) {

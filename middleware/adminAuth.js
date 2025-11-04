@@ -11,7 +11,7 @@ function adminProtect(req, res, next) {
     if (payload.scope !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
-    req.admin = { adminId: payload.uid };
+    req.admin = { admin_id: payload.uid };
     next();
   } catch {
     return res.status(401).json({ success: false, message: 'Invalid/Expired token' });
