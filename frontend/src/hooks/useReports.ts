@@ -8,7 +8,7 @@ export default function useReports() {
     {
       id: "1",
       reportNumber: 23,
-      reportedBy: "nam",
+      reportedBy: "namanam",
       reason: "Offensive Content",
       reportedDate: "31/10/25",
       status: "unreviewed",
@@ -18,7 +18,7 @@ export default function useReports() {
         id: "1",
         title: "How to solve these quadratic equations",
         content: "I need help with factoring x²+5x+6=0",
-        author: "Nano",
+        author: "Best",
         tags: ["Unsolved", "Math"],
         likes: 12,
         comments: 4,

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import StatusContainer from "@/components/report_log/StatusContainer";
 import ContentTypeContainer from "@/components/report_log/ContentTypeContainer";
 import ReportList from "@/components/report_log/ReportList";
+import GavelIcon from '@mui/icons-material/Gavel';
 
 type ReviewStatus = "unreviewed" | "reviewed";
 type ReportType = "posts" | "account";
@@ -40,12 +41,15 @@ export default function ReportLogPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 pt-20 font-display">
       <div className="max-w-6xl mx-auto">
-        <div className="my-4">
+        <div className="my-4 flex items-center justify-between">
           <div className="flex gap-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-dark-900">
               Report Log
             </h1>
             {StatusContainer(reviewStatus, handleStatusChange)}
+          </div>
+          <div className="cursor-pointer bg-accent-200 pt-1 pb-2 pl-2 pr-1 rounded-full text-accent-400  hover:text-accent-600 hover:bg-accent-400/50" onClick={() => router.push('/admin')}>
+            <GavelIcon fontSize="small" />
           </div>
         </div>
         {ContentTypeContainer(reportType, handleTypeChange)}

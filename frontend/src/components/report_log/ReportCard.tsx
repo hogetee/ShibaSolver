@@ -1,5 +1,6 @@
-import React from 'react';
-import { Report } from './ReportType';
+import React from "react";
+import { Report } from "./ReportType";
+import Link from "next/link";
 
 interface ReportCardProps {
   report: Report;
@@ -22,30 +23,42 @@ export default function ReportCard({
           </span>
           <span className="text-sm text-gray-600">
             Reported by:{" "}
-            <span className="font-medium">{report.reportedBy}</span>
+            <Link
+              href={`/user/${report.reportedBy}`}
+              className="font-medium text-accent-400 hover:text-accent-600 hover:underline cursor-pointer"
+            >
+              {report.reportedBy}
+            </Link>
           </span>
         </div>
-        <span className="text-sm text-dark-900">{report.reportedDate}</span>
       </div>
 
       {/* Reason Tag */}
-      <div className="mb-4">
-        <span className="inline-block px-3 py-1 rounded-full text-md font-black bg-accent-600 text-white">
-          {report.reason}
-        </span>
-      </div>
-
-      {/* Report Details */}
-      <div className="bg-accent-200 rounded-lg p-4 mb-4">
-        <h4 className="text-lg font-black text-dark-900 mb-2">Details</h4>
-        <p className="text-sm text-dark-900">{report.details}</p>
+      <div className="mb-4 flex justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="inline-block px-3 py-1 rounded-full text-md font-black bg-accent-600 text-white">
+            Reason
+          </div>
+          <span className="text-md font-black text-dark-900">
+            {report.reason}
+          </span>
+        </div>
+        <div className="text-sm text-gray-500 flex items-center">
+          Reported on: {report.reportedDate}
+        </div>
       </div>
 
       {/* Target Content (for posts) NEED TO CHANGE */}
       {report.targetContent && (
         <div className="mb-4">
           <h4 className="text-sm font-medium text-gray-900 mb-2">
-            Targeted Post created by {report.targetContent.author}
+            Targeted Post created by{" "}
+            <Link
+              href={`/user/${report.targetContent.author}`}
+              className="text-accent-400 hover:text-accent-600 hover:underline cursor-pointer"
+            >
+              {report.targetContent.author}
+            </Link>
           </h4>
           <div className="border rounded-lg p-4 bg-gray-50">
             {/* Post Tags */}
@@ -67,7 +80,8 @@ export default function ReportCard({
                 </span>
               ))}
             </div>
-            {/* Post Content */}
+
+            {/* Post Content NEED TO FIX TO MATCH POSTS*/}
             <h3 className="font-medium text-gray-900 mb-2">
               {report.targetContent.title}
             </h3>

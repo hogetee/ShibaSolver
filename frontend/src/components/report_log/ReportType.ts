@@ -6,7 +6,6 @@ export interface Report {
   reportedDate: string;
   status: 'unreviewed' | 'reviewed';
   type: 'posts' | 'account';
-  details: string;
   targetContent?: {
     id: string;
     title: string;

@@ -1,6 +1,6 @@
 export default function StatusContainer(reviewStatus: string, handleStatusChange: (status: 'unreviewed' | 'reviewed') => void) {
     return (
-        <div className="flex space-x-4 mb-4">
+        <div className="flex space-x-4">
             <button
                 onClick={() => handleStatusChange('unreviewed')}
                 className={`px-4 py-2 rounded-full font-medium transition-colors cursor-pointer ${
