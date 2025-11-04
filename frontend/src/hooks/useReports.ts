@@ -13,7 +13,6 @@ export default function useReports() {
       reportedDate: "31/10/25",
       status: "unreviewed",
       type: "posts",
-      details: "This post is racist against people who are bad at math.",
       targetContent: {
         id: "1",
         title: "How to solve these quadratic equations",
@@ -33,7 +32,6 @@ export default function useReports() {
       reportedDate: "30/10/25",
       status: "unreviewed",
       type: "account",
-      details: "This account is posting spam content repeatedly.",
       targetUser: {
         id: "2",
         username: "spammer123",
@@ -44,7 +42,7 @@ export default function useReports() {
 
   const fetchReports = (
     status: "unreviewed" | "reviewed",
-    type: "posts" | "account"
+    type: "posts" | "comments" | "account"
   ) => {
     setLoading(true);
 

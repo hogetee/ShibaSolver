@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import StatusContainer from "@/components/report_log/StatusContainer";
 import ContentTypeContainer from "@/components/report_log/ContentTypeContainer";
 import ReportList from "@/components/report_log/ReportList";
-import GavelIcon from '@mui/icons-material/Gavel';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 
 type ReviewStatus = "unreviewed" | "reviewed";
-type ReportType = "posts" | "account";
+type ReportType = "posts" | "comments" | "account";
 
 export default function ReportLogPage() {
   const router = useRouter();
@@ -48,8 +48,8 @@ export default function ReportLogPage() {
             </h1>
             {StatusContainer(reviewStatus, handleStatusChange)}
           </div>
-          <div className="cursor-pointer bg-accent-200 pt-1 pb-2 pl-2 pr-1 rounded-full text-accent-400  hover:text-accent-600 hover:bg-accent-400/50" onClick={() => router.push('/admin')}>
-            <GavelIcon fontSize="small" />
+          <div className="cursor-pointer bg-accent-200 p-1 rounded-full text-accent-400  hover:text-accent-600 hover:bg-accent-400/50" onClick={() => router.push('/admin')}>
+            <KeyboardArrowLeftIcon fontSize="small" />
           </div>
         </div>
         {ContentTypeContainer(reportType, handleTypeChange)}

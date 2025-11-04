@@ -1,6 +1,6 @@
 export default function ContentTypeContainer(
   reportType: string,
-  handleTypeChange: (type: "posts" | "account") => void
+  handleTypeChange: (type: "posts" | "comments" | "account") => void
 ) {
   return (
     <div className="flex space-x-4 mb-4">
@@ -12,7 +12,17 @@ export default function ContentTypeContainer(
             : "text-dark-900/50 hover:text-gray-700"
         }`}
       >
-        Posts/Comments
+        Posts
+      </button>
+      <button
+        onClick={() => handleTypeChange("comments")}
+        className={`pb-2 font-medium transition-colors cursor-pointer ${
+          reportType === "comments"
+            ? "text-dark-900 border-b-2 border-accent-400"
+            : "text-dark-900/50 hover:text-gray-700"
+        }`}
+      >
+        Comments
       </button>
       <button
         onClick={() => handleTypeChange("account")}

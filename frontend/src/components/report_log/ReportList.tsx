@@ -3,7 +3,7 @@ import useReports from "@/hooks/useReports";
 import { useEffect } from "react";
 
 type ReviewStatus = "unreviewed" | "reviewed";
-type ReportType = "posts" | "account";
+type ReportType = "posts" | "comments" | "account";
 
 export default function ReportList(
   reviewStatus: ReviewStatus,
