@@ -14,4 +14,7 @@ router.get("/accounts", adminProtect, reportCtrl.adminGetAccountReports);
 router.get("/posts", adminProtect, reportCtrl.adminGetPostReports);
 router.get("/comments", adminProtect, reportCtrl.adminGetCommentReports);
 
+
+router.patch("/accounts/:reportId/status", adminProtect, reportCtrl.adminUpdateReportStatus);
+
 module.exports = router;

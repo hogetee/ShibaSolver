@@ -301,3 +301,51 @@ exports.adminGetCommentReports = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * @desc    Admin: update report status (accept / reject)
+ * @route   PATCH /api/v1/reports/:id/status
+ * @access  Admin
+ */
+exports.adminUpdateReportStatus = async (req, res, next) => {
+  const pool = req.app.locals.pool;
+  try {
+    // รองรับได้ทั้ง :id และ :reportId
+    const idParam = req.params.id ?? req.params.reportId ?? req.params.report_id;
+    const { status } = req.body;
+
+    const validStatuses = ["pending", "accepted", "rejected"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    const reportId = Number.parseInt(idParam, 10);
+    if (!Number.isInteger(reportId) || reportId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid report id" });
+    }
+
+    // ถ้ามีระบบ auth แอดมิน
+    const adminId = req.user?.admin_id || req.admin?.admin_id || null;
+
+    const sql = `
+      UPDATE reports
+      SET status = $1::report_status,
+          admin_id = COALESCE($3, admin_id)
+      WHERE report_id = $2
+      RETURNING report_id, target_type, target_id, status, admin_id;
+    `;
+    const { rows } = await pool.query(sql, [status, reportId, adminId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Report not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Report #${reportId} updated to '${status}'`,
+      data: rows[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+};
