@@ -1,3 +1,6 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 /**
  * @desc    Report a violating account (user)
  * @route   POST /api/v1/reports/accounts
@@ -324,8 +327,10 @@ exports.adminUpdateReportStatus = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid report id" });
     }
 
-    // ถ้ามีระบบ auth แอดมิน
-    const adminId = req.user?.admin_id || req.admin?.admin_id || null;
+    const adminId = req.admin?.admin_id;
+    if (!adminId) {
+      return res.status(403).json({ success: false, message: 'Admin authentication required' });
+    }
 
     const sql = `
       UPDATE reports
