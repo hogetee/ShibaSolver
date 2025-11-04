@@ -286,8 +286,8 @@ exports.createComment = async (req, res) => {
         await createNotification(pool, {
           toUserId: postOwnerId,
           type: 'comment',
-          message: 'Someone commented on your post.',
-          link: `/posts/${post_id}#comment-${newComment.comment_id}`,
+          message: `${actorName} commented on your post: "${text.slice(0, 40)}${text.length > 40 ? '…' : ''}"`,
+          link: `/post/${post_id}#comment-${newComment.comment_id}`,
         });
       }
 
@@ -296,8 +296,8 @@ exports.createComment = async (req, res) => {
         await createNotification(pool, {
           toUserId: parentOwnerId,
           type: 'reply',
-          message: 'Someone replied to your comment.',
-          link: `/posts/${post_id}#comment-${newComment.comment_id}`,
+          message: `${actorName} replied: "${text.slice(0, 40)}${text.length > 40 ? '…' : ''}"`,
+          link: `/post/${post_id}#comment-${newComment.comment_id}`,
         });
       }
 
@@ -538,13 +538,21 @@ exports.replyToComment = async (req, res, next) => {
     const parentOwnerId = parent.parent_user_id;
 
     if (Number(parentOwnerId) !== Number(actorUserId)) {
+
+      const actorRes = await pool.query(
+        `SELECT display_name FROM users WHERE user_id = $1`,
+        [actorUserId]
+      );
+      const actorName = actorRes.rows[0]?.display_name || 'Someone';
+
       await createNotification(pool, {
         toUserId: parentOwnerId,
         type: 'reply',
-        message: 'Someone replied to your comment.',
-        link: `/posts/${parent.post_id}#comment-${reply.comment_id}`,
+         message: `${actorName} replied: "${text.slice(0, 40)}${text.length > 40 ? '…' : ''}"`,
+        link: `/post/${parent.post_id}#comment-${reply.comment_id}`,
       });
     }
+    
     return res.status(201).json({ success: true, data: reply });
   } catch (err) {
     try {
