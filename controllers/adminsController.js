@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { createNotification } = require('../services/notificationService');
 
 /**
  * @desc    Get all admins
@@ -11,8 +12,8 @@ exports.getAllAdmins = (req, res) => {
 };
 
 /**
- * @desc    Get a single admin by ID
- * @route   GET /api/v1/admins/:id
+ * @desc    Admin delete a post (soft delete) and cascade delete comments
+ * @route   DELETE /api/v1/admins/posts/:postId
  * @access  Private/Admin
  */
 exports.adminDeletePost = async (req, res, next) => {
@@ -30,8 +31,8 @@ exports.adminDeletePost = async (req, res, next) => {
     }
 
     await client.query("BEGIN");
-
-    // 1) soft delete post (เฉพาะยังไม่ถูกลบ)
+    
+   // 1) soft delete post (เฉพาะยังไม่ถูกลบ)
     const upPost = await client.query(
       `
       UPDATE posts
@@ -45,6 +46,7 @@ exports.adminDeletePost = async (req, res, next) => {
       await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Post not found or already deleted" });
     }
+    const postOwnerId = upPost.rows[0].user_id;
 
     // 2) cascade soft delete comments ใต้โพสต์นี้
     await client.query(
@@ -68,6 +70,17 @@ exports.adminDeletePost = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
+
+    // 4) แจ้งเตือนเจ้าของโพสต์ (ทำหลัง COMMIT) ด้วย notification_type = 'admin_delete'
+     if (postOwnerId) {
+      await createNotification(pool, {
+        toUserId: postOwnerId,
+        type: 'admin_delete',
+        message: 'Your post has been removed by an administrator.',
+        link: `/post/${postId}`,
+      });
+    }
+
     return res
       .status(200)
       .json({ success: true, message: "Post deleted with comments cascaded", data: upPost.rows[0] });
@@ -135,6 +148,16 @@ exports.adminBanUser = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
+
+    if (!alreadyBanned) {
+      await createNotification(pool, {
+        toUserId: userId,
+        type: 'ban',
+        message: 'Your account has been banned by an administrator.',
+        link: null,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: { user_id: userId, user_state: 'ban' },
@@ -204,6 +227,16 @@ exports.adminUnbanUser = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
+
+    if (!alreadyNormal) {
+      await createNotification(pool, {
+        toUserId: userId,
+        type: 'unban',
+        message: 'Your account has been unbanned by an administrator.',
+        link: null,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: { user_id: userId, user_state: 'normal' },

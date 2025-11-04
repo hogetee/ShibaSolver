@@ -1,4 +1,3 @@
-// services/notificationService.js
 async function createNotification(pool, {
   toUserId,
   type,

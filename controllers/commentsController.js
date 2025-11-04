@@ -1,3 +1,4 @@
+const { createNotification } = require('../services/notificationService');
 // helper เล็ก ๆ สำหรับ validation แบบง่าย
 function isNonEmptyString(s) {
   return typeof s === "string" && s.trim().length > 0;
@@ -243,9 +244,11 @@ exports.createComment = async (req, res) => {
           .status(404)
           .json({ success: false, message: "post not found" });
       }
+      const postOwnerId = postRes.rows[0].user_id;
 
       // 4) ถ้ามี parent_comment ให้เช็คว่าอยู่โพสต์เดียวกัน
       let parentId = null;
+      let parentOwnerId = null;
       if (parent_comment != null) {
         const parentRes = await client.query(
           "SELECT comment_id, post_id FROM comments WHERE comment_id = $1 AND is_deleted = FALSE",
@@ -265,6 +268,7 @@ exports.createComment = async (req, res) => {
           });
         }
         parentId = parent_comment;
+        parentOwnerId = parentRes.rows[0].user_id; 
       }
 
       // 5) INSERT comment
@@ -276,6 +280,26 @@ exports.createComment = async (req, res) => {
       );
 
       await client.query("COMMIT");
+
+       // 5.1 แจ้งเจ้าของโพสต์ (ถ้าคนคอมเมนต์ไม่ใช่เจ้าของโพสต์เอง)
+      if (postOwnerId && postOwnerId !== userId) {
+        await createNotification(pool, {
+          toUserId: postOwnerId,
+          type: 'comment',
+          message: 'Someone commented on your post.',
+          link: `/posts/${post_id}#comment-${newComment.comment_id}`,
+        });
+      }
+
+      // 5.2 ถ้ามี parent_comment -> แจ้งเจ้าของคอมเมนต์ต้นทางด้วย (และไม่ใช่คนเดียวกับเรา)
+      if (parentOwnerId && parentOwnerId !== userId) {
+        await createNotification(pool, {
+          toUserId: parentOwnerId,
+          type: 'reply',
+          message: 'Someone replied to your comment.',
+          link: `/posts/${post_id}#comment-${newComment.comment_id}`,
+        });
+      }
 
       return res.status(201).json({ success: true, data: insertRes.rows[0] });
     } catch (e) {
@@ -507,23 +531,20 @@ exports.replyToComment = async (req, res, next) => {
     );
     const reply = ins.rows[0];
 
-    // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
-    if (Number(parent.parent_user_id) !== Number(actorUserId)) {
-      await client.query(
-        `INSERT INTO notifications
-         (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
-         VALUES ($1, $2, $3, $4, $5, 'reply')`,
-        [
-          parent.parent_user_id,
-          actorUserId,
-          parent.post_id,
-          reply.comment_id,
-          parent.comment_id,
-        ]
-      );
-    }
-
     await client.query("COMMIT");
+
+    // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
+    const pool = req.app.locals.pool;
+    const parentOwnerId = parent.parent_user_id;
+
+    if (Number(parentOwnerId) !== Number(actorUserId)) {
+      await createNotification(pool, {
+        toUserId: parentOwnerId,
+        type: 'reply',
+        message: 'Someone replied to your comment.',
+        link: `/posts/${parent.post_id}#comment-${reply.comment_id}`,
+      });
+    }
     return res.status(201).json({ success: true, data: reply });
   } catch (err) {
     try {
