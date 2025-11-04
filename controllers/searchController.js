@@ -141,7 +141,8 @@ exports.searchPosts = async (req, res) => {
         res.status(200).json({
             success: true,
             count: posts.length,
-            pagination: { page, limit, has_next_page: hasNextPage },
+            page,
+            has_next_page: hasNextPage,
             posts: posts.map(({ rank, ...post }) => post), // Exclude rank from final output
         });
     } catch (error) {
