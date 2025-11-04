@@ -20,7 +20,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE notification_type AS ENUM ('comment','mention');
+    CREATE TYPE notification_type AS ENUM ('comment','mention','ban','unban','admin_delete');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
