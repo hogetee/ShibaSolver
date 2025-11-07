@@ -239,7 +239,8 @@ exports.adminGetAccountReports = async (req, res, next) => {
       SELECT 
         r.report_id, r.reporter_id, r.target_id, r.reason, r.status, r.created_at,
         u1.display_name AS reporter_name,
-        u2.display_name AS target_name
+        u2.display_name AS target_name,
+        u2.user_name     AS target_username
       FROM reports r
       JOIN users u1 ON u1.user_id = r.reporter_id
       JOIN users u2 ON u2.user_id = r.target_id
