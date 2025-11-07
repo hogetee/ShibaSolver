@@ -25,42 +25,59 @@ export default function TopMenu() {
   const pathname = usePathname() ?? "";
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isClient, setIsClient] = useState(false); // ✅ added
+  const [isClient, setIsClient] = useState(false);
 
-  // ✅ Mark as client after first render
+  // ✅ Prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    const checkAuthStatus = () => {
+    const checkAuthStatus = async () => {
       try {
-        const storedUserData = localStorage.getItem("userData");
         const storedUsername = localStorage.getItem("username");
 
-        if (storedUserData) {
-          const parsed = JSON.parse(storedUserData);
-          setUser({
-            username: parsed.user_name || storedUsername || "Guest",
-            image: parsed.profile_picture || "/default-avatar.png",
-          });
-          setIsLoggedIn(true);
+        if (!storedUsername) {
+          setIsLoggedIn(false);
+          setUser(null);
           return;
         }
 
-        if (storedUsername) {
-          setUser({
-            username: storedUsername,
-            image: "/default-avatar.png",
-          });
-          setIsLoggedIn(true);
+        // ✅ Verify login with backend
+        const res = await fetch(
+          `http://localhost:5000/api/v1/users/${storedUsername}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        const json = await res.json();
+
+        if (!json.success) {
+          // ❌ Username invalid or user logged out at server
+          localStorage.removeItem("username");
+          localStorage.removeItem("userData");
+          setIsLoggedIn(false);
+          setUser(null);
           return;
         }
 
-        setIsLoggedIn(false);
-        setUser(null);
+        // ✅ Login confirmed
+        const backendUser = json.data;
+
+        setUser({
+          username: backendUser.user_name,
+          image: backendUser.profile_picture || "/default-avatar.png",
+        });
+
+        // ✅ Replace stale data in local storage
+        localStorage.setItem("username", backendUser.user_name);
+        localStorage.setItem("userData", JSON.stringify(backendUser));
+
+        setIsLoggedIn(true);
       } catch (err) {
-        console.error("Error checking auth status:", err);
+        console.error("Auth check error:", err);
         setIsLoggedIn(false);
         setUser(null);
       }
@@ -68,6 +85,7 @@ export default function TopMenu() {
 
     checkAuthStatus();
 
+    // ✅ Listen to login updates from other tabs
     window.addEventListener("storage", checkAuthStatus);
     return () => window.removeEventListener("storage", checkAuthStatus);
   }, []);
@@ -79,59 +97,45 @@ export default function TopMenu() {
 
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
-      <Link
-        href="/"
-        className="font-sans font-black text-3xl mr-6 text-white px-4"
-      >
+      {/* Logo */}
+      <Link href="/" className="font-sans font-black text-3xl mr-6 text-white px-4">
         Shiba
       </Link>
 
-      <div className="relative flex-grow mx-8">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full rounded-full px-5 pr-10 py-1.5 text-black focus:outline-none bg-white border border-gray-300"
-        />
-        <button
-          type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-        >
-          <SearchIcon fontSize="small" />
-        </button>
-      </div>
-
+      
+      {/* Nav Icons */}
       <div className="flex items-center space-x-3 ml-6">
         <Link href="/" passHref>
-          <IconButton size="large" aria-label="home" className="!text-accent-200">
+          <IconButton size="large" className="!text-accent-200">
             {isActive("/") ? <Home sx={{ fontSize: 36 }} /> : <HomeOutlined sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
         <Link href="/favorites" passHref>
-          <IconButton size="large" aria-label="favorites" className="!text-accent-200">
+          <IconButton size="large" className="!text-accent-200">
             {isActive("/favorites") ? <Favorite sx={{ fontSize: 36 }} /> : <FavoriteBorder sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
         <Link href="/settings" passHref>
-          <IconButton size="large" aria-label="settings" className="!text-accent-200">
+          <IconButton size="large" className="!text-accent-200">
             {isActive("/settings") ? <Settings sx={{ fontSize: 36 }} /> : <SettingsOutlined sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
         <Link href="/notifications" passHref>
-          <IconButton size="large" aria-label="notifications" className="!text-accent-200">
+          <IconButton size="large" className="!text-accent-200">
             {isActive("/notifications") ? <Notifications sx={{ fontSize: 36 }} /> : <NotificationsNone sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
-        {/* ✅ Prevent hydration mismatch */}
-        {!isClient ? null : isLoggedIn ? (
-          <Link href={`/user/${user?.username}`} passHref>
+        {/* ✅ Safe client render */}
+        {!isClient ? null : isLoggedIn && user ? (
+          <Link href={`/user/${user.username}`} passHref>
             <IconButton size="large" className="p-0 ml-3">
               <Avatar
-                alt={user?.username}
-                src={user?.image || "/default-avatar.png"}
+                alt={user.username}
+                src={user.image}
                 className="w-8 h-8"
               />
             </IconButton>
