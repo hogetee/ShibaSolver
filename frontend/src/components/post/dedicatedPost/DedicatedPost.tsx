@@ -58,7 +58,6 @@ const DedicatedPost = ({
     }
   };
 
-  // ✅ Handle confirm delete
   const handleConfirmDelete = async () => {
     try {
       await deletePost(postData.post_id);
@@ -76,20 +75,18 @@ const DedicatedPost = ({
         <PostHeader
           isSolved={postData.is_solved}
           tags={postData.tags}
-          isCurrentUserAuthor={isCurrentUserAuthor} // ค่านี้จะถูกส่งไปอย่างถูกต้องแล้ว
+          isCurrentUserAuthor={isCurrentUserAuthor}
           onEditClick={() => setIsEditModalOpen(true)}
           onDeleteClick={() => setIsDeleteModalOpen(true)}
-          onReportClick={() => setIsReportModalOpen(true)} // <-- เพิ่ม Prop นี้ที่เคยขาดไป
+          onReportClick={() => setIsReportModalOpen(true)} 
         />
 
-        {/* Title + description + image */}
         <PostContent
           title={postData.title}
           description={postData.description}
           postImage={postData.post_image}
         />
 
-        {/* Author info + like/dislike controls */}
         <DedicatedPostAuthor
           postId={postData.post_id}
           author={postData.author}
@@ -99,12 +96,8 @@ const DedicatedPost = ({
         />
       </div>
 
-      {/* --- Edit modal --- */}
       {isEditModalOpen && (
         <EditPostModal
-          // @ts-ignore 
-          // (เราอาจจะต้องแก้ EditPostModal ให้รับ PostData ที่สมบูรณ์)
-          // (แต่ตอนนี้ลองใช้ @ts-ignore ไปก่อน ถ้ามันพัง)
           postToEdit={postData}
           onClose={() => setIsEditModalOpen(false)}
           onSave={handleSaveEdit}
@@ -112,7 +105,6 @@ const DedicatedPost = ({
         />
       )}
 
-      {/* --- Delete modal --- */}
       {isDeleteModalOpen && (
         <DeletePostModal
           onClose={() => setIsDeleteModalOpen(false)}
@@ -121,7 +113,6 @@ const DedicatedPost = ({
         />
       )}
 
-      {/* --- Report modal --- */}
       {isReportModalOpen && (
         <ReportPostModal
           postId={postData.post_id}

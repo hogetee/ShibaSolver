@@ -26,7 +26,6 @@ const subjectOptions = [
   "Economics", "Law", "Thai", "English", "Chinese", "Programming", "Others"
 ];
 
-// ✅ Set your Cloudinary credentials here
 const CLOUD_NAME = "dkhggwcub";
 const UPLOAD_PRESET = "unsigned_preset";
 
@@ -85,7 +84,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
       title,
       subjects: selectedSubjects,
       details,
-      imageUrl: imageUrl || null, // ✅ pass uploaded URL
+      imageUrl: imageUrl || null, 
     };
 
     try {

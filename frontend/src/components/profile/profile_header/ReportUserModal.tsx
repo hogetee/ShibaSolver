@@ -45,7 +45,6 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
   }, [resetReportStatus]);
 
   return (
-    // ใช้ Backdrop แบบที่เราตกลงกัน
     <div
       className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50"
     >
