@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { MoreVertical, Bookmark, Flag, Pencil, Trash2 } from 'lucide-react';
 
-// --- API base URL ---
 const API_BASE = 'http://localhost:5003/api/v1';
 
 interface PostHeaderProps {
@@ -12,34 +11,94 @@ interface PostHeaderProps {
   isCurrentUserAuthor: boolean;
   onEditClick: () => void;
   onDeleteClick: () => void;
-  postId?: string; // ✅ needed for bookmark API
+  postId?: string;
 }
 
-const PostHeader = ({
+export default function PostHeader({
   isSolved,
   tags,
   isCurrentUserAuthor,
   onEditClick,
   onDeleteClick,
   postId,
-}: PostHeaderProps) => {
+}: PostHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [loadingBookmark, setLoadingBookmark] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const toggleBookmarkLocal = () => setBookmarked(prev => !prev);
+  // Prevent propagation
+  const stopAll = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation?.();
+  };
 
-  // --- Close menu when clicking outside ---
+  // ✅ Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  // ✅ Fetch bookmark status on mount
+  useEffect(() => {
+    const fetchBookmarkStatus = async () => {
+      if (!postId) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/posts/${postId}/bookmarks/status`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setBookmarked(data.bookmarked || false);
+      } catch (err) {
+        console.error("Failed to fetch bookmark status:", err);
+      }
+    };
+
+    fetchBookmarkStatus();
+  }, [postId]);
+
+  // ✅ Toggle bookmark (POST or DELETE)
+  const handleToggleBookmark = async (e: React.MouseEvent) => {
+    stopAll(e);
+    if (!postId || loadingBookmark) return;
+
+    const nextState = !bookmarked;
+    setBookmarked(nextState); // optimistic update
+    setLoadingBookmark(true);
+
+    try {
+      const method = nextState ? "POST" : "DELETE";
+
+      const res = await fetch(`${API_BASE}/posts/${postId}/bookmarks`, {
+        method,
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        setBookmarked(!nextState); // rollback
+        const errText = await res.text();
+        console.error("Bookmark update failed:", errText);
+        alert("Failed to update bookmark");
+      }
+    } catch (err) {
+      console.error("Bookmark error:", err);
+      setBookmarked(!nextState);
+    } finally {
+      setLoadingBookmark(false);
+      setIsMenuOpen(false);
+    }
+  };
 
   const tagColorMap: Record<string, string> = {
     Math: 'bg-[#2563EB]',
@@ -57,99 +116,34 @@ const PostHeader = ({
     Others: 'bg-[#63647A]',
   };
 
-  // --- Helper: stop all propagation paths ---
-  const stopAll = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation?.();
-  };
-
-  // ✅ Fetch bookmark status on mount
-  useEffect(() => {
-    const fetchBookmarkStatus = async () => {
-      if (!postId) return;
-      try {
-        const res = await fetch(`${API_BASE}/posts/${postId}/bookmark/status`, {
-          credentials: 'include',
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        setBookmarked(data.bookmarked || false);
-      } catch (err) {
-        console.error('Failed to fetch bookmark status:', err);
-      }
-    };
-    fetchBookmarkStatus();
-  }, [postId]);
-
-  // ✅ Toggle bookmark API call
-  const handleToggleBookmark = async (e: React.MouseEvent) => {
-    stopAll(e);
-    if (!postId || loadingBookmark) return;
-
-    const newState = !bookmarked;
-    setBookmarked(newState); // optimistic update
-    setLoadingBookmark(true);
-
-    try {
-      const endpoint = `${API_BASE}/posts/${postId}/bookmark`;
-      const method = newState ? 'POST' : 'DELETE';
-
-      const res = await fetch(endpoint, {
-        method,
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        // revert optimistic update
-        setBookmarked(!newState);
-        const errText = await res.text();
-        console.error('Bookmark failed:', errText);
-        alert('Failed to update bookmark');
-      }
-    } catch (err) {
-      console.error('Bookmark error:', err);
-      setBookmarked(!newState);
-    } finally {
-      setLoadingBookmark(false);
-      setIsMenuOpen(false);
-    }
-  };
-
   return (
-    <div
-      className="flex justify-between items-center mb-4"
-      onClick={stopAll}
-    >
-      {/* --- Left: tags + solved status --- */}
+    <div className="flex justify-between items-center mb-4" onClick={stopAll}>
+      {/* ✅ Left section: status + tags */}
       <div className="flex items-center gap-2 pointer-events-auto">
         <span
-          className={`${
-            isSolved ? 'bg-[#16A34A]' : 'bg-[#DC2626]'
-          } text-white font-bold px-2.5 py-1 rounded-md`}
+          className={`${isSolved ? "bg-[#16A34A]" : "bg-[#DC2626]"} text-white font-bold px-2.5 py-1 rounded-md`}
         >
-          {isSolved ? 'Solved' : 'Unsolved'}
+          {isSolved ? "Solved" : "Unsolved"}
         </span>
 
         {tags.map(tag => (
           <span
             key={tag}
-            className={`${tagColorMap[tag] || 'bg-gray-500'} text-white font-bold px-2.5 py-1 rounded-md`}
+            className={`${tagColorMap[tag] || "bg-gray-500"} text-white font-bold px-2.5 py-1 rounded-md`}
           >
             {tag}
           </span>
         ))}
       </div>
 
-      {/* --- Right: menu --- */}
+      {/* ✅ Right-side dropdown menu */}
       <div className="relative pointer-events-auto" ref={menuRef}>
         <button
           onClick={(e) => {
             stopAll(e);
             setIsMenuOpen(prev => !prev);
           }}
-          title="More options"
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-full hover:bg-gray-100"
         >
           <MoreVertical className="w-5 h-5 text-gray-500" />
         </button>
@@ -160,27 +154,27 @@ const PostHeader = ({
             onClick={stopAll}
           >
             <div className="py-1">
-              {/* --- Bookmark --- */}
+              {/* ✅ Bookmark */}
               <button
                 onClick={handleToggleBookmark}
                 disabled={loadingBookmark}
-                className={`flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
-                  loadingBookmark ? 'opacity-50 cursor-not-allowed' : ''
+                className={`flex items-center w-full px-4 py-2 text-sm ${
+                  loadingBookmark ? "opacity-50 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <Bookmark
                   className={`w-4 h-4 mr-3 ${
-                    bookmarked ? 'text-yellow-500 fill-yellow-500' : ''
+                    bookmarked ? "text-yellow-500 fill-yellow-500" : ""
                   }`}
                 />
-                {bookmarked ? 'Bookmarked' : 'Bookmark'}
+                {bookmarked ? "Bookmarked" : "Bookmark"}
               </button>
 
-              {/* --- Report --- */}
+              {/* ✅ Report */}
               <button
                 onClick={(e) => {
                   stopAll(e);
-                  alert('Report feature coming soon!');
+                  alert("Report feature coming soon!");
                   setIsMenuOpen(false);
                 }}
                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -189,10 +183,11 @@ const PostHeader = ({
                 Report
               </button>
 
-              {/* --- Author-only options --- */}
+              {/* ✅ Author-only */}
               {isCurrentUserAuthor && (
                 <>
                   <div className="border-t border-gray-100 my-1" />
+
                   <button
                     onClick={(e) => {
                       stopAll(e);
@@ -224,6 +219,4 @@ const PostHeader = ({
       </div>
     </div>
   );
-};
-
-export default PostHeader;
+}
