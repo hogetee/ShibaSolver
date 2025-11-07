@@ -20,7 +20,7 @@ exports.adminDeletePost = async (req, res, next) => {
   const client = await pool.connect();
 
   try {
-    const adminId = req.admin?.adminId;            // มาจาก adminProtect
+    const adminId = req.admin?.admin_id;            // มาจาก adminProtect
     const postId = Number(req.params.postId);
     if (!adminId) {
       return res.status(401).json({ success: false, message: "Not authenticated" });
@@ -74,6 +74,69 @@ exports.adminDeletePost = async (req, res, next) => {
   } catch (e) {
     try { await client.query("ROLLBACK"); } catch (_) {}
     next(e);
+  } finally {
+    client.release();
+  }
+};
+
+/**
+ * @desc    Admin: delete (soft delete) a comment
+ * @route   DELETE /api/v1/admins/comments/:commentId
+ * @access  Admin
+ */
+exports.adminDeleteComment = async (req, res, next) => {
+  const pool = req.app.locals.pool;
+  const client = await pool.connect();
+
+  try {
+    const adminId = req.admin?.admin_id; // from adminProtect middleware
+    const commentId = Number(req.params.commentId);
+
+    if (!adminId) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+    if (!Number.isInteger(commentId) || commentId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid commentId" });
+    }
+
+    await client.query("BEGIN");
+
+    // 1) soft delete comment
+    const upComment = await client.query(
+      `
+      UPDATE comments
+      SET is_deleted = TRUE
+      WHERE comment_id = $1 AND is_deleted = FALSE
+      RETURNING comment_id
+      `,
+      [commentId]
+    );
+
+    if (upComment.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found or already deleted" });
+    }
+
+    // 2) log admin action
+    await client.query(
+      `
+      INSERT INTO admin_actions (admin_id, action_type, target_type, target_id)
+      VALUES ($1, 'delete_post'::admin_action_type, 'comment'::report_target_type, $2)
+      `,
+      [adminId, commentId]
+    );
+
+    await client.query("COMMIT");
+    return res.status(200).json({
+      success: true,
+      message: "Comment deleted successfully",
+      data: upComment.rows[0],
+    });
+  } catch (err) {
+    try { await client.query("ROLLBACK"); } catch (_) {}
+    next(err);
   } finally {
     client.release();
   }
