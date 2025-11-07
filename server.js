@@ -63,7 +63,7 @@ app.use(hpp());
   app.use("/api/v1/comments", commentsRouter);
   app.use("/api/v1/ratings", ratingRouter);
   app.use("/api/v1/reports", reportRouter);
-  app.use("/api/v1/notifications", notificationRouter);
+  //app.use("/api/v1/notifications", notificationRouter);
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, () => {
