@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { MoreVertical, Bookmark, Flag, Pencil, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { MoreVertical, Bookmark, Flag, Pencil, Trash2 } from "lucide-react";
 
-const API_BASE = 'http://localhost:5003/api/v1';
+const API_BASE = "http://localhost:5003/api/v1";
 
 interface PostHeaderProps {
   isSolved: boolean;
@@ -27,7 +27,6 @@ export default function PostHeader({
   const [loadingBookmark, setLoadingBookmark] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Prevent propagation
   const stopAll = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -41,55 +40,57 @@ export default function PostHeader({
         setIsMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ✅ Fetch bookmark status on mount
+  // ✅ Fetch bookmark status correctly using GET /posts/bookmarks
   useEffect(() => {
     const fetchBookmarkStatus = async () => {
       if (!postId) return;
 
       try {
-        const res = await fetch(`${API_BASE}/posts/${postId}/bookmarks/status`, {
-          method: "GET",
+        const res = await fetch(`${API_BASE}/posts/bookmarks`, {
           credentials: "include",
         });
 
-        if (!res.ok) return;
+        const json = await res.json();
+        if (!json.success) return;
 
-        const data = await res.json();
-        setBookmarked(data.bookmarked || false);
+        const list = json.data; // array of bookmarked posts
+
+        const isBookmarked = list.some((item: any) => item.post_id == postId);
+
+        setBookmarked(isBookmarked);
       } catch (err) {
-        console.error("Failed to fetch bookmark status:", err);
+        console.error("Failed to fetch bookmarks:", err);
       }
     };
 
     fetchBookmarkStatus();
   }, [postId]);
 
-  // ✅ Toggle bookmark (POST or DELETE)
+  // ✅ Add / Remove bookmark using correct backend routes
   const handleToggleBookmark = async (e: React.MouseEvent) => {
     stopAll(e);
     if (!postId || loadingBookmark) return;
 
     const nextState = !bookmarked;
-    setBookmarked(nextState); // optimistic update
+    setBookmarked(nextState);
     setLoadingBookmark(true);
 
     try {
       const method = nextState ? "POST" : "DELETE";
 
-      const res = await fetch(`${API_BASE}/posts/${postId}/bookmarks`, {
+      const res = await fetch(`${API_BASE}/posts/bookmarks/${postId}`, {
         method,
         credentials: "include",
       });
 
       if (!res.ok) {
-        setBookmarked(!nextState); // rollback
-        const errText = await res.text();
-        console.error("Bookmark update failed:", errText);
-        alert("Failed to update bookmark");
+        setBookmarked(!nextState);
+        console.error(await res.text());
+        alert("Failed to update bookmark.");
       }
     } catch (err) {
       console.error("Bookmark error:", err);
@@ -101,32 +102,33 @@ export default function PostHeader({
   };
 
   const tagColorMap: Record<string, string> = {
-    Math: 'bg-[#2563EB]',
-    Physics: 'bg-[#FF9D00]',
-    Chemistry: 'bg-[#9333EA]',
-    Biology: 'bg-[#467322]',
-    History: 'bg-[#893F07]',
-    Geography: 'bg-[#1E6A91]',
-    Economics: 'bg-[#FA733E]',
-    Law: 'bg-[#000000]',
-    Thai: 'bg-[#83110F]',
-    English: 'bg-[#BE0EA7]',
-    Chinese: 'bg-[#CBC400]',
-    Programming: 'bg-[#6366F1]',
-    Others: 'bg-[#63647A]',
+    Math: "bg-[#2563EB]",
+    Physics: "bg-[#FF9D00]",
+    Chemistry: "bg-[#9333EA]",
+    Biology: "bg-[#467322]",
+    History: "bg-[#893F07]",
+    Geography: "bg-[#1E6A91]",
+    Economics: "bg-[#FA733E]",
+    Law: "bg-[#000000]",
+    Thai: "bg-[#83110F]",
+    English: "bg-[#BE0EA7]",
+    Chinese: "bg-[#CBC400]",
+    Programming: "bg-[#6366F1]",
+    Others: "bg-[#63647A]",
   };
 
   return (
     <div className="flex justify-between items-center mb-4" onClick={stopAll}>
-      {/* ✅ Left section: status + tags */}
       <div className="flex items-center gap-2 pointer-events-auto">
         <span
-          className={`${isSolved ? "bg-[#16A34A]" : "bg-[#DC2626]"} text-white font-bold px-2.5 py-1 rounded-md`}
+          className={`${
+            isSolved ? "bg-[#16A34A]" : "bg-[#DC2626]"
+          } text-white font-bold px-2.5 py-1 rounded-md`}
         >
           {isSolved ? "Solved" : "Unsolved"}
         </span>
 
-        {tags.map(tag => (
+        {tags.map((tag) => (
           <span
             key={tag}
             className={`${tagColorMap[tag] || "bg-gray-500"} text-white font-bold px-2.5 py-1 rounded-md`}
@@ -136,12 +138,11 @@ export default function PostHeader({
         ))}
       </div>
 
-      {/* ✅ Right-side dropdown menu */}
       <div className="relative pointer-events-auto" ref={menuRef}>
         <button
           onClick={(e) => {
             stopAll(e);
-            setIsMenuOpen(prev => !prev);
+            setIsMenuOpen((prev) => !prev);
           }}
           className="p-2 rounded-full hover:bg-gray-100"
         >
@@ -149,11 +150,9 @@ export default function PostHeader({
         </button>
 
         {isMenuOpen && (
-          <div
-            className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10"
-            onClick={stopAll}
-          >
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 ring-1 ring-black ring-opacity-5">
             <div className="py-1">
+
               {/* ✅ Bookmark */}
               <button
                 onClick={handleToggleBookmark}
@@ -183,10 +182,10 @@ export default function PostHeader({
                 Report
               </button>
 
-              {/* ✅ Author-only */}
+              {/* ✅ Author actions */}
               {isCurrentUserAuthor && (
                 <>
-                  <div className="border-t border-gray-100 my-1" />
+                  <div className="border-t my-1" />
 
                   <button
                     onClick={(e) => {
@@ -194,7 +193,7 @@ export default function PostHeader({
                       onEditClick();
                       setIsMenuOpen(false);
                     }}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
                   >
                     <Pencil className="w-4 h-4 mr-3" />
                     Edit
