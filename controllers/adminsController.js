@@ -278,7 +278,9 @@ exports.adminGetPostReports = async (req, res, next) => {
         r.report_id, r.reporter_id, r.target_id, r.reason, r.status, r.created_at,
         u1.display_name AS reporter_name,
         p.title AS post_title,
-        u2.display_name AS post_owner_name
+        u2.display_name AS post_owner_name,
+        u2.user_name     AS post_owner_username
+
       FROM reports r
       JOIN users u1 ON u1.user_id = r.reporter_id
       JOIN posts p ON p.post_id = r.target_id
