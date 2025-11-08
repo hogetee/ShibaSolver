@@ -21,12 +21,17 @@
     "test-coverage": "jest --watchAll --coverage"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cookieparser": "^0.1.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.2.0",
+    "express-xss-sanitizer": "^2.0.1",
     "google-auth-library": "^10.3.0",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3"
   },
