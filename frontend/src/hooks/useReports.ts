@@ -311,34 +311,60 @@ export default function useReports() {
     setReports((prev) => prev.filter((report) => report.id !== reportId));
 
     try {
-      // Step 1: Delete the post, comment, or ban the user
+      // Step 1: Check if post/comment exists, then delete if it does
       if (report.type === "posts" && report.targetContent?.id) {
-        const deleteResponse = await fetch(
-          `${BACKEND_URL}/api/v1/admins/posts/${report.targetContent.id}`,
+        // First check if the post still exists
+        const checkResponse = await fetch(
+          `${BACKEND_URL}/api/v1/posts/${report.targetContent.id}`,
           {
-            method: "DELETE",
             credentials: "include",
           }
         );
 
-        if (!deleteResponse.ok) {
-          console.error("Failed to delete post");
+        // Only attempt to delete if the post exists
+        if (checkResponse.ok) {
+          const deleteResponse = await fetch(
+            `${BACKEND_URL}/api/v1/admins/posts/${report.targetContent.id}`,
+            {
+              method: "DELETE",
+              credentials: "include",
+            }
+          );
+
+          if (!deleteResponse.ok) {
+            console.log("Failed to delete post");
+          } else {
+            console.log(`Post ${report.targetContent.id} deleted successfully`);
+          }
         } else {
-          console.log(`Post ${report.targetContent.id} deleted successfully`);
+          console.log(`Post ${report.targetContent.id} is already deleted`);
         }
       } else if (report.type === "comments" && report.targetContent?.id) {
-        const deleteResponse = await fetch(
-          `${BACKEND_URL}/api/v1/admins/comments/${report.targetContent.id}`,
+        // First check if the comment still exists
+        const checkResponse = await fetch(
+          `${BACKEND_URL}/api/v1/comments/${report.targetContent.id}`,
           {
-            method: "DELETE",
             credentials: "include",
           }
         );
 
-        if (!deleteResponse.ok) {
-          console.error("Failed to delete comment");
+        // Only attempt to delete if the comment exists
+        if (checkResponse.ok) {
+          const deleteResponse = await fetch(
+            `${BACKEND_URL}/api/v1/admins/comments/${report.targetContent.id}`,
+            {
+              method: "DELETE",
+              credentials: "include",
+            }
+          );
+
+          if (!deleteResponse.ok) {
+            console.log("Failed to delete comment");
+          } else {
+            console.log(`Comment ${report.targetContent.id} deleted successfully`);
+          }
         } else {
-          console.log(`Comment ${report.targetContent.id} deleted successfully`);
+          console.log(`Comment ${report.targetContent.id} is already deleted`);
         }
       } else if (report.type === "account" && report.targetUser?.id) {
         // Ban the user for account reports
@@ -347,13 +373,32 @@ export default function useReports() {
           {
             method: "PATCH",
             credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
         );
 
         if (!banResponse.ok) {
-          console.error("Failed to ban user");
+          const errorData = await banResponse.json().catch(() => ({}));
+          console.error("Failed to ban user:", {
+            status: banResponse.status,
+            statusText: banResponse.statusText,
+            error: errorData,
+            userId: report.targetUser.id,
+          });
+          
+          // Show user-friendly error
+          if (banResponse.status === 401) {
+            alert("Authentication failed. Please ensure you are logged in as an admin.");
+          } else if (banResponse.status === 404) {
+            alert("User not found.");
+          } else {
+            alert(`Failed to ban user: ${errorData.message || banResponse.statusText}`);
+          }
         } else {
-          console.log(`User ${report.targetUser.id} banned successfully`);
+          const result = await banResponse.json();
+          console.log(`User ${report.targetUser.id} banned successfully`, result);
         }
       }
 

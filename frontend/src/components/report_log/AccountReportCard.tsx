@@ -53,7 +53,7 @@ export default function AccountReportCard({
           Reported Account
         </h4>
         <ReportAccountDisplay
-          userId={report.targetUser?.id}
+          username={report.targetUser?.username}
           fallbackData={
             report.targetUser
               ? {

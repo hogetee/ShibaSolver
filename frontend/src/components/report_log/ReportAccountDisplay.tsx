@@ -17,48 +17,44 @@ const BACKEND_URL =
 const DEFAULT_AVATAR = "/image/DefaultAvatar.png";
 
 type ReportAccountDisplayProps = {
-  userId?: string | null;
+  username?: string | null;
   fallbackData?: Partial<ReportAccountDisplayData> | null;
 };
 
 function normalizeAccountData({
   source,
   fallback,
-  userId,
+  username,
 }: {
   source?: any;
   fallback?: Partial<ReportAccountDisplayData> | null;
-  userId?: string | null;
+  username?: string | null;
 }): ReportAccountDisplayData | null {
   const fallbackData = fallback ?? undefined;
   const raw = source ?? undefined;
 
   const hasAnyData = raw || fallbackData;
-  if (!hasAnyData && !userId) {
+  if (!hasAnyData && !username) {
     return null;
   }
 
-  const resolvedId =
-    raw?.user_id ??
-    raw?.id ??
-    fallbackData?.user_id ??
-    userId ??
-    null;
+  const resolvedUsername =
+    raw?.username ??
+    fallbackData?.username ??
+    username ??
+    "";
 
-  if (!resolvedId) {
+  if (!resolvedUsername) {
     return null;
   }
 
   return {
-    user_id: String(resolvedId),
+    user_id: String(raw?.user_id ?? raw?.id ?? fallbackData?.user_id ?? ""),
     display_name:
       raw?.display_name ??
       fallbackData?.display_name ??
       "Unknown user",
-    username:
-      raw?.username ??
-      fallbackData?.username ??
-      "",
+    username: String(resolvedUsername),
     profile_picture:
       raw?.profile_picture ??
       fallbackData?.profile_picture ??
@@ -67,24 +63,24 @@ function normalizeAccountData({
 }
 
 export default function ReportAccountDisplay({
-  userId,
+  username,
   fallbackData = null,
 }: ReportAccountDisplayProps) {
   const initialData = useMemo(
-    () => normalizeAccountData({ fallback: fallbackData, userId }),
-    [fallbackData, userId]
+    () => normalizeAccountData({ fallback: fallbackData, username }),
+    [fallbackData, username]
   );
 
   const [accountData, setAccountData] = useState<ReportAccountDisplayData | null>(
     initialData
   );
   const [loading, setLoading] = useState<boolean>(
-    Boolean(userId) && !initialData
+    Boolean(username) && !initialData
   );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!username) return;
 
     let cancelled = false;
 
@@ -94,7 +90,7 @@ export default function ReportAccountDisplay({
 
       try {
         const response = await fetch(
-          `${BACKEND_URL}/api/v1/users/${userId}`,
+          `${BACKEND_URL}/api/v1/users/${username}`,
           {
             cache: "no-store",
             credentials: "include",
@@ -102,6 +98,8 @@ export default function ReportAccountDisplay({
         );
 
         const json = await response.json().catch(() => null);
+
+        console.log("Fetched account data:", json);
 
         if (!response.ok) {
           if (!cancelled) {
@@ -119,8 +117,9 @@ export default function ReportAccountDisplay({
         const normalized = normalizeAccountData({
           source: rawData,
           fallback: fallbackData ?? undefined,
-          userId,
+          username,
         });
+
 
         if (!cancelled) {
           setAccountData(normalized);
@@ -145,9 +144,9 @@ export default function ReportAccountDisplay({
     return () => {
       cancelled = true;
     };
-  }, [userId, fallbackData]);
+  }, [username, fallbackData]);
 
-  if (!userId && !accountData) {
+  if (!username && !accountData) {
     return (
       <div className="w-full rounded-2xl bg-white p-6 font-display shadow-lg">
         <p className="text-center text-sm text-gray-500">

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { slugify } from "@/utils/slugify";
 import { Avatar, Chip } from "@mui/material";
+import { userService } from "@/utils/userService";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5003";
@@ -47,21 +48,13 @@ function normalizeCommentData({
   const raw = source ?? undefined;
 
   const resolvedId =
-    raw?.comment_id ??
-    raw?.id ??
-    fallbackData?.id ??
-    commentId ??
-    null;
+    raw?.comment_id ?? raw?.id ?? fallbackData?.id ?? commentId ?? null;
 
   if (!resolvedId) {
     return null;
   }
 
-  const authorRaw =
-    raw?.author ??
-    raw?.user ??
-    raw?.commenter ??
-    undefined;
+  const authorRaw = raw?.author ?? raw?.user ?? raw?.commenter ?? undefined;
   const fallbackAuthor = fallbackData?.author;
 
   return {
@@ -73,22 +66,13 @@ function normalizeCommentData({
       fallbackData?.created_at ??
       new Date().toISOString(),
     is_solution: Boolean(
-      raw?.is_solution ??
-        raw?.solution ??
-        fallbackData?.is_solution ??
-        false
+      raw?.is_solution ?? raw?.solution ?? fallbackData?.is_solution ?? false
     ),
-    post_id: String(
-      raw?.post_id ??
-        raw?.postId ??
-        fallbackData?.post_id ??
-        ""
-    ) || null,
-    post_title:
-      raw?.post_title ??
-      raw?.post?.title ??
-      fallbackData?.post_title ??
+    post_id:
+      String(raw?.post_id ?? raw?.postId ?? fallbackData?.post_id ?? "") ||
       null,
+    post_title:
+      raw?.post_title ?? raw?.post?.title ?? fallbackData?.post_title ?? null,
     author: {
       user_id:
         String(
@@ -116,10 +100,7 @@ function normalizeCommentData({
     },
     stats: {
       likes: Number(
-        raw?.likes ??
-          raw?.stats?.likes ??
-          fallbackData?.stats?.likes ??
-          0
+        raw?.likes ?? raw?.stats?.likes ?? fallbackData?.stats?.likes ?? 0
       ),
       dislikes: Number(
         raw?.dislikes ??
@@ -140,9 +121,8 @@ export default function ReportCommentDisplay({
     [fallbackData, commentId]
   );
 
-  const [commentData, setCommentData] = useState<ReportCommentDisplayData | null>(
-    initialData
-  );
+  const [commentData, setCommentData] =
+    useState<ReportCommentDisplayData | null>(initialData);
   const [postTitle, setPostTitle] = useState<string | null>(
     initialData?.post_title ?? null
   );
@@ -174,7 +154,9 @@ export default function ReportCommentDisplay({
         if (!response.ok) {
           if (!cancelled) {
             const statusMessage =
-              json?.message || json?.error || `Failed to fetch comment (${response.status})`;
+              json?.message ||
+              json?.error ||
+              `Failed to fetch comment (${response.status})`;
             setError(statusMessage);
           }
           return;
@@ -197,10 +179,34 @@ export default function ReportCommentDisplay({
           }
           setError(null); // Clear error on success
         }
+
+        console.log(normalized);
+
+        // Fetch user profile picture if username is available
+        if (normalized?.author.username && !cancelled) {
+          try {
+            const userProfilePic = await userService.getUserProfileByUsername(
+              normalized.author.username
+            );
+            if (userProfilePic && !cancelled) {
+              setCommentData((prevData) => {
+                if (!prevData) return prevData;
+                return {
+                  ...prevData,
+                  author: {
+                    ...prevData.author,
+                    profile_picture: String(userProfilePic),
+                  },
+                };
+              });
+            }
+          } catch (err) {
+            console.warn("Failed to fetch user profile picture", err);
+          }
+        }
       } catch (err) {
         if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : "Unknown error";
+          const message = err instanceof Error ? err.message : "Unknown error";
           console.error("ReportCommentDisplay: error fetching comment", err);
           setError(message);
         }
@@ -226,13 +232,10 @@ export default function ReportCommentDisplay({
 
     async function fetchPostTitle() {
       try {
-        const response = await fetch(
-          `${BACKEND_URL}/api/v1/posts/${postId}`,
-          {
-            cache: "no-store",
-            credentials: "include",
-          }
-        );
+        const response = await fetch(`${BACKEND_URL}/api/v1/posts/${postId}`, {
+          cache: "no-store",
+          credentials: "include",
+        });
 
         if (!response.ok) return;
 
@@ -350,9 +353,7 @@ export default function ReportCommentDisplay({
             <p className="text-sm text-amber-800 font-medium">
               Unable to load full comment details
             </p>
-            <p className="text-xs text-amber-600 mt-1">
-              {error}
-            </p>
+            <p className="text-xs text-amber-600 mt-1">{error}</p>
             {commentData.text === "" && (
               <p className="text-xs text-amber-600 mt-1">
                 The comment may have been deleted. Showing saved report data.
@@ -364,5 +365,3 @@ export default function ReportCommentDisplay({
     </div>
   );
 }
-
-

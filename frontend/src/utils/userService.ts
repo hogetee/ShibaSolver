@@ -48,6 +48,7 @@ export const userService = {
             throw new Error("Failed to fetch user profile");
         }
         const data = await response.json();
+        console.log("data:", data);
         console.log("userService.getUserProfileByUsername:", { username });
         console.log("Response data:", data.data.profile_picture);
         return data.data.profile_picture;
