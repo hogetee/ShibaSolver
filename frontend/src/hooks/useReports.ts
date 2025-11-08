@@ -304,35 +304,94 @@ export default function useReports() {
   };
 
   const removeReport = async (reportId: string) => {
-    setReports((prev) => prev.filter((report) => report.id !== reportId));
-  
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/v1/admins/accounts/reports/${reportId}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-        // No auth needed since you bypassed admin auth
-      },
-      body: JSON.stringify({
-        status: 'accepted'
-      })
-    });
+    const report = reports.find((r) => r.id === reportId);
+    if (!report) return;
 
-    const result = await response.json();
-    
-    if (result.success) {
-      console.log(`Report ${reportId} has been accepted`);
-      return result;
-    } else {
-      console.log('Error accepting report:', result.message);
-      throw new Error(result.message);
+    // Remove from UI immediately
+    setReports((prev) => prev.filter((report) => report.id !== reportId));
+
+    try {
+      // Step 1: Delete the post, comment, or ban the user
+      if (report.type === "posts" && report.targetContent?.id) {
+        const deleteResponse = await fetch(
+          `${BACKEND_URL}/api/v1/admins/posts/${report.targetContent.id}`,
+          {
+            method: "DELETE",
+            credentials: "include",
+          }
+        );
+
+        if (!deleteResponse.ok) {
+          console.error("Failed to delete post");
+        } else {
+          console.log(`Post ${report.targetContent.id} deleted successfully`);
+        }
+      } else if (report.type === "comments" && report.targetContent?.id) {
+        const deleteResponse = await fetch(
+          `${BACKEND_URL}/api/v1/admins/comments/${report.targetContent.id}`,
+          {
+            method: "DELETE",
+            credentials: "include",
+          }
+        );
+
+        if (!deleteResponse.ok) {
+          console.error("Failed to delete comment");
+        } else {
+          console.log(`Comment ${report.targetContent.id} deleted successfully`);
+        }
+      } else if (report.type === "account" && report.targetUser?.id) {
+        // Ban the user for account reports
+        const banResponse = await fetch(
+          `${BACKEND_URL}/api/v1/admins/users/${report.targetUser.id}/ban`,
+          {
+            method: "PATCH",
+            credentials: "include",
+          }
+        );
+
+        if (!banResponse.ok) {
+          console.error("Failed to ban user");
+        } else {
+          console.log(`User ${report.targetUser.id} banned successfully`);
+        }
+      }
+
+
+      const statusResponse = await fetch(
+        `${BACKEND_URL}/api/v1/admins/accounts/${reportId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            status: "accepted",
+          }),
+        }
+      );
+
+      if (!statusResponse.ok) {
+        const errorText = await statusResponse.text();
+        console.error("Accept report API error:", errorText);
+        throw new Error(`Failed to accept report (${statusResponse.status})`);
+      }
+
+      const result = await statusResponse.json();
+
+      if (result.success) {
+        console.log(`Report ${reportId} has been accepted`);
+        return result;
+      } else {
+        console.error("Error accepting report:", result.message);
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      throw error;
     }
-  } catch (error) {
-    console.error('Network error:', error);
-    throw error;
-  }
-    
-};
+  };
 
 
   const rejectReport = async (reportId: string) => {
