@@ -5,6 +5,7 @@ const router = express.Router();
 
 //GET
 router.get("/summary", requireAuth, ratingCtrl.getSummaryBatch);
+router.get("/check", requireAuth, ratingCtrl.getUserRating);
 
 //POST
 router.post("/", requireAuth, ratingCtrl.rate);

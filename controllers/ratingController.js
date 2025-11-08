@@ -213,3 +213,39 @@ exports.getShibaMeter = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server error" });
     }
 };
+
+/**
+ * @desc    checking if (logged in) user has liked liked or disliked posts or comments
+ * @route   GET /api/v1/ratings/check?target_type=post|comment&target_id=1
+ * @access  Private
+ * @param   target_type - 'post' or 'comment'
+ */
+
+exports.getUserRating = async (req, res,next) => {
+    try {
+        const pool = req.app.locals.pool;
+        const user_id = req.user.uid;
+        const { target_type, target_id } = req.query;
+        // ----- Validate input -----
+
+        if (!["post", "comment"].includes(target_type)) {
+            return res.status(400).json({ success: false, message: "target_type must be 'post' or 'comment'" });
+        }
+        if (!Number.isInteger(Number(target_id)) || Number(target_id) <= 0) {
+            return res.status(400).json({ success: false, message: "Invalid target_id" });
+        }
+        const isPost = target_type === "post";
+        const sql = `
+            SELECT rating_type
+            FROM ratings
+            WHERE user_id = $1 AND ${isPost ? 'post_id = $2' : 'comment_id = $2'};
+        `;
+        const { rows } = await pool.query(sql, [user_id, target_id]);
+        if (rows.length === 0) {
+            return res.status(200).json({ success: true, target_type, target_id, my_rating: null });
+        }
+            return res.status(200).json({ success: true, target_type, target_id, my_rating: rows[0].rating_type });
+    } catch (err) {
+        return next(err);
+    }
+};
