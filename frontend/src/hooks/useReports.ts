@@ -199,17 +199,11 @@ export default function useReports() {
 
 
   const rejectReport = async (reportId: string) => {
-    setReports((prev) =>
-      prev.map((report) =>
-        report.id === reportId
-          ? { ...report, status: "reviewed" as const }
-          : report
-      )
-    );
+    setReports((prev) => prev.filter((report) => report.id !== reportId));
 
     try {
       const response = await fetch(
-        `${BACKEND_URL}/api/v1/admins/accounts/reports/${reportId}/status`,
+        `${BACKEND_URL}/api/v1/admins/accounts/${reportId}/status`,
         {
           method: "PATCH",
           headers: {
