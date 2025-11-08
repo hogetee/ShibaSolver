@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import { useSearch, PostResult, UserResult } from "@/hooks/useSearch";
-import { slugify } from "@/utils/slugify";
+import { useSearch } from "@/hooks/useSearch"
 type Mode = "post" | "user";
 
 
@@ -98,14 +96,6 @@ export default function SearchComponent({
     (t) => !selectedTags.includes(t)
   );
 
-  // Helper function to handle link click
-  const handleLinkClick = (type: Mode, value: PostResult | UserResult) => {
-    onSelect?.({ type, value });
-    // Close dropdown after navigation
-    setOpen(false);
-    setQuery("");
-  };
-
   return (
     <div ref={containerRef} className={`${className} relative`}>
       {/* Compact pill (closed state) */}
@@ -133,7 +123,7 @@ export default function SearchComponent({
 
       {/* Dropdown (open state) */}
       {open && (
-        <div className="absolute -top-5 left-0 w-full z-10 rounded-3xl shadow-xl bg-white backdrop-blur border border-gray-200 ">          {/* Header row with input and icon, same visual as compact bar */}
+        <div className="absolute -top-5 left-0 w-full z-10 rounded-3xl shadow-xl bg-white backdrop-blur border border-gray-200 overflow-hidden">          {/* Header row with input and icon, same visual as compact bar */}
           <div className="relative">
             <input
                 ref={inputRef}
@@ -179,111 +169,87 @@ export default function SearchComponent({
             </label>
           </div>
 
-          {/* Post mode: Tags and Results */}
-          {mode === "post" && (
-            <>
-              {/* Tag selector */}
-              <div className="px-5 pb-3 flex items-center flex-wrap gap-2 border-b border-gray-200 relative">
-                {/* --- Render Selected Tags --- */}
-                {selectedTags.map((tag) => {
-                  const colors = tagColors[tag] || tagColors.Default;
-                  return (
-                    <div
-                      key={tag}
-                      className={`pl-2.5 pr-1 py-1 text-sm font-medium rounded-lg flex items-center gap-1 ${colors}`}
-                    >
-                      <span>{tag}</span>
-                      <button
-                        type="button"
-                        aria-label={`Remove ${tag} filter`}
-                        onClick={() => removeTag(tag)}
-                        className="w-4 h-4 rounded-full opacity-70 hover:opacity-100 hover:bg-black/20 grid place-items-center transition-all"
-                      >
-                        <CloseIcon style={{ fontSize: "0.8rem" }} />
-                      </button>
-                    </div>
-                  );
-                })}
-
-                {/* --- Add Tag Button and Popover --- */}
-                {availableTagsForPopover.length > 0 && (
-                  <div className="relative">
+          {/* Results list (User mode) */}
+         {mode === "post" && (
+            <div className="px-5 pb-3 flex items-center flex-wrap gap-2 border-b border-gray-200 relative">
+              {/* --- Render Selected Tags --- */}
+              {selectedTags.map((tag) => {
+                const colors = tagColors[tag] || tagColors.Default;
+                return (
+                  <div
+                    key={tag}
+                    className={`pl-2.5 pr-1 py-1 text-sm font-medium rounded-lg flex items-center gap-1 ${colors}`}
+                  >
+                    <span>{tag}</span>
                     <button
-                      ref={popoverButtonRef}
                       type="button"
-                      aria-label="Add tag filter"
-                      onClick={() => setTagPopoverOpen((prev) => !prev)}
-                      className={`w-6 h-6 rounded-full grid place-items-center border-2 ${
-                        tagPopoverOpen
-                          ? "border-purple-600 text-purple-600"
-                          : "border-gray-400 text-gray-400"
-                      } hover:border-purple-600 hover:text-purple-600 transition`}
+                      aria-label={`Remove ${tag} filter`}
+                      onClick={() => removeTag(tag)}
+                      className="w-4 h-4 rounded-full opacity-70 hover:opacity-100 hover:bg-black/20 grid place-items-center transition-all"
                     >
-                      <AddIcon style={{ fontSize: "1rem" }} />
+                      {/* Using style for precise icon sizing */}
+                      <CloseIcon style={{ fontSize: "0.8rem" }} />
                     </button>
-
-                    {/* --- Popover Dropdown --- */}
-                    {tagPopoverOpen && (
-                      <div
-                        ref={popoverRef}
-                        className="absolute top-full left-0 mt-2 w-32 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-20"
-                      >
-                        {availableTagsForPopover.map((tag) => (
-                          <button
-                            key={tag}
-                            onClick={() => addTag(tag)}
-                            className="w-full text-left px-3 py-2 text-gray-800 hover:bg-purple-100 transition-colors"
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
-                )}
-              </div>
+                );
+              })}
 
-              {/* Post results list */}
-              <div className="max-h-72 overflow-y-auto pr-1">
-                {loading && (
-                  <div className="px-5 py-4 text-gray-500 text-sm">Searching…</div>
-                )}
-                {error && !loading && (
-                  <div className="px-5 py-4 text-red-600 text-sm">{error}</div>
-                )}
-                {!loading && !error && results.length === 0 && (
-                  <div className="px-5 py-4 text-gray-500 text-sm">
-                    {query ? "No posts found" : "Start typing to search posts"}
-                  </div>
-                )}
+              {/* --- Add Tag Button and Popover --- */}
+              {availableTagsForPopover.length > 0 && (
+                <div className="relative">
+                  <button
+                    ref={popoverButtonRef}
+                    type="button"
+                    aria-label="Add tag filter"
+                    onClick={() => setTagPopoverOpen((prev) => !prev)}
+                    className={`w-6 h-6 rounded-full grid place-items-center border-2 ${
+                      tagPopoverOpen
+                        ? "border-purple-600 text-purple-600"
+                        : "border-gray-400 text-gray-400"
+                    } hover:border-purple-600 hover:text-purple-600 transition`}
+                  >
+                    <AddIcon style={{ fontSize: "1rem" }} />
+                  </button>
 
-                {(results as PostResult[]).map((p, idx) => {
-                  const slug = slugify(p.title);
-                  const href = `/post/${p.id}/${slug}`;
-                  
-                  return (
-                    <Link
-                      key={p.id ?? idx}
-                      href={href}
-                      className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
-                      onClick={() => handleLinkClick("post", p)}
+                  {/* --- Popover Dropdown --- */}
+                  {tagPopoverOpen && (
+                    <div
+                      ref={popoverRef}
+                      className="absolute top-full left-0 mt-2 w-32 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-20"
                     >
-                      <div className="text-black font-semibold text-lg">{p.title}</div>
-                      {p.imageUrl ? (
-                        <img
-                          src={p.imageUrl}
-                          alt=""
-                          className="w-12 h-12 rounded object-cover ml-4"
-                        />
-                      ) : null}
-                    </Link>
-                  );
-                })}
-              </div>
-            </>
+                      {availableTagsForPopover.map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => addTag(tag)}
+                          className="w-full text-left px-3 py-2 text-gray-800 hover:bg-purple-100 transition-colors"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              {(results as PostResult[]).map((p, idx) => (
+                <button
+                  key={p.id ?? idx}
+                  className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2"
+                  onClick={() => onSelect?.({ type: "user", value: p })}
+                >
+                   
+                  <div className="text-black font-semibold text-lg">{p.title}</div>
+                  {p.imageUrl ? (
+                    <img
+                      src={p.imageUrl}
+                      alt=""
+                      className="w-12 h-12 rounded object-cover ml-4"
+                    />
+                  ) : null}
+                </button>
+              ))}
+            </div>
           )}
 
-          {/* User mode: Results */}
           {mode === "user" && (
             <div className="max-h-72 overflow-y-auto pr-1">
               {loading && (
@@ -294,18 +260,17 @@ export default function SearchComponent({
               )}
               {!loading && !error && results.length === 0 && (
                 <div className="px-5 py-4 text-gray-500 text-sm">
-                  {query ? "No users found" : "Start typing to search users"}
+                  {query ? "No posts found" : "Start typing to search posts"}
                 </div>
               )}
 
               {(results as UserResult[]).map((u, idx) => (
-                <Link
+                <button
                   key={u.id ?? idx}
-                  href={`/user/${u.username}`}
-                  className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
-                  onClick={() => handleLinkClick("user", u)}
+                  className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2"
+                  onClick={() => onSelect?.({ type: "user", value: u })}
                 >
-                  {u.avatarUrl ? (
+                   {u.avatarUrl ? (
                     <img
                       src={u.avatarUrl}
                       alt=""
@@ -313,7 +278,8 @@ export default function SearchComponent({
                     />
                   ) : null}
                   <div className="text-black font-semibold text-lg">{u.username}</div>
-                </Link>
+                 
+                </button>
               ))}
             </div>
           )}
