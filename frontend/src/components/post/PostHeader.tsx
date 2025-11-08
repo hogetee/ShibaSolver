@@ -21,8 +21,7 @@ export default function PostHeader({
   isCurrentUserAuthor,
   onEditClick,
   onDeleteClick,
-  onReportClick
-}: PostHeaderProps) => {
+  onReportClick,
   postId,
 }: PostHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
