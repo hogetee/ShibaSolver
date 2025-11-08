@@ -68,7 +68,6 @@ export default function ReportCard({
                       user_id: "",
                       display_name: report.targetContent.author,
                       username: report.targetContent.username,
-                      profile_picture: undefined,
                     },
                     created_at: new Date().toISOString(),
                   }
@@ -99,7 +98,6 @@ export default function ReportCard({
                       user_id: "",
                       display_name: report.targetContent.author,
                       username: report.targetContent.username,
-                      profile_picture: undefined,
                     },
                     created_at: new Date().toISOString(),
                   }

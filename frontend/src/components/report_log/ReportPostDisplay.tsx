@@ -157,12 +157,14 @@ export default function ReportPostDisplay({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!postId || initialData) return;
-
+    if (!postId) return;
+    
+    // If we have complete initial data, try to fetch anyway to get updated info
+    // but don't block rendering on it
     let cancelled = false;
 
     async function fetchPost() {
-      setLoading(true);
+      setLoading(!initialData); // Only show loading if we don't have fallback data
       setError(null);
 
       try {
@@ -175,7 +177,7 @@ export default function ReportPostDisplay({
 
         if (!response.ok) {
           if (!cancelled) {
-            setError(`Failed to fetch post ${postId} (${response.status})`);
+            setError(`Failed to fetch post (${response.status})`);
           }
           return;
         }
@@ -194,6 +196,7 @@ export default function ReportPostDisplay({
 
         if (!cancelled) {
           setPostData(normalized);
+          setError(null); // Clear error on success
         }
       } catch (err) {
         if (!cancelled) {
@@ -304,9 +307,19 @@ export default function ReportPostDisplay({
         </Link>
 
         {error && (
-          <p className="text-xs text-amber-600">
-            Unable to refresh post preview: {error}
-          </p>
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+            <p className="text-sm text-amber-800 font-medium">
+              Unable to load full post details
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              {error}
+            </p>
+            {postData.description === "" && (
+              <p className="text-xs text-amber-600 mt-1">
+                The post may have been deleted. Showing saved report data.
+              </p>
+            )}
+          </div>
         )}
       </div>
     </div>

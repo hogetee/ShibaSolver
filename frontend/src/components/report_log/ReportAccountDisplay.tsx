@@ -84,12 +84,12 @@ export default function ReportAccountDisplay({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId || initialData) return;
+    if (!userId) return;
 
     let cancelled = false;
 
     async function fetchAccount() {
-      setLoading(true);
+      setLoading(!initialData); // Only show loading if we don't have fallback data
       setError(null);
 
       try {
@@ -106,7 +106,7 @@ export default function ReportAccountDisplay({
         if (!response.ok) {
           if (!cancelled) {
             const statusMessage =
-              json?.message || json?.error || `Failed to fetch user ${userId} (${response.status})`;
+              json?.message || json?.error || `Failed to fetch user (${response.status})`;
             setError(statusMessage);
           }
           return;
@@ -124,6 +124,7 @@ export default function ReportAccountDisplay({
 
         if (!cancelled) {
           setAccountData(normalized);
+          setError(null); // Clear error on success
         }
       } catch (err) {
         if (!cancelled) {

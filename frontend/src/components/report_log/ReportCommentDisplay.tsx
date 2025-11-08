@@ -152,12 +152,12 @@ export default function ReportCommentDisplay({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!commentId || (initialData && initialData.post_id)) return;
+    if (!commentId) return;
 
     let cancelled = false;
 
     async function fetchComment() {
-      setLoading(true);
+      setLoading(!initialData); // Only show loading if we don't have fallback data
       setError(null);
 
       try {
@@ -174,7 +174,7 @@ export default function ReportCommentDisplay({
         if (!response.ok) {
           if (!cancelled) {
             const statusMessage =
-              json?.message || json?.error || `Failed to fetch comment ${commentId} (${response.status})`;
+              json?.message || json?.error || `Failed to fetch comment (${response.status})`;
             setError(statusMessage);
           }
           return;
@@ -195,6 +195,7 @@ export default function ReportCommentDisplay({
           if (normalized?.post_title) {
             setPostTitle(normalized.post_title);
           }
+          setError(null); // Clear error on success
         }
       } catch (err) {
         if (!cancelled) {
@@ -345,9 +346,19 @@ export default function ReportCommentDisplay({
         </div>
 
         {error && (
-          <p className="text-xs text-amber-600">
-            Unable to refresh comment preview: {error}
-          </p>
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+            <p className="text-sm text-amber-800 font-medium">
+              Unable to load full comment details
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              {error}
+            </p>
+            {commentData.text === "" && (
+              <p className="text-xs text-amber-600 mt-1">
+                The comment may have been deleted. Showing saved report data.
+              </p>
+            )}
+          </div>
         )}
       </div>
     </div>
