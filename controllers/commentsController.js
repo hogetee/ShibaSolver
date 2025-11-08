@@ -509,19 +509,21 @@ exports.replyToComment = async (req, res, next) => {
 
     // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
     if (Number(parent.parent_user_id) !== Number(actorUserId)) {
-      await client.query(
-        `INSERT INTO notifications
-         (receiver_id, sender_id, post_id, comment_id, parent_comment_id, notification_type)
-         VALUES ($1, $2, $3, $4, $5, 'reply')`,
-        [
-          parent.parent_user_id,
-          actorUserId,
-          parent.post_id,
-          reply.comment_id,
-          parent.comment_id,
-        ]
-      );
-    }
+      const message = `${actorUserId} replied to your comment`;
+      const link = `/posts/${parent.post_id}#comment-${reply.comment_id}`;
+
+    await client.query(
+      `INSERT INTO notifications
+        (user_id, notification_type, message, link, is_read)
+      VALUES ($1, $2, $3, $4, FALSE)`,
+      [
+        parent.parent_user_id,        // receiver -> user_id
+        'reply',                      // notification_type — ensure enum includes 'reply'
+        message,
+        link
+      ]
+    );
+  }
 
     await client.query("COMMIT");
     return res.status(201).json({ success: true, data: reply });
