@@ -43,15 +43,15 @@ type UseSearchResult = {
 };
 
 // Move BASE_URL outside the component or use a constant
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
 
 export function useSearch({
   mode,
   query,
   selectedTags = [],
   enabled = true,
-  debounceMs = 500,
-  minQueryLength = 2,
+  debounceMs = 20,
+  minQueryLength = 1,
 }: UseSearchOptions): UseSearchResult {
   const [userResults, setUserResults] = useState<UserResult[]>([]);
   const [postResults, setPostResults] = useState<PostResult[]>([]);
@@ -113,18 +113,19 @@ export function useSearch({
               }));
             setUserResults(list);
           } else {
-            const params = new URLSearchParams();
-            params.set("search", q);
-            const res = await fetch(`${BASE_URL}/api/v1/users?query=${params}`, {
+            const url = new URL("/api/v1/search/users", BASE_URL);
+            url.searchParams.set("query", q);
+            const res = await fetch(url.toString(), {
               method: "GET",
-              // signal: controller.signal,
+              signal: controller.signal,
               credentials: "include",
             });
             const body = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(body?.message || "Request failed");
-            const list: UserResult[] = (body?.data ?? []).map((u: any) => ({
-              id: u.user_id ?? u.id,
-              username: u.user_name ?? u.username ?? "user",
+            const items = body.users ?? [];
+            const list: UserResult[] = items.map((u: any) => ({
+              id: u.user_id,
+              username: u.user_name ?? u.display_name,
               avatarUrl: u.profile_picture ?? "/image/DefaultAvatar.png",
             }));
             setUserResults(list);
@@ -149,14 +150,13 @@ export function useSearch({
               }));
             setPostResults(list);
           } else {
-            const params = new URLSearchParams();
-            params.set("query", q);
-            
-            const res = await fetch(`${BASE_URL}/api/v1/posts?${params}`, {
+            const url = new URL("/api/v1/search/posts", BASE_URL);
+            url.searchParams.set("query", q);
+            const res = await fetch(url.toString(), {
+              method: "GET",
               signal: controller.signal,
               credentials: "include",
             });
-
             const body = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(body?.message || "Request failed");
 

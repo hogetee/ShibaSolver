@@ -78,7 +78,7 @@ export default function SearchComponent({
   const { userResults, postResults, loading, error } = useSearch({
     mode,
     query,
-    selectedTags: mode === "post" ? selectedTags : [],
+    selectedTags,
     enabled: open, // Only search when dropdown is open
   });
 
@@ -99,11 +99,13 @@ export default function SearchComponent({
   );
 
   // Helper function to handle link click
-  const handleLinkClick = (type: Mode, value: PostResult | UserResult) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, type: Mode, value: PostResult | UserResult, href: string) => {
+    e.preventDefault();
     onSelect?.({ type, value });
     // Close dropdown after navigation
     setOpen(false);
     setQuery("");
+    window.location.href = href;
   };
 
   return (
@@ -266,7 +268,7 @@ export default function SearchComponent({
                       key={p.id ?? idx}
                       href={href}
                       className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
-                      onClick={() => handleLinkClick("post", p)}
+                      onClick={(e) => handleLinkClick(e, "post", p, href)}
                     >
                       <div className="text-black font-semibold text-lg">{p.title}</div>
                       {p.imageUrl ? (
@@ -298,26 +300,29 @@ export default function SearchComponent({
                 </div>
               )}
 
-              {(results as UserResult[]).map((u, idx) => (
-                <Link
-                  key={u.id ?? idx}
-                  href={`/user/${u.username}`}
-                  className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
-                  onClick={() => handleLinkClick("user", u)}
-                >
-                  {u.avatarUrl ? (
-                    <img
-                      src={u.avatarUrl}
-                      alt=""
-                      className="w-12 h-12 rounded object-cover ml-4"
-                    />
-                  ) : null}
-                  <div className="text-black font-semibold text-lg">{u.username}</div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+              {(results as UserResult[]).map((u, idx) => {
+                const href = `/user/${u.username}`;
+                return (
+                  <Link
+                    key={u.id ?? idx}
+                    href={href}
+                    className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
+                    onClick={(e) => handleLinkClick(e, "user", u, href)}
+                  >
+                    {u.avatarUrl ? (
+                      <img
+                        src={u.avatarUrl}
+                        alt=""
+                        className="w-12 h-12 rounded object-cover ml-4"
+                      />
+                    ) : null}
+                    <div className="text-black font-semibold text-lg">{u.username}</div>
+                  </Link>
+                );
+              })}
+          </div>
+        )}
+      </div>
       )}
     </div>
   );
