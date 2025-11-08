@@ -11,6 +11,7 @@ export interface Report {
     title: string;
     content: string;
     author: string;
+    username?: string;
     tags: string[];
     likes: number;
     comments: number;
@@ -19,6 +20,7 @@ export interface Report {
   targetUser?: {
     id: string;
     username: string;
+    display_name?: string;
     email: string;
     profilePicture?: string;
   };
@@ -37,6 +39,7 @@ export interface ApiPostReportResponse {
     reporter_name: string;
     post_title: string;
     post_owner_name: string;
+    post_owner_username?: string;
   }[];
 }
 
@@ -53,6 +56,7 @@ export interface ApiCommentReportResponse {
     reporter_name: string;
     comment_text: string;
     comment_owner_name: string;
+    comment_owner_username?: string;
   }[];
 }
 
@@ -68,5 +72,6 @@ export interface ApiAccountReportResponse {
     created_at: string;
     reporter_name: string;
     target_name: string;
+    target_username: string;
   }[];
 }

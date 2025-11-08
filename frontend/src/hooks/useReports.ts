@@ -39,6 +39,7 @@ export default function useReports() {
             title: item.post_title,
             content: "",
             author: item.post_owner_name,
+            username: item.post_owner_username,
             tags: [],
             likes: 0,
             comments: 0,
@@ -83,6 +84,7 @@ export default function useReports() {
             title: "Comment",
             content: item.comment_text,
             author: item.comment_owner_name,
+            username: item.comment_owner_username,
             tags: [],
             likes: 0,
             comments: 0,
@@ -147,7 +149,8 @@ export default function useReports() {
           type: "account" as const,
           targetUser: {
             id: item.target_id,
-            username: item.target_name,
+            username: item.target_username,
+            display_name: item.target_name,
             email: "",
           },
         }));

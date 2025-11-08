@@ -1,6 +1,7 @@
 import React from "react";
 import { Report } from "./ReportType";
-import Link from "next/link";
+import ReportPostDisplay from "./ReportPostDisplay";
+import ReportCommentDisplay from "./ReportCommentDisplay";
 
 interface ReportCardProps {
   report: Report;
@@ -29,73 +30,82 @@ export default function ReportCard({
       </div>
 
       {/* Reason Tag */}
-      <div className="mb-4 flex justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="inline-block px-3 py-1 rounded-full text-md font-black bg-accent-600 text-white">
+      <div className="mb-4 flex flex-col sm:flex-row sm:justify-between gap-3">
+        <div className="flex items-start space-x-3 flex-1 min-w-0">
+          <div className="inline-block px-3 py-1 rounded-full text-sm font-black bg-accent-600 text-white whitespace-nowrap">
             Reason
           </div>
-          <span className="text-md font-black text-dark-900">
+          <div className="break-words text-sm font-bold text-dark-900 flex-1 overflow-wrap-anywhere min-w-0">
             {report.reason}
-          </span>
+          </div>
         </div>
-        <div className="text-sm text-gray-500 flex items-center">
+        <div className="text-sm text-gray-500 flex whitespace-nowrap shrink-0">
           Reported on: {report.reportedDate}
         </div>
       </div>
 
       {/* Target Content (for posts) NEED TO CHANGE */}
-      {report.targetContent && (
+      {report.type === "posts" && (
         <div className="mb-4">
           <h4 className="text-sm font-medium text-gray-900 mb-2">
-            Reported {report.type === "posts" ? "Post" : "Comment"} by{" "}
-            {report.targetContent.author}
+            Reported post preview
           </h4>
-          <div className="border rounded-lg p-4 bg-gray-50">
-            {/* Post Tags */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {report.targetContent.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className={`px-2 py-1 rounded text-xs font-medium ${
-                    tag === "Unsolved"
-                      ? "bg-red-100 text-red-700"
-                      : tag === "Math"
-                      ? "bg-blue-100 text-blue-700"
-                      : tag === "Solved"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+          <ReportPostDisplay
+            postId={report.targetContent?.id}
+            fallbackData={
+              report.targetContent
+                ? {
+                    id: report.targetContent.id,
+                    title: report.targetContent.title,
+                    description: report.targetContent.content,
+                    is_solved: report.targetContent.solved,
+                    tags: report.targetContent.tags,
+                    stats: {
+                      likes: report.targetContent.likes,
+                      dislikes: 0,
+                    },
+                    author: {
+                      user_id: "",
+                      display_name: report.targetContent.author,
+                      username: report.targetContent.username,
+                      profile_picture: undefined,
+                    },
+                    created_at: new Date().toISOString(),
+                  }
+                : null
+            }
+          />
+        </div>
+      )}
 
-            {/* Post Content NEED TO FIX TO MATCH POSTS*/}
-            <h3 className="font-medium text-gray-900 mb-2">
-              {report.targetContent.title}
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              {report.targetContent.content}
-            </p>
-
-            {/* Post Stats */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <span>👤 {report.targetContent.author}</span>
-                <span>👍 {report.targetContent.likes}</span>
-                <span>💬 {report.targetContent.comments}</span>
-              </div>
-              <div className="flex space-x-2">
-                <button className="px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm">
-                  Comment
-                </button>
-                <button className="px-3 py-1 bg-purple-100 text-purple-600 rounded text-sm">
-                  Report
-                </button>
-              </div>
-            </div>
-          </div>
+      {report.type === "comments" && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-900 mb-2">
+            Reported comment preview
+          </h4>
+          <ReportCommentDisplay
+            commentId={report.targetContent?.id}
+            fallbackData={
+              report.targetContent
+                ? {
+                    id: report.targetContent.id,
+                    text: report.targetContent.content,
+                    is_solution: report.targetContent.solved,
+                    stats: {
+                      likes: report.targetContent.likes ?? 0,
+                      dislikes: 0,
+                    },
+                    author: {
+                      user_id: "",
+                      display_name: report.targetContent.author,
+                      username: report.targetContent.username,
+                      profile_picture: undefined,
+                    },
+                    created_at: new Date().toISOString(),
+                  }
+                : null
+            }
+          />
         </div>
       )}
 

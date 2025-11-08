@@ -1,5 +1,6 @@
 import React from "react";
 import { Report } from "./ReportType";
+import ReportAccountDisplay from "./ReportAccountDisplay";
 
 interface AccountReportCardProps {
   report: Report;
@@ -51,51 +52,19 @@ export default function AccountReportCard({
         <h4 className="text-sm font-medium text-gray-900 mb-2">
           Reported Account
         </h4>
-        <div className="border rounded-lg p-4 bg-gray-50">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-              {report.targetUser.profilePicture ? (
-                <img
-                  src={report.targetUser.profilePicture}
-                  alt={`${report.targetUser.username} profile`}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <span className="text-white font-bold text-lg">
-                  {report.targetUser.username.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="font-medium text-gray-900 text-lg">
-                @{report.targetUser.username}
-              </p>
-              <p className="text-sm text-gray-500">
-                User ID: {report.targetUser.id}
-              </p>
-              {report.targetUser.email && (
-                <p className="text-sm text-gray-500">
-                  {report.targetUser.email}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Additional Account Actions */}
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Account Actions:</span>
-              <div className="flex space-x-2">
-                <button className="px-3 py-1 bg-blue-100 text-blue-600 rounded text-sm hover:bg-blue-200 transition-colors">
-                  View Profile
-                </button>
-                <button className="px-3 py-1 bg-yellow-100 text-yellow-600 rounded text-sm hover:bg-yellow-200 transition-colors">
-                  View Posts
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReportAccountDisplay
+          userId={report.targetUser?.id}
+          fallbackData={
+            report.targetUser
+              ? {
+                  user_id: report.targetUser.id,
+                  display_name: report.targetUser.display_name || report.targetUser.username,
+                  username: report.targetUser.username,
+                  profile_picture: report.targetUser.profilePicture,
+                }
+              : null
+          }
+        />
       </div>
 
       {/* Action Buttons */}
