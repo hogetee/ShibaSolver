@@ -79,6 +79,7 @@ const DedicatedPost = ({
           onEditClick={() => setIsEditModalOpen(true)}
           onDeleteClick={() => setIsDeleteModalOpen(true)}
           onReportClick={() => setIsReportModalOpen(true)} 
+          postId={postData.post_id}
         />
 
         <PostContent

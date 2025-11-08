@@ -126,6 +126,7 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
           onEditClick={() => setIsEditModalOpen(true)}
           onDeleteClick={() => setIsDeleteModalOpen(true)}
           onReportClick={() => setIsReportModalOpen(true)} // 3. ส่งฟังก์ชันเปิด Modal ลงไป
+          postId={postData.post_id}
         />
       
       {/* ✅ Only title/description clickable */}
