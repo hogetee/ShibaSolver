@@ -46,17 +46,26 @@ const BannedUser: React.FC<BannedUserProps> = ({
 
 
 
-        <div className="flex flex-row items-center gap-10 px-2">
-            <div className="flex items-center gap-3 ">
-                <span className="bg-[#4B0082] text-white border-none py-2 px-3 rounded-lg text-lg  font-medium">Reason of Ban</span> 
-                <span className="">{reasonOfBan}</span> 
-                
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 items-start gap-3 px-5">
+          {/* Left: Reason of Ban (label stays fixed, value wraps) */}
+          <div className="flex items-start gap-3 max-w-full">
+            <span className="bg-[#4B0082] text-white py-2 px-3 rounded-lg text-xl font-medium font-bold shrink-0">
+              Reason of Ban
+            </span>
+            <span className="font-bold text-xl  whitespace-normal flex-1 min-w-0 max-w-full mt-2">
+              {reasonOfBan}
+            </span>
+          </div>
 
-            <div className="flex items-center gap-3">
-                <span className="bg-[#4B0082] text-white border-none py-2 px-3 rounded-lg text-lg  font-medium">Banned Since</span> 
-                <span className="">{bannedDate}</span> 
-            </div>
+          {/* Right: Banned Since (align to right on md+, stays below on small screens) */}
+          <div className="flex items-start gap-3 justify-start md:justify-end max-w-full">
+            <span className="bg-[#4B0082] text-white py-2 px-3 rounded-lg text-xl font-medium font-bold shrink-0">
+              Banned Since
+            </span>
+            <span className="font-bold text-xl break-words whitespace-nowrap ml-2 mt-2">
+              {bannedDate}
+            </span>
+          </div>
         </div>
 
     </div>

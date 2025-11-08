@@ -7,7 +7,7 @@ const mockBannedUsers = [
     id: 1,
     name: "Pornmongkol Taniggarn",
     nickname: "Nano",
-    reasonOfBan: "Offensive Account",
+    reasonOfBan: "Offensive Accountsdsdsdsdsdsds",
     bannedDate: "31/10/25",
     profileImage: "/images/default-avatar.png"
   },
