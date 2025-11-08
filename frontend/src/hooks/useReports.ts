@@ -16,14 +16,56 @@ export default function useReports() {
   const fetchPostReports = async (status: "unreviewed" | "reviewed") => {
     setLoading(true);
     try {
-      const apiStatus = status === "unreviewed" ? "pending" : "accepted";
-      const response = await fetch(
-        `${BACKEND_URL}/api/v1/admins/posts?status=${apiStatus}`
-      );
-      const data: ApiPostReportResponse = await response.json();
+      if (status === "unreviewed") {
+        const response = await fetch(
+          `${BACKEND_URL}/api/v1/admins/posts?status=pending`
+        );
+        const data: ApiPostReportResponse = await response.json();
 
-      if (data.success) {
-        const mappedReports = data.data.map((item) => ({
+        if (data.success) {
+          const mappedReports = data.data.map((item) => ({
+            id: item.report_id,
+            reportNumber: parseInt(item.report_id),
+            reportedBy: item.reporter_name,
+            reason: item.reason,
+            reportedDate: new Date(item.created_at).toLocaleDateString("en-GB"),
+            status:
+              item.status === "pending"
+                ? ("unreviewed" as const)
+                : ("reviewed" as const),
+            type: "posts" as const,
+            targetContent: {
+              id: item.target_id,
+              title: item.post_title,
+              content: "",
+              author: item.post_owner_name,
+              username: item.post_owner_username,
+              tags: [],
+              likes: 0,
+              comments: 0,
+              solved: false,
+            },
+          }));
+          setReports(mappedReports);
+        } else {
+          setReports([]);
+        }
+      } else {
+        // Fetch both accepted and rejected reports
+        const [acceptedRes, rejectedRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/v1/admins/posts?status=accepted`),
+          fetch(`${BACKEND_URL}/api/v1/admins/posts?status=rejected`),
+        ]);
+
+        const acceptedData: ApiPostReportResponse = await acceptedRes.json();
+        const rejectedData: ApiPostReportResponse = await rejectedRes.json();
+
+        const combinedReports = [
+          ...(acceptedData.success ? acceptedData.data : []),
+          ...(rejectedData.success ? rejectedData.data : []),
+        ];
+
+        const mappedReports = combinedReports.map((item) => ({
           id: item.report_id,
           reportNumber: parseInt(item.report_id),
           reportedBy: item.reporter_name,
@@ -47,8 +89,6 @@ export default function useReports() {
           },
         }));
         setReports(mappedReports);
-      } else {
-        setReports([]);
       }
     } catch (error) {
       console.error("Error fetching post reports:", error);
@@ -61,14 +101,56 @@ export default function useReports() {
   const fetchCommentReports = async (status: "unreviewed" | "reviewed") => {
     setLoading(true);
     try {
-      const apiStatus = status === "unreviewed" ? "pending" : "accepted";
-      const response = await fetch(
-        `${BACKEND_URL}/api/v1/admins/comments?status=${apiStatus}`
-      );
-      const data: ApiCommentReportResponse = await response.json();
+      if (status === "unreviewed") {
+        const response = await fetch(
+          `${BACKEND_URL}/api/v1/admins/comments?status=pending`
+        );
+        const data: ApiCommentReportResponse = await response.json();
 
-      if (data.success) {
-        const mappedReports = data.data.map((item) => ({
+        if (data.success) {
+          const mappedReports = data.data.map((item) => ({
+            id: item.report_id,
+            reportNumber: parseInt(item.report_id),
+            reportedBy: item.reporter_name,
+            reason: item.reason,
+            reportedDate: new Date(item.created_at).toLocaleDateString("en-GB"),
+            status:
+              item.status === "pending"
+                ? ("unreviewed" as const)
+                : ("reviewed" as const),
+            type: "comments" as const,
+            targetContent: {
+              id: item.target_id,
+              title: "Comment",
+              content: item.comment_text,
+              author: item.comment_owner_name,
+              username: item.comment_owner_username,
+              tags: [],
+              likes: 0,
+              comments: 0,
+              solved: false,
+            },
+          }));
+          setReports(mappedReports);
+        } else {
+          setReports([]);
+        }
+      } else {
+        // Fetch both accepted and rejected reports
+        const [acceptedRes, rejectedRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/v1/admins/comments?status=accepted`),
+          fetch(`${BACKEND_URL}/api/v1/admins/comments?status=rejected`),
+        ]);
+
+        const acceptedData: ApiCommentReportResponse = await acceptedRes.json();
+        const rejectedData: ApiCommentReportResponse = await rejectedRes.json();
+
+        const combinedReports = [
+          ...(acceptedData.success ? acceptedData.data : []),
+          ...(rejectedData.success ? rejectedData.data : []),
+        ];
+
+        const mappedReports = combinedReports.map((item) => ({
           id: item.report_id,
           reportNumber: parseInt(item.report_id),
           reportedBy: item.reporter_name,
@@ -92,8 +174,6 @@ export default function useReports() {
           },
         }));
         setReports(mappedReports);
-      } else {
-        setReports([]);
       }
     } catch (error) {
       console.error("Error fetching comment reports:", error);
@@ -106,37 +186,96 @@ export default function useReports() {
   const fetchAccountReports = async (status: "unreviewed" | "reviewed") => {
     setLoading(true);
     try {
-      const apiStatus = status === "unreviewed" ? "pending" : "accepted";
-      console.log(`Fetching account reports with status: ${apiStatus}`);
-      const response = await fetch(
-        `${BACKEND_URL}/api/v1/admins/accounts?status=${apiStatus}`
-      );
+      if (status === "unreviewed") {
+        console.log(`Fetching account reports with status: pending`);
+        const response = await fetch(
+          `${BACKEND_URL}/api/v1/admins/accounts?status=pending`
+        );
 
-      console.log(`Response status: ${response.status}`);
+        console.log(`Response status: ${response.status}`);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Account reports API error:", errorText);
-        setReports([]);
-        return;
-      }
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Account reports API error:", errorText);
+          setReports([]);
+          return;
+        }
 
-      const responseText = await response.text();
-      console.log("Account reports raw response:", responseText);
+        const responseText = await response.text();
+        console.log("Account reports raw response:", responseText);
 
-      let data: ApiAccountReportResponse;
-      try {
-        data = JSON.parse(responseText);
-        console.log("Parsed account reports data:", data);
-      } catch (parseError) {
-        console.error("JSON parse error for account reports:", parseError);
-        console.error("Failed to parse:", responseText);
-        setReports([]);
-        return;
-      }
+        let data: ApiAccountReportResponse;
+        try {
+          data = JSON.parse(responseText);
+          console.log("Parsed account reports data:", data);
+        } catch (parseError) {
+          console.error("JSON parse error for account reports:", parseError);
+          console.error("Failed to parse:", responseText);
+          setReports([]);
+          return;
+        }
 
-      if (data.success) {
-        const mappedReports = data.data.map((item) => ({
+        if (data.success) {
+          const mappedReports = data.data.map((item) => ({
+            id: item.report_id,
+            reportNumber: parseInt(item.report_id),
+            reportedBy: item.reporter_name,
+            reason: item.reason,
+            reportedDate: new Date(item.created_at).toLocaleDateString("en-GB"),
+            status:
+              item.status === "pending"
+                ? ("unreviewed" as const)
+                : ("reviewed" as const),
+            type: "account" as const,
+            targetUser: {
+              id: item.target_id,
+              username: item.target_username,
+              display_name: item.target_name,
+              email: "",
+            },
+          }));
+          setReports(mappedReports);
+        } else {
+          setReports([]);
+        }
+      } else {
+        // Fetch both accepted and rejected reports
+        console.log(`Fetching account reports with status: accepted and rejected`);
+        const [acceptedRes, rejectedRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/v1/admins/accounts?status=accepted`),
+          fetch(`${BACKEND_URL}/api/v1/admins/accounts?status=rejected`),
+        ]);
+
+        console.log(`Accepted response status: ${acceptedRes.status}`);
+        console.log(`Rejected response status: ${rejectedRes.status}`);
+
+        if (!acceptedRes.ok || !rejectedRes.ok) {
+          console.error("Error fetching reviewed account reports");
+          setReports([]);
+          return;
+        }
+
+        const acceptedText = await acceptedRes.text();
+        const rejectedText = await rejectedRes.text();
+
+        let acceptedData: ApiAccountReportResponse;
+        let rejectedData: ApiAccountReportResponse;
+
+        try {
+          acceptedData = JSON.parse(acceptedText);
+          rejectedData = JSON.parse(rejectedText);
+        } catch (parseError) {
+          console.error("JSON parse error for account reports:", parseError);
+          setReports([]);
+          return;
+        }
+
+        const combinedReports = [
+          ...(acceptedData.success ? acceptedData.data : []),
+          ...(rejectedData.success ? rejectedData.data : []),
+        ];
+
+        const mappedReports = combinedReports.map((item) => ({
           id: item.report_id,
           reportNumber: parseInt(item.report_id),
           reportedBy: item.reporter_name,
@@ -155,8 +294,6 @@ export default function useReports() {
           },
         }));
         setReports(mappedReports);
-      } else {
-        setReports([]);
       }
     } catch (error) {
       console.error("Error fetching account reports:", error);
