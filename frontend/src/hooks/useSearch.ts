@@ -48,9 +48,9 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
 export function useSearch({
   mode,
   query,
-  selectedTags = [],
+  selectedTags,
   enabled = true,
-  debounceMs = 20,
+  debounceMs = 200,
   minQueryLength = 1,
 }: UseSearchOptions): UseSearchResult {
   const [userResults, setUserResults] = useState<UserResult[]>([]);
@@ -61,6 +61,7 @@ export function useSearch({
   // Use refs to track previous values and avoid unnecessary state updates
   const prevQueryRef = useRef<string>("");
   const prevModeRef = useRef<Mode>(mode);
+  const prevTagsRef = useRef<string>("");
 
   useEffect(() => {
     if (!enabled) {
@@ -73,6 +74,9 @@ export function useSearch({
     }
 
     const q = query.trim();
+    const tagsKey = (selectedTags && selectedTags.length > 0)
+      ? [...selectedTags].slice().sort().join(",")
+      : "";
     const controller = new AbortController();
 
     // Early return: if query is too short, clear results and don't fetch
@@ -85,13 +89,17 @@ export function useSearch({
       return;
     }
 
-    // Skip if query and mode haven't changed
-    if (q === prevQueryRef.current && mode === prevModeRef.current) {
+    if (
+      q === prevQueryRef.current &&
+      mode === prevModeRef.current &&
+      tagsKey === prevTagsRef.current
+    ) {
       return;
     }
 
     prevQueryRef.current = q;
     prevModeRef.current = mode;
+    prevTagsRef.current = tagsKey;
 
     const t = setTimeout(async () => {
       setLoading(true);
@@ -181,7 +189,7 @@ export function useSearch({
 
             // Client-side tag filtering if selectedTags is provided
             let filteredPosts = posts;
-            if (selectedTags.length > 0) {
+            if (selectedTags && selectedTags.length > 0) {
               filteredPosts = posts.filter((post) =>
                 selectedTags.some((tag) => post.tags?.includes(tag))
               );

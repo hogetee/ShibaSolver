@@ -16,16 +16,23 @@ type Props = {
   initialMode?: Mode;
 };
 
-// MOCK
-const ALL_TAGS = ["Math", "Phys", "Chem", "Bio", "Eng"];
+const ALL_TAGS = ["Math", "Physics", "Chemistry", "Biology", "History", "Geography",
+  "Economics", "Law", "Thai", "English", "Chinese", "Programming", "Others"];
 // Color mapping for tags
 const tagColors: { [key: string]: string } = {
-  Math: "bg-indigo-600 text-white",
-  Phys: "bg-yellow-400 text-yellow-900",
-  Chem: "bg-green-500 text-white",
-  Bio: "bg-cyan-500 text-white",
-  Eng: "bg-red-500 text-white",
-  Default: "bg-gray-500 text-white",
+  Math: 'bg-[#2563EB]',
+  Physics: 'bg-[#FF9D00]',
+  Chemistry: 'bg-[#9333EA]',
+  Biology: 'bg-[#467322]',
+  History: 'bg-[#893F07]',
+  Geography: 'bg-[#1E6A91]',
+  Economics: 'bg-[#FA733E]',
+  Law: 'bg-[#000000]',
+  Thai: 'bg-[#83110F]',
+  English: 'bg-[#BE0EA7]',
+  Chinese: 'bg-[#CBC400]',
+  Programming: 'bg-[#6366F1]',
+  Others: 'bg-[#63647A]',
 };
 
 export default function SearchComponent({
@@ -39,7 +46,7 @@ export default function SearchComponent({
   const [query, setQuery] = useState("");
 
 
-  const [selectedTags, setSelectedTags] = useState<string[]>(["Math", "Phys"]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -54,10 +61,30 @@ export default function SearchComponent({
   useEffect(() => {
     function onClickAway(e: MouseEvent) {
       if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target as Node)) setOpen(false);
+      if (!containerRef.current.contains(e.target as Node)) {
+        setTagPopoverOpen(false);
+        setOpen(false);
+        setSelectedTags([]);
+        setQuery("");
+      }
     }
+
+    function onEscKey(e: KeyboardEvent) {
+      if (e.key === "Escape" || e.key === "Esc") {
+        setTagPopoverOpen(false);
+        setOpen(false);
+        setSelectedTags([]);
+        setQuery("");
+      }
+    }
+
+    document.addEventListener("keydown", onEscKey);
     document.addEventListener("mousedown", onClickAway);
-    return () => document.removeEventListener("mousedown", onClickAway);
+
+    return () => {
+      document.removeEventListener("keydown", onEscKey);
+      document.removeEventListener("mousedown", onClickAway);
+    };
   }, []);
 
   useEffect(() => {
@@ -71,8 +98,12 @@ export default function SearchComponent({
         setTagPopoverOpen(false);
       }
     }
+
     document.addEventListener("mousedown", onClickAway);
-    return () => document.removeEventListener("mousedown", onClickAway);
+
+    return () => {
+      document.removeEventListener("mousedown", onClickAway);
+    };
   }, []);
 
   const { userResults, postResults, loading, error } = useSearch({
@@ -192,7 +223,7 @@ export default function SearchComponent({
                   return (
                     <div
                       key={tag}
-                      className={`pl-2.5 pr-1 py-1 text-sm font-medium rounded-lg flex items-center gap-1 ${colors}`}
+                      className={`pl-2.5 pr-1 py-1 text-sm text-white font-medium rounded-lg flex items-center gap-1 ${colors}`}
                     >
                       <span>{tag}</span>
                       <button
@@ -267,7 +298,7 @@ export default function SearchComponent({
                     <Link
                       key={p.id ?? idx}
                       href={href}
-                      className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
+                      className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2"
                       onClick={(e) => handleLinkClick(e, "post", p, href)}
                     >
                       <div className="text-black font-semibold text-lg">{p.title}</div>
@@ -306,7 +337,7 @@ export default function SearchComponent({
                   <Link
                     key={u.id ?? idx}
                     href={href}
-                    className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 block"
+                    className="w-full text-left px-5 py-4 hover:bg-pink-100 transition flex items-center gap-2 "
                     onClick={(e) => handleLinkClick(e, "user", u, href)}
                   >
                     {u.avatarUrl ? (
