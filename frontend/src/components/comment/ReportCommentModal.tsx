@@ -113,7 +113,7 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
           </div>
 
           {error && (
-           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm font-medium">
+           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
             {error}
           </div>
           )}

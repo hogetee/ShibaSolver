@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { useReportUser } from '@/hooks/useReportUser'; 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -21,16 +21,25 @@ const reportReasons = [
 ];
 
 const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) => {
-  const { reportUser, isReporting, error, resetReportStatus } = useReportUser(); 
+  const { reportUser, isReporting} = useReportUser(); 
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [otherReason, setOtherReason] = useState<string>('');
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmitReport = async () => {
-    const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
-    if (!reasonToSend) {
-      alert('Please select or specify a reason for reporting.');
+    setError(null); // เคลียร์ Error เก่า
+
+    if (!selectedReason) {
+      setError("Please select a reason for reporting.");
       return;
     }
+    if (selectedReason === 'Other' && otherReason.trim().length === 0) {
+      setError("Please specify your reason in the text box.");
+      return;
+    }
+
+    const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
 
     try {
       const response = await reportUser(userId, reasonToSend);
@@ -39,10 +48,6 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
     } catch (err) {
     }
   };
-
-  useEffect(() => {
-    resetReportStatus();
-  }, [resetReportStatus]);
 
   return (
     <div
@@ -69,12 +74,6 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
           Why are you reporting <span className="font-semibold text-[#4B0082]">{userName}</span>? 
           Your report is anonymous.
         </p>
-
-        {error && (
-           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-            Error: {error}
-          </div>
-        )}
 
         <form onSubmit={(e) => { e.preventDefault(); handleSubmitReport(); }}>
           <div className="space-y-4 mb-6">
@@ -108,10 +107,16 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
             )}
           </div>
 
+          {error && (
+           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+            {error}
+          </div>
+          )}
+
           <div className="flex justify-end gap-4">
             <button
               type="submit"
-              disabled={isReporting || !selectedReason || (selectedReason === 'Other' && !otherReason.trim())}
+              disabled={isReporting}
               className="px-6 py-2 rounded-md text-white font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isReporting ? 'Submitting...' : 'Submit Report'}
