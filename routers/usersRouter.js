@@ -15,12 +15,10 @@ router.get("/:userID/posts",optionalAuth, usersCtrl.getPostbyUserId);
 //PUT
 router.put("/premium", requireAuth, usersCtrl.updatePremium);
 router.put("/", requireAuth, usersCtrl.updateUser);
-router.put("/:id", usersCtrl.adminUpdateUser);
 
 
 //DELETE
 router.delete("/", requireAuth, usersCtrl.deleteUser);
-router.delete("/:id", usersCtrl.adminDeleteUser);
 
 // export router
 module.exports = router;
