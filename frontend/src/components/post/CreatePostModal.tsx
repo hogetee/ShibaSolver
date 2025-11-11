@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import MultiSelectSubject from './MultiSelectSubject';
 import { useCreatePost } from '@/hooks/useCreatePost';
 import { PostData } from './Post';
@@ -37,8 +37,8 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Upload image to Cloudinary
   const handleImageUpload = async (file: File) => {
     setUploading(true);
     try {
@@ -74,10 +74,24 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // เคลียร์ Error เก่าทุกครั้งที่กด
 
+    // --- 1. ตรวจสอบ Title ---
+    if (title.trim().length === 0) {
+      setError("Please enter a title.");
+      return; // หยุดทำงาน
+    }
+
+    // --- 2. ตรวจสอบ Subjects ---
     if (selectedSubjects.length === 0) {
-      alert("Please select at least one subject.");
-      return;
+      setError("Please select at least one subject.");
+      return; // หยุดทำงาน
+    }
+
+    // --- 3. ตรวจสอบ Details ---
+    if (details.trim().length === 0) {
+      setError("Please enter the details.");
+      return; // หยุดทำงาน
     }
 
     const formData: NewPostData = {
@@ -124,7 +138,6 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               placeholder="Enter your title here..."
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
               maxLength={100}
-              required
             />
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
           </div>
@@ -150,7 +163,6 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               rows={5}
               maxLength={500}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
-              required
             />
             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
           </div>
@@ -199,6 +211,12 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               </div>
             )}
           </div>
+
+          {error && (
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+              {error}
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="flex items-center justify-end">

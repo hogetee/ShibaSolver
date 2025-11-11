@@ -36,6 +36,7 @@ const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalP
   const [imageFileName, setImageFileName] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // 📤 Upload image
   const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,8 +70,23 @@ const handleRemoveImage = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // เคลียร์ Error เก่า
+
+    // --- ตรวจสอบ Title ---
+    if (title.trim().length === 0) {
+      setError("Please enter a title.");
+      return;
+    }
+    
+    // --- ตรวจสอบ Subjects ---
     if (selectedSubjects.length === 0) {
-      alert('Please select at least one subject.');
+      setError("Please select at least one subject.");
+      return;
+    }
+
+    // --- ตรวจสอบ Details ---
+    if (details.trim().length === 0) {
+      setError("Please enter the details.");
       return;
     }
 
@@ -115,7 +131,6 @@ const handleRemoveImage = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={100}
-              required
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
@@ -140,7 +155,6 @@ const handleRemoveImage = () => {
               onChange={(e) => setDetails(e.target.value)}
               rows={5}
               maxLength={500}
-              required
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
@@ -220,6 +234,12 @@ const handleRemoveImage = () => {
               </label>
             </div>
           </div>
+
+          {error && (
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+              {error}
+            </div>
+          )}
 
           {/* Save Button */}
           <div className="flex justify-end mt-6">
