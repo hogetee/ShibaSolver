@@ -1,5 +1,3 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { createNotification } = require('../services/notificationService');
 
 /**
@@ -75,7 +73,7 @@ exports.adminDeletePost = async (req, res, next) => {
   const client = await pool.connect();
 
   try {
-    const adminId = req.admin?.adminId;            // มาจาก adminProtect
+    const adminId = req.admin?.admin_id;            // มาจาก adminProtect
     const postId = Number(req.params.postId);
     if (!adminId) {
       return res.status(401).json({ success: false, message: "Not authenticated" });
@@ -92,7 +90,7 @@ exports.adminDeletePost = async (req, res, next) => {
       UPDATE posts
       SET is_deleted = TRUE
       WHERE post_id = $1 AND is_deleted = FALSE
-      RETURNING post_id
+      RETURNING post_id, user_id
       `,
       [postId]
     );
