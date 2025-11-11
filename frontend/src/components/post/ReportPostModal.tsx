@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useReportPost } from '@/hooks/useReportPost';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ReportPostModalProps {
   postId: string;
@@ -21,16 +20,27 @@ const reportReasons = [
 ];
 
 const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
-  const { reportPost, isReporting, error, successMessage, resetReportStatus } = useReportPost();
+  const { reportPost, isReporting} = useReportPost();
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [otherReason, setOtherReason] = useState<string>(''); // State สำหรับเหตุผล 'Other'
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmitReport = async () => {
-    const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
-    if (!reasonToSend) {
-      alert('Please select or specify a reason for reporting.');
-      return;
+    setError(null); // เคลียร์ Error เก่าทุกครั้งที่กด
+
+    // --- 1. ตรวจสอบ Reason ---
+    if (!selectedReason) {
+      setError("Please select a reason for reporting.");
+      return; // หยุดทำงาน
     }
+    
+    // --- 2. ตรวจสอบ "Other" ---
+    if (selectedReason === 'Other' && otherReason.trim().length === 0) {
+      setError("Please specify your reason in the text box.");
+      return; // หยุดทำงาน
+    }
+
+    const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
 
     try {
       await reportPost(postId, reasonToSend);
@@ -39,11 +49,6 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
       // alert(`Error reporting post: ${err.message}`);
     }
   };
-
-  // Reset สถานะเมื่อ Modal เปิด
-  React.useEffect(() => {
-    resetReportStatus();
-  }, [resetReportStatus]);
 
   return (
     <div className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50">
@@ -68,23 +73,7 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
           Why are you reporting this post? Your report is anonymous.
         </p>
 
-        {/* แสดงผลเมื่อ Report สำเร็จ */}
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
-            {successMessage}
-            <button onClick={onClose} className="ml-4 text-sm font-medium underline">Close</button>
-          </div>
-        )}
 
-        {/* แสดงผลเมื่อเกิด Error */}
-        {error && (
-           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-            Error: {error}
-          </div>
-        )}
-
-        {/* ถ้ายังไม่ Success หรือ Error ให้แสดง Form */}
-        {!successMessage && !error && (
           <form onSubmit={(e) => { e.preventDefault(); handleSubmitReport(); }}>
             <div className="space-y-4 mb-6">
               {reportReasons.map((reason) => (
@@ -118,17 +107,22 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
               )}
             </div>
 
+            {error && (
+              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+                {error}
+              </div>
+            )}
+
             <div className="flex justify-end gap-4">   
               <button
                 type="submit"
-                disabled={isReporting || !selectedReason || (selectedReason === 'Other' && !otherReason.trim())}
+                disabled={isReporting}
                 className="px-6 py-2 rounded-md text-white font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isReporting ? 'Submitting...' : 'Submit Report'}
               </button>
             </div>
           </form>
-        )}
       </div>
     </div>
   );

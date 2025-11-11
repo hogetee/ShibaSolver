@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useReportComment } from '@/hooks/useReportComment'; 
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -21,16 +21,26 @@ const reportReasons = [
 ];
 
 const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => {
-  const { reportComment, isReporting, error, resetReportStatus } = useReportComment(); 
+  const { reportComment, isReporting} = useReportComment(); 
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [otherReason, setOtherReason] = useState<string>('');
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmitReport = async () => {
-    const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
-    if (!reasonToSend) {
-      alert('Please select or specify a reason for reporting.');
+    setError(null); // เคลียร์ Error เก่า
+
+    // --- ตรวจสอบ Validation ---
+    if (!selectedReason) {
+      setError("Please select a reason for reporting.");
       return;
     }
+    if (selectedReason === 'Other' && otherReason.trim().length === 0) {
+      setError("Please specify your reason in the text box.");
+      return;
+    }
+
+    const reasonToSend = selectedReason === 'Other' ? otherReason.trim() : selectedReason;
 
     try {
       const response = await reportComment(commentId, reasonToSend);
@@ -41,9 +51,9 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
     }
   };
 
-  useEffect(() => {
-    resetReportStatus();
-  }, [resetReportStatus]);
+  // useEffect(() => {
+  //   resetReportStatus();
+  // }, [resetReportStatus]);
 
   return (
     <div
@@ -69,12 +79,6 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
         <p className="text-l text-gray-600 mb-4">
           Why are you reporting this comment? Your report is anonymous.
         </p>
-
-        {error && (
-           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-            Error: {error}
-          </div>
-        )}
 
         <form onSubmit={(e) => { e.preventDefault(); handleSubmitReport(); }}>
           <div className="space-y-4 mb-6">
@@ -108,10 +112,16 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
             )}
           </div>
 
+          {error && (
+           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm font-medium">
+            {error}
+          </div>
+          )}
+
           <div className="flex justify-end gap-4">
             <button
                 type="submit"
-                disabled={isReporting || !selectedReason || (selectedReason === 'Other' && !otherReason.trim())}
+                disabled={isReporting}
                 className="px-6 py-2 rounded-md text-white font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isReporting ? 'Submitting...' : 'Submit Report'}
