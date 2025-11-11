@@ -13,8 +13,10 @@ router.get("/:userID/posts",optionalAuth, usersCtrl.getPostbyUserId);
 //POST
 
 //PUT
+router.put("/premium", requireAuth, usersCtrl.updatePremium);
 router.put("/", requireAuth, usersCtrl.updateUser);
 router.put("/:id", usersCtrl.adminUpdateUser);
+
 
 //DELETE
 router.delete("/", requireAuth, usersCtrl.deleteUser);
