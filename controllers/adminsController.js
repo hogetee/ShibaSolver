@@ -176,7 +176,7 @@ exports.adminDeleteComment = async (req, res, next) => {
       UPDATE comments
       SET is_deleted = TRUE
       WHERE comment_id = $1 AND is_deleted = FALSE
-      RETURNING comment_id
+      RETURNING comment_id, user_id, post_id
       `,
       [commentId]
     );
@@ -198,6 +198,18 @@ exports.adminDeleteComment = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
+
+    const commentOwnerId = upComment.rows[0].user_id;
+    if (commentOwnerId) {
+      const linkTarget = upComment.rows[0].post_id ? `/post/${upComment.rows[0].post_id}` : null;
+      await createNotification(pool, {
+        toUserId: commentOwnerId,
+        type: 'admin_delete',
+        message: 'Your comment has been removed by an administrator.',
+        link: linkTarget,
+      });
+    }
+    
     return res.status(200).json({
       success: true,
       message: "Comment deleted successfully",
