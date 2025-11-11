@@ -8,7 +8,7 @@ interface DeletePostModalProps {
 
 const DeletePostModal = ({ onClose, onConfirm, isDeleting }: DeletePostModalProps) => {
   return (
-    <div className="fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50">
+    <div className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50">
       {/* Modal Card */}
       <div
         onClick={(e) => e.stopPropagation()}

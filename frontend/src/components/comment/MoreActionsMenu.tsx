@@ -52,16 +52,16 @@ export const MoreActionsMenu: React.FC<MoreActionsButtonProps> = ({
 
             {isOpen && (
                 <>
-                    {/* Backdrop to close menu when clicking outside */}
+                    {/* Backdrop */}
                     <div 
                         className="fixed inset-0 z-10" 
                         onClick={() => setIsOpen(false)}
                     />
                     
                     {/* Menu */}
-                    <div className="absolute left-0 top-8 z-20 bg-white border border-black rounded-xl shadow-lg min-w-[120px] font-display text-dark-900">
+                    <div className="absolute left-0 top-8 z-20 bg-white border border-black rounded-xl shadow-lg min-w-[120px] font-display text-dark-900 overflow-hidden">
                         {owner && <div> <div 
-                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-t-xl"
+                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
                             onClick={() => handleAction(handleEdit)}
                         >
                             <EditIcon fontSize="small" className="mr-2" />
@@ -77,14 +77,14 @@ export const MoreActionsMenu: React.FC<MoreActionsButtonProps> = ({
                             Delete
                         </div> 
                         <div 
-                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-b-xl"
+                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
                             onClick={() => handleAction(handleSetSolution)}
                         >
                             <LightbulbOutlinedIcon fontSize="small" className="mr-2" />
                             Solution
                         </div> </div> }
                         <div 
-                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-b-xl"
+                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
                             onClick={() => handleAction(handleReportClick)}
                         >
                             <OutlinedFlagIcon fontSize="small" className="mr-2" />

@@ -57,7 +57,7 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50"
+      className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50"
     >
       <div
         onClick={(e) => e.stopPropagation()}
