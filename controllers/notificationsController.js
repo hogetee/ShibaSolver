@@ -7,6 +7,22 @@ exports.getNotifications = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const userId = req.user.uid;
+    const MAX_LIMIT = 100;
+
+    let limit = Number.parseInt(req.query.limit, 10);
+    if (!Number.isInteger(limit) || limit <= 0) limit = 20;
+    limit = Math.min(limit, MAX_LIMIT);
+
+    let offset = Number.parseInt(req.query.offset, 10);
+    if (!Number.isInteger(offset) || offset < 0) offset = 0;
+
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*)::int AS total
+       FROM notifications
+       WHERE user_id = $1`,
+      [userId]
+    );
+    const total = countRows[0]?.total ?? 0;
 
     const { rows } = await pool.query(
       `
@@ -14,12 +30,19 @@ exports.getNotifications = async (req, res) => {
       FROM notifications
       WHERE user_id = $1
       ORDER BY created_at DESC
-      LIMIT 50
+      LIMIT $2
+      OFFSET $3
       `,
-      [userId]
+      [userId, limit, offset]
     );
 
-    res.json({ success: true, data: rows });
+    res.json({
+      success: true,
+      count: rows.length,
+      total,
+      pagination: { limit, offset },
+      data: rows
+    });
   } catch (err) {
     console.error('getNotifications error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -35,6 +58,22 @@ exports.getUnreadNotifications = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const userId = req.user.uid;
+    const MAX_LIMIT = 100;
+
+    let limit = Number.parseInt(req.query.limit, 10);
+    if (!Number.isInteger(limit) || limit <= 0) limit = 20;
+    limit = Math.min(limit, MAX_LIMIT);
+
+    let offset = Number.parseInt(req.query.offset, 10);
+    if (!Number.isInteger(offset) || offset < 0) offset = 0;
+
+    const { rows: countRows } = await pool.query(
+      `SELECT COUNT(*)::int AS total
+       FROM notifications
+       WHERE user_id = $1 AND is_read = FALSE`,
+      [userId]
+    );
+    const total = countRows[0]?.total ?? 0;
 
     const { rows } = await pool.query(
       `
@@ -42,11 +81,19 @@ exports.getUnreadNotifications = async (req, res) => {
       FROM notifications
       WHERE user_id = $1 AND is_read = FALSE
       ORDER BY created_at DESC
+      LIMIT $2
+      OFFSET $3
       `,
-      [userId]
+      [userId, limit, offset]
     );
 
-    res.json({ success: true, data: rows });
+    res.json({
+      success: true,
+      count: rows.length,
+      total,
+      pagination: { limit, offset },
+      data: rows
+    });
   } catch (err) {
     console.error('getUnreadNotifications error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -87,7 +134,11 @@ exports.markAsRead = async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const userId = req.user.uid;
-    const notificationId = req.params.id;
+    const notificationId = Number.parseInt(req.params.id, 10);
+
+    if (!Number.isInteger(notificationId) || notificationId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid notification id' });
+    }
 
     const { rowCount } = await pool.query(
       `UPDATE notifications
