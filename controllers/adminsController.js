@@ -9,6 +9,10 @@ exports.getAllAdmins = async (req, res, next) => {
   try {
     const pool = req.app.locals.pool;
     const MAX_LIMIT = 100;
+    const adminId = req.admin?.admin_id;
+    if (!adminId) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
 
     const search = (req.query.search || '').trim();
 
@@ -188,7 +192,7 @@ exports.adminDeleteComment = async (req, res, next) => {
     await client.query(
       `
       INSERT INTO admin_actions (admin_id, action_type, target_type, target_id)
-      VALUES ($1, 'delete_post'::admin_action_type, 'comment'::report_target_type, $2)
+      VALUES ($1, 'delete_comment'::admin_action_type, 'comment'::report_target_type, $2)
       `,
       [adminId, commentId]
     );
