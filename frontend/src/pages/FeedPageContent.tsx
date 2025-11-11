@@ -7,7 +7,8 @@ import React, { useEffect, useState } from "react";
 import CreatePostButton from "@/components/post/CreatePostButton";
 import CreatePostModal from "@/components/post/CreatePostModal";
 import { useFetchFeeds } from "@/hooks/useFetchFeeds";
-import { useNotification } from "@/context/NotificationContext"; // ✅ use your context
+import { useNotification } from "@/context/NotificationContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface ApiResponse {
   success: boolean;
@@ -24,14 +25,14 @@ async function getNotificationData(): Promise<NotificationData[]> {
 }
 
 export default function Home() {
-  // ✅ Posts state from real API
   const { posts, setPosts, isLoading, error } = useFetchFeeds();
 
-  // ✅ Notification sidebar state (REPLACED showNotifications)
   const { isOpen, toggle } = useNotification();
 
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const { user: currentUser } = useCurrentUser();
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -52,15 +53,25 @@ export default function Home() {
   };
 
   const handleCreatePost = (apiResponse: ApiResponse) => {
+    if (!currentUser) {
+      // สั่ง reload หน้าแทน
+      window.location.reload(); 
+      return;
+    }
+
+    const newRawPost = apiResponse.data;
+
     const newPost: PostData = {
-      ...apiResponse.data,
+      ...newRawPost,
       tags: apiResponse.tags,
       author: {
-        user_id: "current-user-id",
-        display_name: "Me",
-        profile_picture: "/image/DefaultAvatar.png",
+        user_id: String(currentUser.user_id), 
+        display_name: currentUser.display_name, 
+        profile_picture: currentUser.profile_picture || "/image/DefaultAvatar.png", 
       },
       stats: { likes: 0, dislikes: 0 },
+      liked_by_user: false,
+      disliked_by_user: false,
       topComment: undefined,
     };
     setPosts((prev) => [newPost, ...prev]);
