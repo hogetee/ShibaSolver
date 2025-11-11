@@ -200,7 +200,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               </p>
             )}
 
-            {/* Optional: show preview */}
+            {/* Optional: show preview
             {imageUrl && (
               <div className="mt-3">
                 <img
@@ -209,7 +209,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
                   className="max-h-48 rounded-md border border-gray-300 shadow-sm"
                 />
               </div>
-            )}
+            )} */}
           </div>
 
           {error && (

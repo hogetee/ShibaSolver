@@ -184,19 +184,21 @@ const handleRemoveImage = () => {
                 disabled={uploading}
                 className="hidden"
               />
-
-              {imageFileName && !uploading && (
-                <span className="text-sm text-gray-500">{imageFileName}</span>
-              )}
             </div>
+
+            {imageFileName && !uploading && (
+              <p className="mt-2 text-sm text-gray-500">
+                Selected: <span className="font-medium">{imageFileName}</span>
+              </p>
+            )}
 
             {imageUrl && imageUrl.trim() !== '' && (
               <div className="mt-3">
-                <img
+                {/* <img
                   src={imageUrl}
                   alt="Uploaded"
                   className="max-h-48 rounded-md border border-gray-300 shadow-sm"
-                />
+                /> */}
                 <button
                   type="button"
                   onClick={handleRemoveImage}
