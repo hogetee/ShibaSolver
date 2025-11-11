@@ -33,7 +33,7 @@ const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalP
 
   // 🖼️ Image state
   const [imageUrl, setImageUrl] = useState<string | null>(postToEdit.post_image || null);
-  const [imageFileName, setImageFileName] = useState<string>('');
+  const [imageFileName, setImageFileName] = useState<string>(postToEdit.post_image ? "Current Image" : '');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
