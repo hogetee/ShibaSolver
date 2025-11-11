@@ -3,12 +3,66 @@ const jwt = require('jsonwebtoken');
 const { createNotification } = require('../services/notificationService');
 
 /**
- * @desc    Get all admins
+ * @desc    Get all admins (optional search & pagination)
  * @route   GET /api/v1/admins
  * @access  Private/Admin
  */
-exports.getAllAdmins = (req, res) => {
-  res.status(200).json({ success: true, where: "listAdmins", data: [] });
+exports.getAllAdmins = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const MAX_LIMIT = 100;
+
+    const search = (req.query.search || '').trim();
+
+    let limit = Number.parseInt(req.query.limit, 10);
+    if (!Number.isInteger(limit) || limit <= 0) limit = 20;
+    limit = Math.min(limit, MAX_LIMIT);
+
+    let offset = Number.parseInt(req.query.offset, 10);
+    if (!Number.isInteger(offset) || offset < 0) offset = 0;
+
+    const whereParts = [];
+    const params = [];
+
+    if (search) {
+      const searchTerm = `%${search.toLowerCase()}%`;
+      const nameIdx = params.length + 1;
+      params.push(searchTerm);
+      const emailIdx = params.length + 1;
+      params.push(searchTerm);
+      whereParts.push(`(LOWER(name) LIKE $${nameIdx} OR LOWER(email) LIKE $${emailIdx})`);
+    }
+
+    const whereClause = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
+
+    const countSql = `SELECT COUNT(*)::int AS total FROM admins ${whereClause};`;
+    const { rows: countRows } = await pool.query(countSql, params);
+    const total = countRows[0]?.total ?? 0;
+
+    const limitIdx = params.length + 1;
+    const offsetIdx = params.length + 2;
+
+    const dataSql = `
+      SELECT admin_id, name, email
+      FROM admins
+      ${whereClause}
+      ORDER BY admin_id ASC
+      LIMIT $${limitIdx}
+      OFFSET $${offsetIdx};
+    `;
+    const dataParams = [...params, limit, offset];
+    const { rows } = await pool.query(dataSql, dataParams);
+
+    return res.status(200).json({
+      success: true,
+      count: rows.length,
+      total,
+      pagination: { limit, offset },
+      data: rows,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 /**
@@ -102,7 +156,7 @@ exports.adminBanUser = async (req, res, next) => {
   const client = await pool.connect();
 
   try {
-    const adminId = req.admin?.adminId;           // จาก adminProtect
+    const adminId = req.admin?.admin_id;           // จาก adminProtect
     const userId = Number(req.params.userId);
 
     if (!adminId) {
@@ -181,7 +235,7 @@ exports.adminUnbanUser = async (req, res, next) => {
   const client = await pool.connect();
 
   try {
-    const adminId = req.admin?.adminId;          // จาก adminProtect
+    const adminId = req.admin?.admin_id;          // จาก adminProtect
     const userId = Number(req.params.userId);
 
     if (!adminId) {
