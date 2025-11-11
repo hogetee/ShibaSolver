@@ -17,9 +17,9 @@ const authRouter = require("./routers/authRouter");
 const commentsRouter = require("./routers/commentsRouter");
 const ratingRouter = require("./routers/ratingRouter");
 const reportRouter = require("./routers/reportRouter");
+const searchRouter = require("./routers/searchRouter");
 const notificationRouter = require("./routers/notificationRouter");
 const searchRouter = require("./routers/searchRouter");
-
 dotenv.config({ path: "./config/config.env" });
 
 const app = express();
@@ -64,6 +64,7 @@ app.use(hpp());
   app.use("/api/v1/comments", commentsRouter);
   app.use("/api/v1/ratings", ratingRouter);
   app.use("/api/v1/reports", reportRouter);
+  app.use("/api/v1/search", searchRouter);
   app.use("/api/v1/notifications", notificationRouter);
   app.use("/api/v1/search", searchRouter);
 

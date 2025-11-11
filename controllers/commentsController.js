@@ -534,16 +534,22 @@ exports.replyToComment = async (req, res, next) => {
     await client.query("COMMIT");
 
     // 3) แจ้งเตือน (อย่าแจ้งเตือนถ้าตอบคอมเมนต์ตัวเอง)
-    const pool = req.app.locals.pool;
-    const parentOwnerId = parent.parent_user_id;
+    if (Number(parent.parent_user_id) !== Number(actorUserId)) {
+      const message = `${actorUserId} replied to your comment`;
+      const link = `/posts/${parent.post_id}#comment-${reply.comment_id}`;
 
-    if (Number(parentOwnerId) !== Number(actorUserId)) {
-
-      const actorRes = await pool.query(
-        `SELECT display_name FROM users WHERE user_id = $1`,
-        [actorUserId]
-      );
-      const actorName = actorRes.rows[0]?.display_name || 'Someone';
+    await client.query(
+      `INSERT INTO notifications
+        (user_id, notification_type, message, link, is_read)
+      VALUES ($1, $2, $3, $4, FALSE)`,
+      [
+        parent.parent_user_id,        // receiver -> user_id
+        'reply',                      // notification_type — ensure enum includes 'reply'
+        message,
+        link
+      ]
+    );
+  }
 
       await createNotification(pool, {
         toUserId: parentOwnerId,

@@ -5,7 +5,7 @@ const router = express.Router();
 
 //GET
 router.get('/users', optionalAuth, searchCtrl.searchUsers);
-
+router.get('/posts', optionalAuth, searchCtrl.searchPosts);
 
 
 // export router

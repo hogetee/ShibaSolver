@@ -8,7 +8,8 @@ router.use(adminProtect);
 router.get('/', adminsCtrl.getAllAdmins);
 //router.get('/:id', adminsCtrl.getAdmin);
 //DELETE
-router.delete('/posts/:postId', adminsCtrl.adminDeletePost);
+router.delete('/posts/:postId', adminProtect, adminsCtrl.adminDeletePost);
+router.delete('/comments/:commentId', adminProtect,adminsCtrl.adminDeleteComment);
 //PATCH
 router.patch('/users/:userId/ban', adminsCtrl.adminBanUser);
 router.patch('/users/:userId/unban', adminsCtrl.adminUnbanUser);
