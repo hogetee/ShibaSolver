@@ -51,38 +51,6 @@ export default function AdminDashboard() {
           <AdminLogoutButton />
         </div>
 
-        {/* Quick Stats */}
-          <QuickStat stats={[
-            {
-              title: 'Total Reports',
-              value: adminStats.totalReports,
-              icon: (
-                <ReportGmailerrorredIcon className="w-5 h-5 text-blue-600" />
-              ),
-            },
-            {
-                title: 'Unreviewed',
-                value: adminStats.unreviewedReports,
-                icon: (
-                  <PendingActionsIcon className="w-5 h-5 text-yellow-600" />
-                ),
-              },
-              {
-                title: 'Banned Accounts',
-                value: adminStats.bannedAccounts,
-                icon: (
-                  <BlockIcon className="w-5 h-5 text-red-600" />
-                ),
-              },
-              {
-                title: 'Total Users',
-                value: adminStats.totalUsers,
-                icon: (
-                  <PermIdentityIcon className="w-5 h-5 text-green-600" />
-                ),
-              }
-            ]} />
-
         {/* Admin Action Buttons */}
         <AdminButtons adminActions={adminActions} />
 
