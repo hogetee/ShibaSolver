@@ -25,8 +25,8 @@ exports.getPost = async (req, res, next) => {
         COALESCE(SUM(CASE WHEN r_all.rating_type = 'like' THEN 1 ELSE 0 END), 0)    AS likes,
         COALESCE(SUM(CASE WHEN r_all.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
         CASE 
-          WHEN MAX(CASE WHEN r_me.rating_type = 'like' THEN 1 END) = 1 THEN TRUE
-          WHEN MAX(CASE WHEN r_me.rating_type = 'dislike' THEN 1 END) = 1 THEN FALSE
+          WHEN MAX(CASE WHEN r_me.rating_type = 'like' THEN 1 ELSE 0 END) = 1 THEN 'like'
+          WHEN MAX(CASE WHEN r_me.rating_type = 'dislike' THEN 1 ELSE 0 END) = 1 THEN 'dislike'
           ELSE NULL
         END AS my_rating
       FROM posts p
@@ -386,8 +386,8 @@ exports.getBookmarks = async (req, res, next) => {
         COALESCE(SUM(CASE WHEN r_all.rating_type = 'like' THEN 1 ELSE 0 END), 0)    AS likes,
         COALESCE(SUM(CASE WHEN r_all.rating_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes,
         CASE 
-          WHEN MAX(CASE WHEN r_me.rating_type = 'like' THEN 1 END) = 1 THEN TRUE
-          WHEN MAX(CASE WHEN r_me.rating_type = 'dislike' THEN 1 END) = 1 THEN FALSE
+          WHEN MAX(CASE WHEN r_me.rating_type = 'like' THEN 1 ELSE 0 END) = 1 THEN 'like'
+          WHEN MAX(CASE WHEN r_me.rating_type = 'dislike' THEN 1 ELSE 0 END) = 1 THEN 'dislike'
           ELSE NULL
         END AS my_rating,
         ARRAY_AGG(DISTINCT t.tag_name) FILTER (WHERE t.tag_name IS NOT NULL) AS tags,
