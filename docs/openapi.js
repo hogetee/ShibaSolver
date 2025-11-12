@@ -146,6 +146,25 @@ module.exports = {
           profile_picture: { type: 'string', nullable: true },
         },
       },
+      PublicUserProfile: {
+        type: 'object',
+        properties: {
+          user_id: { type: 'integer' },
+          user_name: { type: 'string' },
+          display_name: { type: 'string', nullable: true },
+          profile_picture: { type: 'string', nullable: true },
+          bio: { type: 'string', nullable: true },
+          education_level: { type: 'string', nullable: true },
+          interested_subjects: {
+            type: 'array',
+            items: { type: 'string' },
+            nullable: true,
+          },
+          like: { type: 'integer', nullable: true },
+          dislike: { type: 'integer', nullable: true },
+          created_at: { type: 'string', format: 'date-time', nullable: true },
+        },
+      },
       UserDetail: {
         type: 'object',
         properties: {

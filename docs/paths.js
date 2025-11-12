@@ -511,7 +511,7 @@ module.exports = {
             {
               type: 'object',
               properties: {
-                data: { $ref: '#/components/schemas/UserDetail' },
+                data: { $ref: '#/components/schemas/PublicUserProfile' },
               },
             },
           ],

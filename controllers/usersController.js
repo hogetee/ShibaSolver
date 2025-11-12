@@ -11,7 +11,18 @@ exports.getUser = async (req, res, next) => {
 
     const pool = req.app.locals.pool;
     const { rows } = await pool.query(
-      `SELECT * FROM public.users 
+      `SELECT 
+        user_id,
+        user_name,
+        display_name,
+        profile_picture,
+        bio,
+        education_level,
+        interested_subjects,
+        "like",
+        "dislike",
+        created_at
+      FROM public.users 
       WHERE user_name = $1`, [username]
     );
     if (rows.length === 0) return res.status(404).json({ success:false, message:'User not found' });
