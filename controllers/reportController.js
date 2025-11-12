@@ -7,11 +7,11 @@
 exports.reportAccount = async (req, res, next) => {
   const pool = req.app.locals.pool;
   try {
-    const reporterId = req.user?.uid;
+    const reporterId = Number.parseInt(req.user?.uid, 10);
     const { target_id, reason } = req.body || {};
 
     // 1 Validation
-    if (!reporterId) {
+    if (!Number.isInteger(reporterId) || reporterId <= 0) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
     if (!Number.isInteger(target_id) || target_id <= 0) {
@@ -86,11 +86,11 @@ exports.reportAccount = async (req, res, next) => {
 exports.reportPostOrComment = async (req, res, next) => {
   const pool = req.app.locals.pool;
   try {
-    const reporterId = req.user?.uid;
+    const reporterId = Number.parseInt(req.user?.uid, 10);
     const { target_type, target_id, reason } = req.body || {};
 
     // 1 Validation
-    if (!reporterId) {
+    if (!Number.isInteger(reporterId) || reporterId <= 0) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
@@ -157,15 +157,6 @@ exports.reportPostOrComment = async (req, res, next) => {
       [reporterId, target_type, target_id, reason.trim()]
     );
 
-    // 5 แจ้งเตือนแอดมิน (optional)
-    await pool.query(
-      `INSERT INTO notifications (receiver_id, sender_id, notification_type, payload)
-       SELECT a.admin_id, $1, 'content_report', jsonb_build_object('target_type',$2,'target_id',$3,'report_id',$4)
-       FROM admins a
-       WHERE a.is_active = TRUE`,
-      [reporterId, target_type, target_id, insert.rows[0].report_id]
-    ).catch(() => {});
-
     return res.status(201).json({
       success: true,
       message: `${target_type} reported successfully`,
@@ -175,4 +166,3 @@ exports.reportPostOrComment = async (req, res, next) => {
     next(err);
   }
 };
-
