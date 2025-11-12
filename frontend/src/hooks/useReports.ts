@@ -18,7 +18,10 @@ export default function useReports() {
     try {
       if (status === "unreviewed") {
         const response = await fetch(
-          `${BACKEND_URL}/api/v1/admins/posts?status=pending`
+          `${BACKEND_URL}/api/v1/admins/posts?status=pending`,
+          {
+            credentials: "include",
+          }
         );
         const data: ApiPostReportResponse = await response.json();
 
@@ -53,8 +56,12 @@ export default function useReports() {
       } else {
         // Fetch both accepted and rejected reports
         const [acceptedRes, rejectedRes] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/v1/admins/posts?status=accepted`),
-          fetch(`${BACKEND_URL}/api/v1/admins/posts?status=rejected`),
+          fetch(`${BACKEND_URL}/api/v1/admins/posts?status=accepted`, {
+            credentials: "include",
+          }),
+          fetch(`${BACKEND_URL}/api/v1/admins/posts?status=rejected`, {
+            credentials: "include",
+          }),
         ]);
 
         const acceptedData: ApiPostReportResponse = await acceptedRes.json();
@@ -103,7 +110,10 @@ export default function useReports() {
     try {
       if (status === "unreviewed") {
         const response = await fetch(
-          `${BACKEND_URL}/api/v1/admins/comments?status=pending`
+          `${BACKEND_URL}/api/v1/admins/comments?status=pending`,
+          {
+            credentials: "include",
+          }
         );
         const data: ApiCommentReportResponse = await response.json();
 
@@ -138,8 +148,12 @@ export default function useReports() {
       } else {
         // Fetch both accepted and rejected reports
         const [acceptedRes, rejectedRes] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/v1/admins/comments?status=accepted`),
-          fetch(`${BACKEND_URL}/api/v1/admins/comments?status=rejected`),
+          fetch(`${BACKEND_URL}/api/v1/admins/comments?status=accepted`, {
+            credentials: "include",
+          }),
+          fetch(`${BACKEND_URL}/api/v1/admins/comments?status=rejected`, {
+            credentials: "include",
+          }),
         ]);
 
         const acceptedData: ApiCommentReportResponse = await acceptedRes.json();
@@ -189,7 +203,10 @@ export default function useReports() {
       if (status === "unreviewed") {
         console.log(`Fetching account reports with status: pending`);
         const response = await fetch(
-          `${BACKEND_URL}/api/v1/admins/accounts?status=pending`
+          `${BACKEND_URL}/api/v1/admins/accounts?status=pending`,
+          {
+            credentials: "include",
+          }
         );
 
         console.log(`Response status: ${response.status}`);
@@ -242,8 +259,12 @@ export default function useReports() {
         // Fetch both accepted and rejected reports
         console.log(`Fetching account reports with status: accepted and rejected`);
         const [acceptedRes, rejectedRes] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/v1/admins/accounts?status=accepted`),
-          fetch(`${BACKEND_URL}/api/v1/admins/accounts?status=rejected`),
+          fetch(`${BACKEND_URL}/api/v1/admins/accounts?status=accepted`, {
+            credentials: "include",
+          }),
+          fetch(`${BACKEND_URL}/api/v1/admins/accounts?status=rejected`, {
+            credentials: "include",
+          }),
         ]);
 
         console.log(`Accepted response status: ${acceptedRes.status}`);
@@ -367,6 +388,7 @@ export default function useReports() {
           console.log(`Comment ${report.targetContent.id} is already deleted`);
         }
       } else if (report.type === "account" && report.targetUser?.id) {
+        console.log("Banning user with ID:", report.targetUser.id);
         // Ban the user for account reports
         const banResponse = await fetch(
           `${BACKEND_URL}/api/v1/admins/users/${report.targetUser.id}/ban`,
@@ -378,6 +400,8 @@ export default function useReports() {
             },
           }
         );
+
+        console.log(`Ban user response status: ${banResponse.status}`);
 
         if (!banResponse.ok) {
           const errorData = await banResponse.json().catch(() => ({}));
@@ -447,6 +471,7 @@ export default function useReports() {
         `${BACKEND_URL}/api/v1/admins/accounts/${reportId}/status`,
         {
           method: "PATCH",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },

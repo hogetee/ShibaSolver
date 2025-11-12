@@ -133,6 +133,12 @@ export default function ReportCommentDisplay({
 
   useEffect(() => {
     if (!commentId) return;
+    
+    // If we have fallback data with text content, we don't need to fetch
+    // This prevents unnecessary API calls when viewing admin reports
+    if (fallbackData?.text) {
+      return;
+    }
 
     let cancelled = false;
 
@@ -153,10 +159,19 @@ export default function ReportCommentDisplay({
 
         if (!response.ok) {
           if (!cancelled) {
-            const statusMessage =
-              json?.message ||
-              json?.error ||
-              `Failed to fetch comment (${response.status})`;
+            // Ensure error is always a string
+            let statusMessage = `Failed to fetch comment (${response.status})`;
+            
+            if (json?.message) {
+              statusMessage = typeof json.message === 'string' 
+                ? json.message 
+                : JSON.stringify(json.message);
+            } else if (json?.error) {
+              statusMessage = typeof json.error === 'string' 
+                ? json.error 
+                : JSON.stringify(json.error);
+            }
+            
             setError(statusMessage);
           }
           return;
@@ -189,13 +204,28 @@ export default function ReportCommentDisplay({
               normalized.author.username
             );
             if (userProfilePic && !cancelled) {
+              // Handle the case where userProfilePic might be an object or string
+              let profilePicUrl = DEFAULT_AVATAR;
+              
+              if (typeof userProfilePic === 'string') {
+                profilePicUrl = userProfilePic;
+              } else if (typeof userProfilePic === 'number') {
+                // If it's a number, it's likely an error case, use default
+                profilePicUrl = DEFAULT_AVATAR;
+              } else if (userProfilePic && typeof userProfilePic === 'object') {
+                // If it's an object, try to extract the URL
+                profilePicUrl = (userProfilePic as any)?.profile_picture || 
+                                (userProfilePic as any)?.url || 
+                                DEFAULT_AVATAR;
+              }
+              
               setCommentData((prevData) => {
                 if (!prevData) return prevData;
                 return {
                   ...prevData,
                   author: {
                     ...prevData.author,
-                    profile_picture: String(userProfilePic),
+                    profile_picture: profilePicUrl,
                   },
                 };
               });
