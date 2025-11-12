@@ -70,7 +70,6 @@ app.get('/api-docs.json', (_req, res) => {
   app.use("/api/v1/comments", commentsRouter);
   app.use("/api/v1/ratings", ratingRouter);
   app.use("/api/v1/reports", reportRouter);
-  app.use("/api/v1/search", searchRouter);
   app.use("/api/v1/notifications", notificationRouter);
   app.use("/api/v1/search", searchRouter);
 
