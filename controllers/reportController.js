@@ -67,15 +67,6 @@ exports.reportAccount = async (req, res, next) => {
       [reporterId, target_id, reason.trim()]
     );
 
-    // 5 แจ้งเตือนแอดมิน (ถ้ามี notifications table)
-    await pool.query(
-      `INSERT INTO notifications (receiver_id, sender_id, notification_type, payload)
-       SELECT a.admin_id, $1, 'user_report', jsonb_build_object('target_id',$2,'report_id',$3)
-       FROM admins a
-       WHERE a.is_active = TRUE`,
-      [reporterId, target_id, insert.rows[0].report_id]
-    ).catch(() => {}); // เผื่อไม่มี notifications table
-
     return res.status(201).json({
       success: true,
       message: "User reported successfully",
