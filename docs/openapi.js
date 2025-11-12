@@ -455,7 +455,7 @@ module.exports = {
           new_data: {
             type: 'object',
             description:
-              'Only the provided fields are updated. Allowed keys: is_premium, user_state, user_name, display_name, education_level, like, dislike, bio, interested_subjects, profile_picture',
+              'Only the provided fields are updated. Allowed keys: user_name, display_name, education_level, like, dislike, bio, interested_subjects, profile_picture. Premium status and user_state must be managed via dedicated endpoints.',
             additionalProperties: true,
           },
         },

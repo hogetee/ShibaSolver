@@ -70,9 +70,16 @@ exports.updateUser = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'No data to update' });
     }
 
+    const privilegedFields = ["is_premium", "user_state"];
+    const attemptedPrivileged = Object.keys(new_data).filter(f => privilegedFields.includes(f));
+    if (attemptedPrivileged.length > 0) {
+      return res.status(403).json({
+        success: false,
+        message: `Fields ${attemptedPrivileged.join(", ")} can only be changed by administrators`,
+      });
+    }
+
     const allowedFields = [
-      "is_premium",
-      "user_state",
       "user_name",
       "display_name",
       "education_level",

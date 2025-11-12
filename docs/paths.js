@@ -457,6 +457,7 @@ module.exports = {
         }),
         400: jsonResponse('No valid fields to update', errorResponseRef),
         401: jsonResponse('Not authenticated', errorResponseRef),
+        403: jsonResponse('Attempted to edit privileged fields', errorResponseRef),
         404: jsonResponse('User not found', errorResponseRef),
       },
     },
