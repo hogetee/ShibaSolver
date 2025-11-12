@@ -40,7 +40,7 @@ const adminLoginLimiter = rateLimit({
   max: 5,
   message: { success: false, message: 'Too many login attempts, try later.' }
 });
-app.use('/api/v1/admin/login', adminLoginLimiter);
+app.use('/api/v1/adminAuth/login', adminLoginLimiter);
 //Prevent XSS attacks
 app.use(xss());
 //Prevent http param pollutions
