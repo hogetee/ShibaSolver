@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import QuickStat from '@/components/admin_dashboard/QuickStat';
 import AdminButtons from '@/components/admin_dashboard/AdminButtons';
+import AdminLogoutButton from '@/components/admin/AdminLogoutButton';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import BlockIcon from '@mui/icons-material/Block';
@@ -42,9 +43,12 @@ export default function AdminDashboard() {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage and monitor your Shiba platform</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600">Manage and monitor your Shiba platform</p>
+          </div>
+          <AdminLogoutButton />
         </div>
 
         {/* Quick Stats */}
