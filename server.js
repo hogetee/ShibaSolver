@@ -7,6 +7,8 @@ const rateLimit = require('express-rate-limit');
 const { xss } = require("express-xss-sanitizer");
 const helmet = require("helmet");
 const hpp = require("hpp");
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./docs/openapi');
 
 const adminAuthRouter = require('./routers/adminAuthRouter');
 const adminsRouter = require("./routers/adminsRouter");
@@ -44,6 +46,11 @@ app.use('/api/v1/admin/login', adminLoginLimiter);
 app.use(xss());
 //Prevent http param pollutions
 app.use(hpp());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
+app.get('/api-docs.json', (_req, res) => {
+  res.json(swaggerDocument);
+});
 
 (async () => {
   const pool = await connectDB();
