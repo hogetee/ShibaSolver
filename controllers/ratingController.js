@@ -56,6 +56,12 @@ exports.rate = async (req, res, next) => {
         },
         });
     } catch (err) {
+        if (err.code === '23503') {
+            return res.status(404).json({
+                success: false,
+                message: `Target ${req.body?.target_type || 'resource'} not found`,
+            });
+        }
         console.error(err);
         return res.status(500).json({ success: false, message: "Server error" });
     }
