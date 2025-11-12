@@ -167,17 +167,16 @@ exports.getPostbyUserId = async (req, res, next) => {
       LIMIT $3 OFFSET $4;
       `;
 
-    //Tags for each post (aggregated as array)
     const tagSql = `
       SELECT 
         pt.post_id,
-        ARRAY_AGG(t.tag_name) AS tags
+        ARRAY_AGG(t.tag_name ORDER BY t.tag_name) AS tags
       FROM post_tags pt
       JOIN tags t ON t.tag_id = pt.tag_id
+      WHERE pt.post_id = ANY($1::int[])
       GROUP BY pt.post_id;
     `;
 
-    //Top comment per post (most total_ratings)
     const topCommentSql = `
       WITH comment_ratings AS (
         SELECT 
@@ -188,11 +187,12 @@ exports.getPostbyUserId = async (req, res, next) => {
           c.user_id,
           u.display_name,
           u.profile_picture,
-          COUNT(CASE WHEN r.rating_type='like' THEN 1 END) AS likes,
-          COUNT(CASE WHEN r.rating_type='dislike' THEN 1 END) AS dislikes
+          COALESCE(SUM(CASE WHEN r.rating_type='like' THEN 1 ELSE 0 END), 0) AS likes,
+          COALESCE(SUM(CASE WHEN r.rating_type='dislike' THEN 1 ELSE 0 END), 0) AS dislikes
         FROM comments c
         JOIN users u ON u.user_id = c.user_id
         LEFT JOIN ratings r ON r.comment_id = c.comment_id
+        WHERE c.post_id = ANY($1::int[]) AND c.is_deleted = FALSE
         GROUP BY c.comment_id, c.post_id, u.display_name, u.profile_picture, c.user_id
       )
       SELECT DISTINCT ON (post_id)
@@ -202,12 +202,17 @@ exports.getPostbyUserId = async (req, res, next) => {
       ORDER BY post_id, total_ratings DESC, created_at ASC;
     `;
 
-    //Run all queries in parallel
-    const [postsRes, tagsRes, topCommentsRes] = await Promise.all([
-      pool.query(postSql, [currentUserID, userID, limit, offset]),
-      pool.query(tagSql),
-      pool.query(topCommentSql)
-    ]);
+    const postsRes = await pool.query(postSql, [currentUserID, userID, limit, offset]);
+    const postIds = postsRes.rows.map(p => p.post_id);
+
+    let tagsRes = { rows: [] };
+    let topCommentsRes = { rows: [] };
+    if (postIds.length > 0) {
+      [tagsRes, topCommentsRes] = await Promise.all([
+        pool.query(tagSql, [postIds]),
+        pool.query(topCommentSql, [postIds])
+      ]);
+    }
 
     //Convert tags + comments into lookup maps for merging
     const tagsByPost = Object.fromEntries(
