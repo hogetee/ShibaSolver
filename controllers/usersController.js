@@ -1,13 +1,4 @@
 /**
- * @desc    Get all users
- * @route   GET /api/v1/users
- * @access  Private/Admin
- */
-exports.getAllUsers = (req, res) => {
-  res.status(200).json({ success: true, where: 'listUsers', data: [] });
-};
-
-/**
  * @desc    Get a single user by username
  * @route   GET /api/v1/users/:username
  * @access  Private 

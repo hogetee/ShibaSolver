@@ -430,29 +430,7 @@ module.exports = {
       },
     },
   },
-
-  // Users
   '/api/v1/users': {
-    get: {
-      tags: ['Users'],
-      summary: 'List users (placeholder)',
-      responses: {
-        200: jsonResponse('User list', {
-          allOf: [
-            baseResponseRef,
-            {
-              type: 'object',
-              properties: {
-                data: {
-                  type: 'array',
-                  items: { $ref: '#/components/schemas/UserDetail' },
-                },
-              },
-            },
-          ],
-        }),
-      },
-    },
     put: {
       tags: ['Users'],
       summary: 'Update selected user fields',
