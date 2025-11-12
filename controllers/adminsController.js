@@ -1,18 +1,75 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const { createNotification } = require('../services/notificationService');
 
 /**
- * @desc    Get all admins
+ * @desc    Get all admins (optional search & pagination)
  * @route   GET /api/v1/admins
  * @access  Private/Admin
  */
-exports.getAllAdmins = (req, res) => {
-  res.status(200).json({ success: true, where: "listAdmins", data: [] });
+exports.getAllAdmins = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const MAX_LIMIT = 100;
+    const adminId = req.admin?.admin_id;
+    if (!adminId) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const search = (req.query.search || '').trim();
+
+    let limit = Number.parseInt(req.query.limit, 10);
+    if (!Number.isInteger(limit) || limit <= 0) limit = 20;
+    limit = Math.min(limit, MAX_LIMIT);
+
+    let offset = Number.parseInt(req.query.offset, 10);
+    if (!Number.isInteger(offset) || offset < 0) offset = 0;
+
+    const whereParts = [];
+    const params = [];
+
+    if (search) {
+      const searchTerm = `%${search.toLowerCase()}%`;
+      const nameIdx = params.length + 1;
+      params.push(searchTerm);
+      const emailIdx = params.length + 1;
+      params.push(searchTerm);
+      whereParts.push(`(LOWER(name) LIKE $${nameIdx} OR LOWER(email) LIKE $${emailIdx})`);
+    }
+
+    const whereClause = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
+
+    const countSql = `SELECT COUNT(*)::int AS total FROM admins ${whereClause};`;
+    const { rows: countRows } = await pool.query(countSql, params);
+    const total = countRows[0]?.total ?? 0;
+
+    const limitIdx = params.length + 1;
+    const offsetIdx = params.length + 2;
+
+    const dataSql = `
+      SELECT admin_id, name, email
+      FROM admins
+      ${whereClause}
+      ORDER BY admin_id ASC
+      LIMIT $${limitIdx}
+      OFFSET $${offsetIdx};
+    `;
+    const dataParams = [...params, limit, offset];
+    const { rows } = await pool.query(dataSql, dataParams);
+
+    return res.status(200).json({
+      success: true,
+      count: rows.length,
+      total,
+      pagination: { limit, offset },
+      data: rows,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 /**
- * @desc    Get a single admin by ID
- * @route   GET /api/v1/admins/:id
+ * @desc    Admin delete a post (soft delete) and cascade delete comments
+ * @route   DELETE /api/v1/admins/posts/:postId
  * @access  Private/Admin
  */
 exports.adminDeletePost = async (req, res, next) => {
@@ -30,14 +87,14 @@ exports.adminDeletePost = async (req, res, next) => {
     }
 
     await client.query("BEGIN");
-
-    // 1) soft delete post (เฉพาะยังไม่ถูกลบ)
+    
+   // 1) soft delete post (เฉพาะยังไม่ถูกลบ)
     const upPost = await client.query(
       `
       UPDATE posts
       SET is_deleted = TRUE
       WHERE post_id = $1 AND is_deleted = FALSE
-      RETURNING post_id
+      RETURNING post_id, user_id
       `,
       [postId]
     );
@@ -45,6 +102,7 @@ exports.adminDeletePost = async (req, res, next) => {
       await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Post not found or already deleted" });
     }
+    const postOwnerId = upPost.rows[0].user_id;
 
     // 2) cascade soft delete comments ใต้โพสต์นี้
     await client.query(
@@ -68,6 +126,17 @@ exports.adminDeletePost = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
+
+    // 4) แจ้งเตือนเจ้าของโพสต์ (ทำหลัง COMMIT) ด้วย notification_type = 'admin_delete'
+     if (postOwnerId) {
+      await createNotification(pool, {
+        toUserId: postOwnerId,
+        type: 'admin_delete',
+        message: 'Your post has been removed by an administrator.',
+        link: `/post/${postId}`,
+      });
+    }
+
     return res
       .status(200)
       .json({ success: true, message: "Post deleted with comments cascaded", data: upPost.rows[0] });
@@ -107,7 +176,7 @@ exports.adminDeleteComment = async (req, res, next) => {
       UPDATE comments
       SET is_deleted = TRUE
       WHERE comment_id = $1 AND is_deleted = FALSE
-      RETURNING comment_id
+      RETURNING comment_id, user_id, post_id
       `,
       [commentId]
     );
@@ -123,12 +192,24 @@ exports.adminDeleteComment = async (req, res, next) => {
     await client.query(
       `
       INSERT INTO admin_actions (admin_id, action_type, target_type, target_id)
-      VALUES ($1, 'delete_post'::admin_action_type, 'comment'::report_target_type, $2)
+      VALUES ($1, 'delete_comment'::admin_action_type, 'comment'::report_target_type, $2)
       `,
       [adminId, commentId]
     );
 
     await client.query("COMMIT");
+
+    const commentOwnerId = upComment.rows[0].user_id;
+    if (commentOwnerId) {
+      const linkTarget = upComment.rows[0].post_id ? `/post/${upComment.rows[0].post_id}` : null;
+      await createNotification(pool, {
+        toUserId: commentOwnerId,
+        type: 'admin_delete',
+        message: 'Your comment has been removed by an administrator.',
+        link: linkTarget,
+      });
+    }
+    
     return res.status(200).json({
       success: true,
       message: "Comment deleted successfully",
@@ -152,7 +233,7 @@ exports.adminBanUser = async (req, res, next) => {
   const client = await pool.connect();
 
   try {
-    const adminId = req.admin?.adminId;           // จาก adminProtect
+    const adminId = req.admin?.admin_id;           // จาก adminProtect
     const userId = Number(req.params.userId);
 
     if (!adminId) {
@@ -198,6 +279,16 @@ exports.adminBanUser = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
+
+    if (!alreadyBanned) {
+      await createNotification(pool, {
+        toUserId: userId,
+        type: 'ban',
+        message: 'Your account has been banned by an administrator.',
+        link: null,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: { user_id: userId, user_state: 'ban' },
@@ -221,7 +312,7 @@ exports.adminUnbanUser = async (req, res, next) => {
   const client = await pool.connect();
 
   try {
-    const adminId = req.admin?.adminId;          // จาก adminProtect
+    const adminId = req.admin?.admin_id;          // จาก adminProtect
     const userId = Number(req.params.userId);
 
     if (!adminId) {
@@ -267,6 +358,16 @@ exports.adminUnbanUser = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
+
+    if (!alreadyNormal) {
+      await createNotification(pool, {
+        toUserId: userId,
+        type: 'unban',
+        message: 'Your account has been unbanned by an administrator.',
+        link: null,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: { user_id: userId, user_state: 'normal' },

@@ -20,11 +20,11 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE notification_type AS ENUM ('comment','mention');
+    CREATE TYPE notification_type AS ENUM ('comment','reply','mention','ban','unban','admin_delete');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE admin_action_type AS ENUM ('delete_post','ban_user','unban_user','suspend_user');
+    CREATE TYPE admin_action_type AS ENUM ('delete_post','delete_comment','ban_user','unban_user','suspend_user');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN

@@ -16,11 +16,11 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE notification_type AS ENUM ('comment','mention');
+    CREATE TYPE notification_type AS ENUM ('comment','reply','mention','ban','unban','admin_delete');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE admin_action_type AS ENUM ('delete_post','ban_user','unban_user','suspend_user');
+    CREATE TYPE admin_action_type AS ENUM ('delete_post','delete_comment','ban_user','unban_user','suspend_user');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
@@ -120,11 +120,13 @@ CREATE TABLE IF NOT EXISTS reports (
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
-    notification_id BIGSERIAL PRIMARY KEY,
-    sender_id       BIGINT REFERENCES users(user_id) ON DELETE SET NULL,  -- actor
-    receiver_id     BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    timestamp       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    notification_type notification_type NOT NULL
+  notification_id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  notification_type notification_type NOT NULL,   
+  message TEXT NOT NULL,
+  link TEXT,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS cookie_consents (

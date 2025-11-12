@@ -18,8 +18,8 @@ const commentsRouter = require("./routers/commentsRouter");
 const ratingRouter = require("./routers/ratingRouter");
 const reportRouter = require("./routers/reportRouter");
 const searchRouter = require("./routers/searchRouter");
-//const notificationRouter = require("./routers/notificationRouter");
-
+const notificationRouter = require("./routers/notificationRouter");
+const searchRouter = require("./routers/searchRouter");
 dotenv.config({ path: "./config/config.env" });
 
 const app = express();
@@ -65,8 +65,9 @@ app.use(hpp());
   app.use("/api/v1/ratings", ratingRouter);
   app.use("/api/v1/reports", reportRouter);
   app.use("/api/v1/search", searchRouter);
-  //app.use("/api/v1/notifications", notificationRouter);
-  
+  app.use("/api/v1/notifications", notificationRouter);
+  app.use("/api/v1/search", searchRouter);
+
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, () => {
