@@ -337,7 +337,7 @@ exports.addBookmark = async (req, res, next) => {
     }
     return res
       .status(200)
-      .json({ success: false, message: "Already bookmarked" });
+      .json({ success: true, message: "Already bookmarked" });
   } catch (e) {
     if (e.code === "23503") {
       // FK violation
