@@ -29,15 +29,6 @@ export function useCookieConsent() {
     // Example: await apiCall('/api/cookies/accept', { method: 'POST' });
   };
 
-  const rejectAll = () => {
-    setConsent('rejected');
-    setShowModal(false);
-    localStorage.setItem('cookie-consent', 'rejected');
-    
-    // TODO: Connect to API when backend is ready
-    // Example: await apiCall('/api/cookies/reject', { method: 'POST' });
-  };
-
   const resetConsent = () => {
     localStorage.removeItem('cookie-consent');
     setConsent(null);
@@ -49,7 +40,6 @@ export function useCookieConsent() {
     consentChoice: consent,
     showModal,
     acceptAll,
-    rejectAll,
     resetConsent,
   };
 }
