@@ -19,16 +19,16 @@ export default function TopMenu() {
   const pathname = usePathname() ?? "";
   const { isOpen, toggle, open } = useNotification();
 
-  // ✅ Use your hook instead of custom fetch mess
+  
   const { user, isLoading } = useCurrentUser();
 
   const isLoggedIn = !!user;
 
-  // ✅ Active page check
+  
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
 
-  // ✅ Bell logic
+  
   const handleBellClick = () => {
     if (pathname !== "/") {
       router.push("/");

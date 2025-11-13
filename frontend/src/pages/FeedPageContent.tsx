@@ -100,41 +100,40 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col font-display">
 
-      {/* ✅ Notification Sidebar */}
-      <aside
-        className={`
-          fixed top-16 h-full border-r p-2 transition-transform duration-300 bg-white
-          ${isOpen ? "translate-x-0 w-[20%]" : "-translate-x-full w-[20%]"}
-        `}
-      >
-        <h2 className="text-2xl font-bold mb-6 mt-5 ml-4">Notifications</h2>
-        {notifications.map((noti) => (
-          <Notification key={noti.noti_id} notificationData={noti} />
-        ))}
-      </aside>
+      {/* ✅ Notification Sidebar — RIGHT SIDE */}
+<aside
+  className={`
+    fixed top-16 right-0 h-full border-l p-2 transition-transform duration-300 bg-white
+    ${isOpen ? "translate-x-0 w-[20%]" : "translate-x-full w-[20%]"}
+  `}
+>
+  <h2 className="text-2xl font-bold mb-6 mt-5 ml-4">Notifications</h2>
+  {notifications.map((noti) => (
+    <Notification key={noti.noti_id} notificationData={noti} />
+  ))}
+</aside>
 
-      {/* ✅ FEED CONTENT SHIFT WHEN SIDEBAR OPEN */}
-      <div
-        className={`flex flex-1 transition-all duration-300 ${
-          isOpen ? "ml-[20%]" : ""
-        }`}
-      >
-        <main className="flex-1 mb-10 px-[5%]">
-          <h1 className="text-5xl font-bold p-4 mb-2">Recent Posts</h1>
-          {renderContent()}
-        </main>
+{/* FEED CONTENT (SHIFT LEFT WHEN OPEN) */}
+<div
+  className={`flex flex-1 transition-all duration-300 ${
+    isOpen ? "mr-[20%]" : ""
+  }`}
+>
+  <main className="flex-1 mb-10 px-[5%]">
+    <h1 className="text-5xl font-bold p-4 mb-2">Recent Posts</h1>
+    {renderContent()}
+  </main>
 
-        {/* Right sidebar */}
-        <aside className="w-80 mt-27 mr-5 self-start">
-          <Link href="/subscribe">
-            <img
-              src="/image/premium-banner.png"
-              className="rounded-xl shadow-md hover:shadow-lg cursor-pointer"
-            />
-          </Link>
-        </aside>
-      </div>
-
+  {/* Right Sidebar */}
+  <aside className="w-80 mt-27 mr-5 self-start">
+    <Link href="/subscribe">
+      <img
+        src="/image/premium-banner.png"
+        className="rounded-xl shadow-md hover:shadow-lg cursor-pointer"
+      />
+    </Link>
+  </aside>
+</div>
       {/* ✅ Create Post Button & Modal */}
       <CreatePostButton onClick={() => setIsCreateModalOpen(true)} />
       {isCreateModalOpen && (
