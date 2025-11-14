@@ -286,3 +286,36 @@ exports.updatePremium = async (req, res, next) => {
     next(err);
   }
 };
+
+
+
+/**
+ * @desc    update user's premium status
+ * @route   PUT /api/v1/users/premium
+ * @access  Private
+ */
+exports.canclePremium = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const id = req.user?.uid;
+    if (!id) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const sql = `
+      UPDATE users
+      SET is_premium = FALSE,
+          updated_at = now()
+      WHERE user_id = $1 AND is_premium = TRUE
+      RETURNING user_id, is_premium, updated_at
+    `;
+    const { rows } = await pool.query(sql, [id]);
+
+    if (rows.length === 0) {
+      return res.status(200).json({ success: true, message: 'User is not premium', data: null });
+    }
+
+    return res.status(200).json({ success: true, data: rows[0] });
+  } catch (err) {
+    next(err);
+  }
+};
+

@@ -13,6 +13,7 @@ router.get("/:userID/posts",optionalAuth, usersCtrl.getPostbyUserId);
 
 //PUT
 router.put("/premium", requireAuth, usersCtrl.updatePremium);
+router.put("/canclePremium", requireAuth, usersCtrl.canclePremium);
 router.put("/", requireAuth, usersCtrl.updateUser);
 
 
