@@ -3,6 +3,7 @@
 import Post, { PostData } from "@/components/post/Post";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import useUserPosts from "@/hooks/useUserPosts";
+import usePostRatings from "@/hooks/usePostRatings";
 import Pagination from "./Pagination";
 
 export default function PostsList({ username }: { username?: string }) {
@@ -17,7 +18,9 @@ export default function PostsList({ username }: { username?: string }) {
     refetch,
   } = useUserPosts(username);
 
-  console.log("PostsList Debug:", { username, posts, isLoading, error });
+  const { postRatings, postStats, isLoadingRatings } = usePostRatings(posts);
+
+  console.log("PostsList Debug:", { username, posts, isLoading, error, postRatings });
 
   const handlePostUpdate = (updatedPost: PostData) => {
     // You could update the local state here if needed
@@ -80,15 +83,42 @@ export default function PostsList({ username }: { username?: string }) {
             <p className="text-white text-lg">No posts available.</p>
           </div>
         ) : (
-          posts?.map((post) => (
-            <div key={post.post_id} className="w-full">
-              <Post
-                postData={post}
-                onPostUpdate={handlePostUpdate}
-                onPostDelete={handlePostDelete}
-              />
-            </div>
-          ))
+          posts?.map((post) => {
+            const rating = postRatings[post.post_id] || null;
+            const statsOverride = postStats[post.post_id];
+            if (statsOverride) {
+              console.log(
+                "[PostsList] Applying stats override",
+                post.post_id,
+                statsOverride
+              );
+            } else {
+              console.log(
+                "[PostsList] Using original stats for",
+                post.post_id,
+                post.stats
+              );
+            }
+            const postWithRatings = statsOverride
+              ? {
+                  ...post,
+                  stats: {
+                    likes: statsOverride.likes,
+                    dislikes: statsOverride.dislikes,
+                  },
+                }
+              : post;
+            return (
+              <div key={post.post_id} className="w-full">
+                <Post
+                  postData={postWithRatings}
+                  userRating={rating}
+                  onPostUpdate={handlePostUpdate}
+                  onPostDelete={handlePostDelete}
+                />
+              </div>
+            );
+          })
         )}
         {totalPages > 1 && (
           <Pagination
