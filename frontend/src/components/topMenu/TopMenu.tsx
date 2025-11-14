@@ -1,6 +1,6 @@
-// src/components/topMenu/TopMenu.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -8,25 +8,37 @@ import {
   FavoriteBorder, Favorite,
   SettingsOutlined, Settings,
   NotificationsNone, Notifications,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import { IconButton, Avatar } from "@mui/material";
 
 import { useNotification } from "@/context/NotificationContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
+type User = {
+  username: string;
+  image: string;
+};
+
 export default function TopMenu() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const { isOpen, toggle, open } = useNotification();
 
-  
-  const { user, isLoading } = useCurrentUser();
+  const { user, isLoading } = useCurrentUser(); //USE THIS VERSION OF THE PROFILE BUTTON, WORKING PROPERLY 
+  const isLoggedIn = Boolean(user);
 
-  const isLoggedIn = !!user;
+
+  const handleSignOut = () => {
+    localStorage.removeItem("userData");
+    localStorage.removeItem("username");
+  };
 
   
-  const isActive = (path: string) =>
-    path === "/" ? pathname === "/" : pathname.startsWith(path);
+  const isActive = (path: string) => {
+    if (path === "/") return pathname === "/";
+    return pathname.startsWith(path);
+  };
 
   
   const handleBellClick = () => {
@@ -87,25 +99,19 @@ export default function TopMenu() {
             : <NotificationsNone sx={{ fontSize: 36 }} />}
         </IconButton>
 
-        {/* Profile or Sign In */}
-        {isLoading ? null : isLoggedIn ? (
-          <Link href={`/user/${user.user_name}`} passHref>
-            <IconButton size="large" className="p-0 ml-3">
-              <Avatar
-                alt={user.display_name}
-                src={user.profile_picture || "/image/DefaultAvatar.png"}
-                className="w-8 h-8"
-              />
-            </IconButton>
+        {/* USE THIS VERSION OF THE PROFILE BUTTON, WORKING PROPERLY Profile or Sign In */}
+        {isLoggedIn ? (
+          <Link href={`/user/${user?.user_name}`}>
+            <Avatar src={user?.profile_picture ?? "/default-avatar.png"} />
           </Link>
-        ) : (
+        ) : (isLoading ? null : (
           <Link
             href="/signup"
             className="font-display font-semibold text-xl mr-6 text-primary-0 rounded-full bg-white py-2 px-4 hover:bg-accent-200"
           >
             Sign in
           </Link>
-        )}
+        ))}
       </div>
     </nav>
   );
