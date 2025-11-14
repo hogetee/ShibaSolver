@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -25,14 +25,14 @@ export default function TopMenu() {
   const pathname = usePathname() ?? "";
   const { isOpen, toggle, open } = useNotification();
 
-  const { user, isLoading } = useCurrentUser(); //USE THIS VERSION OF THE PROFILE BUTTON, WORKING PROPERLY 
+  const { user, isLoading, refetch } = useCurrentUser(); //USE THIS VERSION OF THE PROFILE BUTTON, WORKING PROPERLY 
   const isLoggedIn = Boolean(user);
 
-
-  const handleSignOut = () => {
-    localStorage.removeItem("userData");
-    localStorage.removeItem("username");
-  };
+  useEffect(() => {
+    const handleLogout = () => refetch();
+    window.addEventListener("auth:logout", handleLogout);
+    return () => window.removeEventListener("auth:logout", handleLogout);
+  }, [refetch]);
 
   
   const isActive = (path: string) => {
