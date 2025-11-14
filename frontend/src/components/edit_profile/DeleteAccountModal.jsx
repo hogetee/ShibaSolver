@@ -2,8 +2,10 @@ import React from "react";
 import { useDeleteAccount } from "@/hooks/useDeleteAccount";
 
 export default function DeleteAccountModal({ isOpen, onClose, onSuccess }) {
-  
-  const { showError, isLoading, error, handleDelete } = useDeleteAccount();
+  const { showError, isLoading, error, handleDelete } =
+    useDeleteAccount(onSuccess);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center font-display">
