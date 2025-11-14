@@ -18,6 +18,7 @@ export default function CommentSection({ initialComments, postId }: Props) {
   //current user for creating comment
   const { user: currentUser } = useCurrentUser();
   const { handleCreateNewComment } = useCommentActions("root", 0, 0, false);
+  const topLevelComments = comments.filter(comment => comment.parent_comment === null);
 
   useEffect(() => {
     const savedScrollPosition = sessionStorage.getItem("scrollPosition");
@@ -86,13 +87,14 @@ export default function CommentSection({ initialComments, postId }: Props) {
       {/* The list of comments is rendered from state */}
       <div className="mt-5 pt-4 ">
         <h2 className="text-2xl font-semibold mb-4 text-dark-800 font-display">
-          Comments ({comments.length})
+          Comments ({topLevelComments.length})
         </h2>
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {topLevelComments.map((comment) => (
             <Comment
               key={comment.id}
               commentData={comment}
+              allComments={comments} // Pass all comments so Comment can filter replies
               onDelete={handleCommentDelete}
               postId={postId}
             />

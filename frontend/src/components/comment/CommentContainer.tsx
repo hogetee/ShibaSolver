@@ -12,12 +12,22 @@ interface Props {
 
 
 
-function mapPostCommentToCommentData(api: any): CommentData {
+function mapPostCommentToCommentData(api: any , allComments: any[]): CommentData {
+  const commentId = Number(api.comment_id);
+  // Calculate reply count by counting comments where parent_comment === this comment's ID
+
+  if (!api.profile_picture) {
+    console.log("Missing profile_picture for comment:", api.comment_id, "user:", api.user_id, "api data:", api);
+  }
+  const replyCount = allComments.filter(
+    (c) => c.parent_comment != null && Number(c.parent_comment) === commentId
+  ).length;
+
   return {
     id: String(api.comment_id),
     author: {
       display_name: api.user_name || "Anonymous",
-      profile_picture: api.profile_picture || "https://www.gravatar.com/avatar/?d=mp",
+      profile_picture: api.profile_picture || "/image/DefaultAvatar.png",
       user_id: Number(api.user_id || 0),
     },
     text: String(api.text ?? ""),
@@ -25,18 +35,18 @@ function mapPostCommentToCommentData(api: any): CommentData {
     created_at: api.created_at,
     likes: Number(api.likes ?? 0),
     dislikes: Number(api.dislikes ?? 0),
-    // NOTE: The 'PostComment' type does not include a reply count.
-    // This must be calculated separately on the frontend or added to the backend query.
-    // For now, it is defaulted to 0.
-    Replies: 0, 
+    Replies: replyCount, // Calculate from allComments
     is_solution: Boolean(api.is_solution),
+    parent_comment: api.parent_comment == null ? null : Number(api.parent_comment),
   };
 }
 
 export default function CommentContainer({ postId, sort = "latest" }: Props) {
   const { comments, isLoading, error, restricted, reason } = usePostComments(postId, sort);
-  const mapped = useMemo<CommentData[]>(() => comments.map(mapPostCommentToCommentData), [comments]);
-  
+  const mapped = useMemo<CommentData[]>(() => 
+    comments.map((api) => mapPostCommentToCommentData(api, comments)), 
+    [comments]
+  );
 
   if (isLoading) return <div className="mt-5 h-200 flex items-center justify-center font-display text-xl animate-pulse">Loading comment section...</div>;
   if (error) return <div className="mt-5 h-200 flex items-center justify-center font-display text-xl animate-pulse">Failed to load comments: {error}</div>;
