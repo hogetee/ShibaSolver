@@ -84,15 +84,17 @@ export default function Home() {
       return <p className="text-center mt-10">No posts yet.</p>;
 
     return (
+      <div className="max-w-5xl mx-auto">
       <div className="space-y-5">
         {posts.map((post) => (
-          <Post
+          <Post 
             key={post.post_id}
             postData={post}
             onPostUpdate={handlePostUpdateInFeed}
             onPostDelete={handlePostDeleteInFeed}
           />
         ))}
+      </div>
       </div>
     );
   };
@@ -124,15 +126,6 @@ export default function Home() {
     {renderContent()}
   </main>
 
-  {/* Right Sidebar */}
-  <aside className="w-80 mt-27 mr-5 self-start">
-    <Link href="/subscribe">
-      <img
-        src="/image/premium-banner.png"
-        className="rounded-xl shadow-md hover:shadow-lg cursor-pointer"
-      />
-    </Link>
-  </aside>
 </div>
       {/* ✅ Create Post Button & Modal */}
       <CreatePostButton onClick={() => setIsCreateModalOpen(true)} />
