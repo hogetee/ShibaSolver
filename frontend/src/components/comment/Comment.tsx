@@ -15,7 +15,7 @@ import CommentContentDisplay from "./CommentContent";
 import CommentEditor from "./CommentEditor";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import ReportCommentModal from '@/components/comment/ReportCommentModal';
-
+import { ReplyItem } from "./ReplyItem";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -25,9 +25,9 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/theme/theme";
 import CreateComment from "./CreateComment";
 import { useState } from "react";
-import { ViewRepliesButton } from "./ViewRepliesButton";
 
-const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
+
+const Comment = ({ commentData, allComments = [], onDelete, postId }: CommentProps) => {
   const hasReplies = commentData.Replies > 0;
   const { user, isLoading, error, refetch } = useCurrentUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,6 +35,9 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
 
   const isOwner = user?.user_id == commentData.author.user_id;
 
+  const replies = allComments.filter(
+    (c) => c.parent_comment !== null && Number(c.parent_comment) === Number(commentData.id)
+  );
   const initialContent: CommentContent = {
     text: commentData.text,
     image:
@@ -134,9 +137,7 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
       </div> */}
 
       <div className="flex items-start gap-3 relative font-display border-t pb-2 pt-4">
-        {hasReplies && (
-          <div className="absolute left-5 top-12 h-18 border-l-2 border-black"></div>
-        )}
+        
         <img
           src={commentData.author.profile_picture}
           alt={`${commentData.author.display_name}'s avatar`}
@@ -221,11 +222,7 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
               </div>
             )}
           </div>
-          <ViewRepliesButton
-            replyCount={commentData.Replies}
-            isOpen={isRepliesOpen}
-            onClick={handleToggleReplies}
-          />
+          
           {/* Reply Input Section: Opened by ReplyButton */}
           {isReplying && (
             <div className="w-full bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display mt-3">
@@ -298,23 +295,25 @@ const Comment = ({ commentData, onDelete, postId }: CommentProps) => {
           )} */}
 
           {/* Replies Section: Opened by View Replies Toggle */}
-          {isRepliesOpen && (
-            <div className="mt-4 relative pl-8 ">
-              {isRepliesOpen && (
-                <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>
-              )}
-              <p className="text-gray-500 italic">
-                ...Replies will be displayed here...
-              </p>
+          {isRepliesOpen && replies.length > 0 && (
+          <div className="mt-4 relative pl-8">
+           
+            <div className="space-y-2">
+              {replies.map((reply) => (
+                <ReplyItem
+                  key={reply.id}
+                  reply={reply}
+                  onDelete={onDelete}
+                  level={1}
+                />
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
           {/* View Replies Toggle */}
           {hasReplies && (
             <div className="mt-4 relative pl-8">
-              {!isRepliesOpen && (
-                <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-13 h-px bg-black"></div>
-              )}
               <button
                 className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
                 onClick={handleToggleReplies}
