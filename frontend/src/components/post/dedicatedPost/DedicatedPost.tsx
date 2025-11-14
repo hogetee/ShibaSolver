@@ -11,6 +11,7 @@ import ReportPostModal from '../ReportPostModal';
 import { useUpdatePost } from '@/hooks/useUpdatePost';
 import { useDeletePost } from '@/hooks/useDeletePost';
 import { PostData } from '../Post';
+import { useRouter } from 'next/navigation';
 
 interface DedicatedPostProps {
   dedicatedPostData: PostData;
@@ -23,6 +24,7 @@ const DedicatedPost = ({
   onPostUpdate,
   onPostDelete,
 }: DedicatedPostProps) => {
+  const router = useRouter();
   const [postData, setPostData] = useState(initialData);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -63,6 +65,7 @@ const DedicatedPost = ({
       await deletePost(postData.post_id);
       setIsDeleteModalOpen(false);
       onPostDelete?.(postData.post_id);
+      router.push('/');
     } catch (error) {
       console.error('Error deleting dedicated post:', error);
       alert(`Failed to delete post: ${error instanceof Error ? error.message : 'Unknown error'}`);
