@@ -9,6 +9,8 @@ import CreatePostModal from "@/components/post/CreatePostModal";
 import { useFetchFeeds } from "@/hooks/useFetchFeeds";
 import { useNotification } from "@/context/NotificationContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import SearchComponent from "@/components/topMenu/SearchComponent";
+import { slugify } from "@/utils/slugify";
 
 interface ApiResponse {
   success: boolean;
@@ -34,12 +36,68 @@ export default function Home() {
 
   const { user: currentUser } = useCurrentUser();
 
+  // Saved posts (bookmarks)
+  const [savePosts, setSavePosts] = useState<PostData[]>([]);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+  const [savedError, setSavedError] = useState<string | null>(null);
+
+  const fetchSavedPosts = async () => {
+    setIsLoadingSaved(true);
+    setSavedError(null);
+    try {
+      const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+      const res = await fetch(`${BASE}/api/v1/posts/bookmarks`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = body?.message || `Failed to load saved posts: ${res.status}`;
+        setSavedError(msg);
+        setSavePosts([]);
+        return;
+      }
+
+      const items = Array.isArray(body?.data) ? body.data : body?.rows ?? [];
+
+      const mapped: PostData[] = items.map((p: any) => ({
+        post_id: String(p.post_id),
+        title: p.title,
+        description: p.description ?? "",
+        post_image: p.post_image ?? null,
+        is_solved: Boolean(p.is_solved),
+        created_at: p.created_at ?? "",
+        author: {
+          user_id: String(p.user_id),
+          display_name:
+            p.author.display_name ?? "Anonymous",
+          profile_picture:
+            p.author.profile_picture ?? "/image/DefaultAvatar.png",
+        },
+        tags: p.tags ?? [],
+      }));
+
+      setSavePosts(mapped);
+    } catch (err: any) {
+      setSavedError(err?.message ?? String(err));
+      setSavePosts([]);
+    } finally {
+      setIsLoadingSaved(false);
+    }
+  };
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+      e.preventDefault();
+      window.location.href = href;
+    };
+
   useEffect(() => {
     async function fetchNotifications() {
       const data = await getNotificationData();
       setNotifications(data);
     }
     fetchNotifications();
+    fetchSavedPosts();
   }, []);
 
   const handlePostUpdateInFeed = (updated: PostData) => {
@@ -84,7 +142,7 @@ export default function Home() {
       return <p className="text-center mt-10">No posts yet.</p>;
 
     return (
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mr-[2%]">
       <div className="space-y-5">
         {posts.map((post) => (
           <Post 
@@ -98,6 +156,47 @@ export default function Home() {
       </div>
     );
   };
+
+  const renderSavedPost = () => {
+    if (isLoadingSaved) return <p className="text-center mt-4">Loading saved posts...</p>;
+    if (savedError) return <p className="text-center text-red-500 mt-4">{savedError}</p>;
+    if (savePosts.length === 0)
+      return <p className="text-center mt-4">No saved posts yet. Try saving some posts to see them here.</p>;
+
+    return (
+      <div className="mt-6 space-y-3">
+        <h3 className="text-xl font-semibold mb-4">Saved posts</h3>
+        {savePosts.map((sp) => {
+          const slug = slugify(sp.title || "");
+          const desc = sp.description ?? "";
+          const avatar = sp.author.profile_picture ?? "/image/DefaultAvatar.png";
+          const authorName = sp.author.display_name ?? "Anonymous";
+
+          return (
+            <Link
+              key={sp.post_id}
+              href={`/post/${sp.post_id}/${slug}`}
+              className="block p-3 rounded bg-accent-200/50 hover:bg-accent-200"
+            >
+              <h4 className="text-md font-semibold text-gray-900 truncate">{sp.title || "(Untitled)"}</h4>
+              <p className="text-sm text-gray-600 mt-1 truncate">{desc}</p>
+              <div className="flex items-center gap-2 mt-3">
+                <img
+                  src={avatar}
+                  alt={`${authorName} avatar`}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/image/DefaultAvatar.png";
+                  }}
+                />
+                <span className="text-sm font-medium text-gray-800">{authorName}</span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col font-display">
@@ -116,12 +215,17 @@ export default function Home() {
       </aside>
 
       {/* FEED CONTENT (SHIFT LEFT WHEN OPEN) */}
-      <div
-        className={`flex flex-1 transition-all duration-300 ${
-          isOpen ? "mr-[20%]" : ""
-        }`}
-      >
-        <main className="flex-1 mb-10 px-[5%]">
+      <div className ="flex flex-row">
+        <div className ="flex flex-col w-[25%] max-w-xl mt-10 pl-[1%] pr-[2%] font-display">
+          <SearchComponent />
+          {renderSavedPost()}
+        </div>
+
+        <main 
+          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ${
+            isOpen ? "mr-[20%]" : ""
+          }`}
+        >
           <h1 className="text-5xl font-bold p-4 mb-2">Recent Posts</h1>
           {renderContent()}
         </main>
