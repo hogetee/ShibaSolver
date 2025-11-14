@@ -52,6 +52,7 @@ exports.getFeed = async (req, res, next) => {
       FROM comments c
       JOIN users u ON u.user_id = c.user_id
       LEFT JOIN ratings r ON r.comment_id = c.comment_id
+      WHERE c.is_deleted = FALSE
       GROUP BY c.post_id, c.comment_id, u.display_name, u.profile_picture, c.user_id
       ORDER BY c.post_id, total_ratings DESC;
     `;
