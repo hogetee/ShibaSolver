@@ -21,6 +21,7 @@ exports.getUser = async (req, res, next) => {
         interested_subjects,
         "like",
         "dislike",
+        "is_premium",
         created_at
       FROM public.users 
       WHERE user_name = $1`, [username]
