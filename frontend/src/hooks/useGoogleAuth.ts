@@ -49,7 +49,7 @@ export function useGoogleAuth() {
             if (username) {
               if (typeof window !== "undefined")
                 localStorage.setItem("username", username);
-              router.push(`/user/${username}`);
+              window.location.href = `/user/${username}`;
             } else {
               router.push("/register");
             }
