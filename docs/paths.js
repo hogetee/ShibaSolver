@@ -500,6 +500,34 @@ module.exports = {
       },
     },
   },
+  '/api/v1/users/canclePremium': {
+    put: {
+      tags: ['Users'],
+      summary: 'Downgrade current user from premium status',
+      security: [{ UserBearerAuth: [] }],
+      responses: {
+        200: jsonResponse('Premium flag updated', {
+          allOf: [
+            baseResponseRef,
+            {
+              type: 'object',
+              properties: {
+                data: {
+                  type: 'object',
+                  properties: {
+                    user_id: { type: 'integer' },
+                    is_premium: { type: 'boolean' },
+                    updated_at: { type: 'string', format: 'date-time' },
+                  },
+                },
+              },
+            },
+          ],
+        }),
+        401: jsonResponse('Not authenticated', errorResponseRef),
+      },
+    },
+  },
   '/api/v1/users/{username}': {
     get: {
       tags: ['Users'],
@@ -563,7 +591,7 @@ module.exports = {
         {
           name: 'limit',
           in: 'query',
-          schema: { type: 'integer', default: 20 },
+          schema: { type: 'integer', default: 100 },
         },
       ],
       responses: {
@@ -613,7 +641,7 @@ module.exports = {
                 count: { type: 'integer' },
                 rows: {
                   type: 'array',
-                  items: { $ref: '#/components/schemas/Post' },
+                  items: { $ref: '#/components/schemas/PostRecord' },
                 },
               },
             },
@@ -640,7 +668,11 @@ module.exports = {
             {
               type: 'object',
               properties: {
-                data: { $ref: '#/components/schemas/Post' },
+                data: { $ref: '#/components/schemas/PostRecord' },
+                tags: {
+                  type: 'array',
+                  items: { type: 'string' },
+                },
               },
             },
           ],
@@ -691,7 +723,11 @@ module.exports = {
             {
               type: 'object',
               properties: {
-                data: { $ref: '#/components/schemas/Post' },
+                data: { $ref: '#/components/schemas/PostRecord' },
+                tags: {
+                  type: 'array',
+                  items: { type: 'string' },
+                },
               },
             },
           ],
@@ -829,7 +865,7 @@ module.exports = {
             {
               type: 'object',
               properties: {
-                data: { $ref: '#/components/schemas/CommentSummary' },
+                data: { $ref: '#/components/schemas/CommentBasic' },
               },
             },
           ],
@@ -883,7 +919,7 @@ module.exports = {
             {
               type: 'object',
               properties: {
-                data: { $ref: '#/components/schemas/CommentSummary' },
+                data: { $ref: '#/components/schemas/CommentBasic' },
               },
             },
           ],
@@ -927,7 +963,7 @@ module.exports = {
             {
               type: 'object',
               properties: {
-                data: { $ref: '#/components/schemas/CommentSummary' },
+                data: { $ref: '#/components/schemas/CommentBasic' },
               },
             },
           ],
@@ -951,7 +987,7 @@ module.exports = {
             {
               type: 'object',
               properties: {
-                data: { $ref: '#/components/schemas/CommentSummary' },
+                data: { $ref: '#/components/schemas/CommentBasic' },
               },
             },
           ],
@@ -1016,6 +1052,7 @@ module.exports = {
     get: {
       tags: ['Comments'],
       summary: 'List comments of a post with access control (30-day/premium rule)',
+      security: [{ UserBearerAuth: [] }],
       parameters: [
         { $ref: '#/components/parameters/PostId' },
         {

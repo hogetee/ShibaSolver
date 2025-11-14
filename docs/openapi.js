@@ -227,6 +227,22 @@ module.exports = {
           },
         },
       },
+      PostRecord: {
+        type: 'object',
+        description: 'Raw post row returned by /api/v1/posts and mutations.',
+        properties: {
+          post_id: { type: 'integer' },
+          user_id: { type: 'integer' },
+          title: { type: 'string' },
+          description: { type: 'string' },
+          post_image: { type: 'string', nullable: true },
+          is_solved: { type: 'boolean' },
+          is_deleted: { type: 'boolean' },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time', nullable: true },
+        },
+        additionalProperties: true,
+      },
       CommentSummary: {
         type: 'object',
         properties: {
@@ -243,6 +259,21 @@ module.exports = {
           dislikes: { type: 'integer' },
           total_votes: { type: 'integer' },
           ratio: { type: 'number', nullable: true },
+        },
+      },
+      CommentBasic: {
+        type: 'object',
+        description: 'Comment row returned by create/update/solution endpoints.',
+        properties: {
+          comment_id: { type: 'integer' },
+          user_id: { type: 'integer' },
+          post_id: { type: 'integer' },
+          parent_comment: { type: 'integer', nullable: true },
+          text: { type: 'string' },
+          comment_image: { type: 'string', nullable: true },
+          is_solution: { type: 'boolean' },
+          is_updated: { type: 'boolean' },
+          created_at: { type: 'string', format: 'date-time' },
         },
       },
       Notification: {
