@@ -47,6 +47,7 @@ const ReportPostModal = ({ postId, onClose }: ReportPostModalProps) => {
       onClose(); // <-- นี่คือคำสั่งให้ปิด Modal ครับ!
     } catch (err) {
       // alert(`Error reporting post: ${err.message}`);
+      onClose();
     }
   };
 
