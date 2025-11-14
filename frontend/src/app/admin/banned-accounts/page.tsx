@@ -45,6 +45,7 @@ export default function BannedAccountsPage() {
                             reasonOfBan={user.reasonOfBan}
                             bannedDate={user.bannedDate}
                             profileImage={user.profileImage}
+                            userId={user.id}
                         />
                     ))}
                 </div>
