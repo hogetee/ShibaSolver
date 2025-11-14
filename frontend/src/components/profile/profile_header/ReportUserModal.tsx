@@ -46,6 +46,7 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
       onClose(); 
 
     } catch (err) {
+      onClose();
     }
   };
 

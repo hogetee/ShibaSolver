@@ -29,7 +29,7 @@ const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalP
   const [title, setTitle] = useState(postToEdit.title);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(postToEdit.tags || []);
   const [details, setDetails] = useState(postToEdit.description);
-  const [isSolved, setIsSolved] = useState(postToEdit.is_solved);
+  const [isSolved, setIsSolved] = useState(postToEdit.is_solved || false);
 
   // 🖼️ Image state
   const [imageUrl, setImageUrl] = useState<string | null>(postToEdit.post_image || null);

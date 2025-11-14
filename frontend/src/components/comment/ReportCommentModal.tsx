@@ -47,6 +47,7 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
       onClose(); 
 
     } catch (err) {
+      onClose();
       // Error จะถูก set โดย Hook และแสดงใน UI
     }
   };
