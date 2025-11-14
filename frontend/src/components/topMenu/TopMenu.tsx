@@ -11,7 +11,6 @@ import {
   Search as SearchIcon,
 } from "@mui/icons-material";
 import { IconButton, Avatar } from "@mui/material";
-
 import { useNotification } from "@/context/NotificationContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
