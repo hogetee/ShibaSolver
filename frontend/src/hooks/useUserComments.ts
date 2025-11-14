@@ -1,100 +1,188 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-export type CommentData = {
-  comment_id: string;
-  post_id: string;
-  user_id: string;
-  is_solution: boolean;
-  text: string;
-  solution_image?: string;
-  is_deleted?: boolean;
-  comment_parent_id?: string | null;
-  created_at?: string;
-};
+import { useEffect, useState, useCallback } from "react";
+import { userService } from "@/utils/userService";
+import { profileCommentData } from "@/components/profile/profile_content/ProfileComment";
+import { postService } from "@/utils/postService";
+import { set } from "mongoose";
 
 type UseUserCommentsResult = {
-  comments: CommentData[];
+  comments: profileCommentData[];
   isLoading: boolean;
   error: string | null;
+  currentPage: number;
+  totalPages: number;
+  totalComments: number;
+  setPage: (page: number) => void;
   refetch: () => void;
 };
 
-export default function useUserComments(username?: string | null): UseUserCommentsResult {
-  const [comments, setComments] = useState<CommentData[]>([]);
-  const [loading, setLoading] = useState(false);
+export default function useUserComments(
+  username?: string | null
+): UseUserCommentsResult {
+  const [comments, setComments] = useState<profileCommentData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [nonce, setNonce] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalComments, setTotalComments] = useState(0);
 
-  const refetch = () => setNonce((n) => n + 1);
+  const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
+  const COMMENTS_PER_PAGE = 10;
 
   useEffect(() => {
-    if (!username) return;
-    let aborted = false;
-    const controller = new AbortController();
-
-    async function run() {
-      try {
-        setLoading(true);
-        setError(null);
-        const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "1";
-        if (USE_MOCK) {
-          await new Promise((r) => setTimeout(r, 200));
-          const mock: CommentData[] = [
-            {
-              comment_id: "c-1",
-              post_id: "post-001",
-              user_id: username || "user-1",
-              is_solution: false,
-              text: "Following this thread!",
-              created_at: new Date().toISOString(),
-            },
-          ];
-          if (!aborted) setComments(mock);
-        } else {
-          const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-          const res = await fetch(`${BASE_URL}/api/users/${encodeURIComponent(username!)}/comments`, {
-            signal: controller.signal,
-            credentials: "include",
-          });
-          if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            throw new Error(body?.message || `Request failed (${res.status})`);
-          }
-          const payload = await res.json();
-          const list: CommentData[] = (payload?.data ?? []).map((c: any) => ({
-            comment_id: String(c.comment_id),
-            post_id: String(c.post_id),
-            user_id: String(c.user_id),
-            is_solution: Boolean(c.is_solution),
-            text: c.text,
-            solution_image: c.solution_image || undefined,
-            is_deleted: Boolean(c.is_deleted),
-            comment_parent_id: c.comment_parent_id ?? null,
-            created_at: c.create_at || c.created_at || undefined,
-          }));
-          if (!aborted) setComments(list);
-        }
-      } catch (err: any) {
-        if (aborted) return;
-        setError(err?.message || "Failed to load comments");
-        setComments([]);
-      } finally {
-        if (!aborted) setLoading(false);
-      }
+    if (!username) {
+      setUserId(null);
+      return;
     }
 
-    run();
-    return () => {
-      aborted = true;
-      controller.abort();
+    const fetchUserId = async () => {
+      try {
+        const id = await userService.getUserIdByUsername(username);
+        setUserId(id.toString());
+        // console.log("Fetched user ID:", id);
+      } catch (err) {
+        setError("Failed to fetch user ID");
+        setUserId(null);
+      }
     };
-  }, [username, nonce]);
+    fetchUserId();
+  }, [username]);
 
+  const fetchUserData = useCallback(async () => {
+    if (!username) return;
+    try {
+      const userResponse = await userService.getUserByUsername(username);
 
+      setUserData(userResponse);
 
-  return { comments, isLoading: loading, error, refetch };
+      return userResponse;
+    } catch (err) {
+      setError((err as Error).message || "Failed to fetch user data");
+    }
+    fetchUserData();
+  }, [username, BASE_URL]);
+
+  const fetchComments = useCallback(
+    async (pageNum: number, reset = false) => {
+      if (!userId) return;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem("authToken");
+        const commentResponse = await fetch(
+          `${BASE_URL}/api/v1/comments/user/${userId}?limit=${COMMENTS_PER_PAGE}&page=${pageNum}&sort=latest`,
+          {
+            credentials: "include", // Use cookies instead of Authorization header
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (commentResponse.status === 401) {
+          // Handle unauthorized - redirect to login or refresh token
+          throw new Error("Unauthorized - please login");
+        }
+        if (!commentResponse.ok) {
+          throw new Error(
+            `Error fetching comments: ${commentResponse.statusText}`
+          );
+        }
+
+        const commentsData = await commentResponse.json();
+        const commentsArray = commentsData.data as profileCommentData[];
+        // console.log("Fetched comments data:", commentsData);
+        const totalCommentsCount = commentsData.meta.total as number;
+        const totalPagesCount = commentsData.meta.totalPages as number;
+        setTotalComments(totalCommentsCount);
+        setTotalPages(totalPagesCount);
+
+        const currentUserData = await fetchUserData();
+
+        // console.log("User data after fetching posts:", currentUserData?.data);
+        // console.log("User display name:", currentUserData?.data?.display_name);
+        // console.log(
+        //   "User profile picture:",
+        //   currentUserData?.data?.profile_picture
+        // );
+
+        const transformedComments = await Promise.all(
+          commentsArray.map(async (comment) => {
+            let postTitle = "Unknown Post";
+
+            // Get post title if post_id exists
+            if (comment.post_id) {
+              try {
+                postTitle = await postService.getPostTitleById(comment.post_id);
+              } catch (error) {
+                console.error(
+                  `Failed to fetch post title for ${comment.post_id}:`,
+                  error
+                );
+                postTitle = "Post Not Found";
+              }
+            }
+
+            return {
+              ...comment,
+              post_id: comment.post_id, // Use the actual post_id from comment
+              post_title: postTitle, // Use the fetched post title
+              author: comment.author || {
+                display_name: currentUserData?.data?.display_name || "Unknown",
+                profile_picture:
+                  currentUserData?.data?.profile_picture ||
+                  "https://www.gravatar.com/avatar/?d=mp",
+              },
+            };
+          })
+        );
+
+        setComments(transformedComments);
+        setCurrentPage(pageNum);
+      } catch (err) {
+        setError((err as Error).message || "Failed to fetch comments");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userId, BASE_URL, fetchUserData]
+  );
+
+  const setPage = useCallback(
+    (page: number) => {
+      if (page >= 1 && page <= totalPages && page !== currentPage) {
+        fetchComments(page);
+      }
+    },
+    [totalPages, currentPage, fetchComments]
+  );
+
+  const refetch = useCallback(() => {
+    setCurrentPage(1);
+    setComments([]);
+    setTotalPages(0);
+    setTotalComments(0);
+    setError(null);
+    fetchComments(1);
+  }, [fetchComments]);
+
+  useEffect(() => {
+    if (username) {
+      refetch();
+    }
+  }, [username, fetchComments]);
+
+  return {
+    comments,
+    isLoading: loading,
+    error,
+    currentPage,
+    totalPages,
+    totalComments,
+    setPage,
+    refetch,
+  };
 }
-
-
