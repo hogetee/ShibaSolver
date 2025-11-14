@@ -81,7 +81,7 @@ export default function useUserPosts(
         }
 
         const postsData = await postsResponse.json();
-        console.log("Posts data fetched:", postsData);
+        // console.log("Posts data fetched:", postsData);
 
         const postsArray = postsData.data as PostData[];
 
@@ -91,9 +91,9 @@ export default function useUserPosts(
         setTotalPages(totalPagesCount);
 
         const currentUserData = await fetchUserData();
-        console.log("User data after fetching posts:", currentUserData?.data);
-        console.log("User display name:", currentUserData?.data?.display_name);
-        console.log("User profile picture:", currentUserData?.data?.profile_picture);
+        // console.log("User data after fetching posts:", currentUserData?.data);
+        // console.log("User display name:", currentUserData?.data?.display_name);
+        // console.log("User profile picture:", currentUserData?.data?.profile_picture);
 
         const transformedPosts = postsArray.map((post) => ({
           ...post,

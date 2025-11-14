@@ -134,11 +134,11 @@ export function useUserProfile(username?: string | null): UseUserResult {
           const backendUser: BackendUser | null = payload?.data ?? null;
           const shibaScore: number = shibaPayload?.shibaMeter ?? 0;
 
-          console.log("Shiba meter API success:", {
-            username,
-            shibaScore,
-            fullResponse: shibaPayload
-          });
+          // console.log("Shiba meter API success:", {
+          //   username,
+          //   shibaScore,
+          //   fullResponse: shibaPayload
+          // });
           
           if (!aborted) {
             setData(backendUser);

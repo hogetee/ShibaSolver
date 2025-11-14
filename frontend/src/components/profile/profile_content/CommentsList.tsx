@@ -4,7 +4,17 @@ import useUserComments from "@/hooks/useUserComments";
 import Pagination from "./Pagination";
 import ProfileComment from "./ProfileComment";
 
-export default function CommentsList({ username }: { username?: string }) {
+import { useEffect } from "react";
+
+type CommentsListProps = {
+  username?: string;
+  onTotalCommentsChange?: (count: number) => void;
+};
+
+export default function CommentsList({
+  username,
+  onTotalCommentsChange,
+}: CommentsListProps) {
   const {
     comments,
     isLoading,
@@ -28,6 +38,12 @@ export default function CommentsList({ username }: { username?: string }) {
     // Refetch the comments to update the list
     refetch();
   };
+
+  useEffect(() => {
+    if (typeof totalComments === "number" && onTotalCommentsChange) {
+      onTotalCommentsChange(totalComments);
+    }
+  }, [totalComments, onTotalCommentsChange]);
 
   if (!username) {
     return (

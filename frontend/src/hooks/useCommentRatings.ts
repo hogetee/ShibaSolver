@@ -24,7 +24,7 @@ export default function useCommentRatings(comments: profileCommentData[] | null)
               { credentials: 'include' }
             );
 
-            console.log(`Fetched rating for comment ${comment.comment_id}:`, response);
+            // console.log(`Fetched rating for comment ${comment.comment_id}:`, response);
             
             if (response.ok) {
               const data = await response.json();
@@ -46,7 +46,7 @@ export default function useCommentRatings(comments: profileCommentData[] | null)
     fetchRatings();
   }, [comments]);
 
-  console.log("useCommentRatings Debug:", { commentRatings, isLoadingRatings });
+  // console.log("useCommentRatings Debug:", { commentRatings, isLoadingRatings });
 
   return { commentRatings, isLoadingRatings };
 }

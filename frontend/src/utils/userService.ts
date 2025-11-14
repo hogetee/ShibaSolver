@@ -37,8 +37,8 @@ export const userService = {
             throw new Error("Failed to fetch user ID");
         }
         const data = await response.json();
-        console.log("userService.getUserIdByUsername:", { username });
-        console.log("Response data:", data.data.user_id);
+        // console.log("userService.getUserIdByUsername:", { username });
+        // console.log("Response data:", data.data.user_id);
         return data.data.user_id;
     },
 

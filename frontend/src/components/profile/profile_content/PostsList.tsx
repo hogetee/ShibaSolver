@@ -1,12 +1,21 @@
 "use client";
 
 import Post, { PostData } from "@/components/post/Post";
+import { useEffect } from "react";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import useUserPosts from "@/hooks/useUserPosts";
 import usePostRatings from "@/hooks/usePostRatings";
 import Pagination from "./Pagination";
 
-export default function PostsList({ username }: { username?: string }) {
+type PostsListProps = {
+  username?: string;
+  onTotalPostsChange?: (count: number) => void;
+};
+
+export default function PostsList({
+  username,
+  onTotalPostsChange,
+}: PostsListProps) {
   const {
     posts,
     isLoading,
@@ -20,7 +29,7 @@ export default function PostsList({ username }: { username?: string }) {
 
   const { postRatings, postStats, isLoadingRatings } = usePostRatings(posts);
 
-  console.log("PostsList Debug:", { username, posts, isLoading, error, postRatings });
+  // console.log("PostsList Debug:", { username, posts, isLoading, error, postRatings });
 
   const handlePostUpdate = (updatedPost: PostData) => {
     // You could update the local state here if needed
@@ -32,6 +41,12 @@ export default function PostsList({ username }: { username?: string }) {
     // Refetch the posts to update the list
     refetch();
   };
+
+  useEffect(() => {
+    if (typeof totalPosts === "number" && onTotalPostsChange) {
+      onTotalPostsChange(totalPosts);
+    }
+  }, [totalPosts, onTotalPostsChange]);
 
   if (!username) {
     return (
@@ -86,19 +101,19 @@ export default function PostsList({ username }: { username?: string }) {
           posts?.map((post) => {
             const rating = postRatings[post.post_id] || null;
             const statsOverride = postStats[post.post_id];
-            if (statsOverride) {
-              console.log(
-                "[PostsList] Applying stats override",
-                post.post_id,
-                statsOverride
-              );
-            } else {
-              console.log(
-                "[PostsList] Using original stats for",
-                post.post_id,
-                post.stats
-              );
-            }
+            // if (statsOverride) {
+            //   console.log(
+            //     "[PostsList] Applying stats override",
+            //     post.post_id,
+            //     statsOverride
+            //   );
+            // } else {
+            //   console.log(
+            //     "[PostsList] Using original stats for",
+            //     post.post_id,
+            //     post.stats
+            //   );
+            // }
             const postWithRatings = statsOverride
               ? {
                   ...post,

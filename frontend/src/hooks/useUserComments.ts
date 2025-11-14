@@ -42,7 +42,7 @@ export default function useUserComments(
       try {
         const id = await userService.getUserIdByUsername(username);
         setUserId(id.toString());
-        console.log("Fetched user ID:", id);
+        // console.log("Fetched user ID:", id);
       } catch (err) {
         setError("Failed to fetch user ID");
         setUserId(null);
@@ -94,7 +94,7 @@ export default function useUserComments(
 
         const commentsData = await commentResponse.json();
         const commentsArray = commentsData.data as profileCommentData[];
-        console.log("Fetched comments data:", commentsData);
+        // console.log("Fetched comments data:", commentsData);
         const totalCommentsCount = commentsData.meta.total as number;
         const totalPagesCount = commentsData.meta.totalPages as number;
         setTotalComments(totalCommentsCount);
@@ -102,12 +102,12 @@ export default function useUserComments(
 
         const currentUserData = await fetchUserData();
 
-        console.log("User data after fetching posts:", currentUserData?.data);
-        console.log("User display name:", currentUserData?.data?.display_name);
-        console.log(
-          "User profile picture:",
-          currentUserData?.data?.profile_picture
-        );
+        // console.log("User data after fetching posts:", currentUserData?.data);
+        // console.log("User display name:", currentUserData?.data?.display_name);
+        // console.log(
+        //   "User profile picture:",
+        //   currentUserData?.data?.profile_picture
+        // );
 
         const transformedComments = await Promise.all(
           commentsArray.map(async (comment) => {

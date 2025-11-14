@@ -37,10 +37,10 @@ export default function usePostRatings(posts: PostData[] | null) {
       setIsLoadingRatings(true);
 
       try {
-        console.log(
-          "[usePostRatings] Fetching summaries for posts:",
-          postIds.join(",")
-        );
+        // console.log(
+        //   "[usePostRatings] Fetching summaries for posts:",
+        //   postIds.join(",")
+        // );
         const response = await fetch(
           `${FALLBACK_API_URL}/api/v1/ratings/summary?target_type=post&ids=${postIds.join(",")}`,
           { credentials: "include" }
@@ -51,7 +51,7 @@ export default function usePostRatings(posts: PostData[] | null) {
 
         if (response.ok) {
           const json = await response.json();
-          console.log("[usePostRatings] Raw summary response:", json);
+          // console.log("[usePostRatings] Raw summary response:", json);
           const summaries: Array<{
             id: number;
             likes: number;
@@ -67,10 +67,10 @@ export default function usePostRatings(posts: PostData[] | null) {
           posts.forEach((post) => {
             const summary = summaryMap.get(String(post.post_id));
             if (!summary) {
-              console.log(
-                `[usePostRatings] No summary found for post ${post.post_id}, falling back to post.stats`,
-                post.stats
-              );
+              // console.log(
+              //   `[usePostRatings] No summary found for post ${post.post_id}, falling back to post.stats`,
+              //   post.stats
+              // );
             }
             ratings[post.post_id] = summary?.my_rating ?? null;
             stats[post.post_id] = {
@@ -91,8 +91,8 @@ export default function usePostRatings(posts: PostData[] | null) {
 
         setPostRatings(ratings);
         setPostStats(stats);
-        console.log("[usePostRatings] Parsed ratings:", ratings);
-        console.log("[usePostRatings] Parsed stats:", stats);
+        // console.log("[usePostRatings] Parsed ratings:", ratings);
+        // console.log("[usePostRatings] Parsed stats:", stats);
       } catch (err) {
         console.error("Failed to fetch post rating summaries:", err);
         const fallbackRatings: RatingMap = {};
