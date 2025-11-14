@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 export function useGoogleAuth() {
   const router = useRouter();
 
-  const handleGoogleResponse = (response) => {
+  const handleGoogleResponse = (response: any) => {
     // response.credential is the Google id_token
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
     fetch(`${API_BASE}/api/v1/auth/google`, {
