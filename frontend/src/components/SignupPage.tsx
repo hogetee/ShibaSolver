@@ -1,11 +1,26 @@
 "use client";
-import ShibaIcon from '@/components/auth/ShibaIcon';
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import GuestContinueButton from '@/components/auth/GuestContinueButton';
-import { useGoogleAuth } from '@/hooks/useGoogleAuth';
+import ShibaIcon from "@/components/auth/ShibaIcon";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import GuestContinueButton from "@/components/auth/GuestContinueButton";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function SignupPage() {
   const { handleGoogleResponse, handleGuestContinue } = useGoogleAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const username = localStorage.getItem("username");
+      if (username) {
+        router.push(`/user/${username}`);
+        return;
+      }
+    };
+    checkAuth();
+  }, [router]);
+
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 font-display">
