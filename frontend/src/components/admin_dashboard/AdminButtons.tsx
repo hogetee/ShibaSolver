@@ -8,7 +8,6 @@ export default function AdminButtons({
     title: string;
     description: string;
     href: string;
-    stats: string;
     color: string;
     iconColor: string;
     icon?: ReactNode;
@@ -35,9 +34,9 @@ export default function AdminButtons({
                 {action.title}
               </h3>
               <p className="text-gray-600 mb-3">{action.description}</p>
-              <div className="text-sm font-medium text-gray-500">
+              {/* <div className="text-sm font-medium text-gray-500">
                 {action.stats}
-              </div>
+              </div> */}
             </div>
           </div>
         </Link>
