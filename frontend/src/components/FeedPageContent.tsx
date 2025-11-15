@@ -210,7 +210,7 @@ export default function Home() {
             <Link
               key={sp.post_id}
               href={`/post/${sp.post_id}/${slug}`}
-              className="block p-3 rounded bg-accent-200/50 hover:bg-accent-200"
+              className="block p-3 rounded bg-accent-200/50 hover:bg-accent-200 mb-3"
             >
               <h4 className="text-md font-semibold text-gray-900 truncate">{sp.title ?? "Untitled"}</h4>
               <p className="text-sm text-gray-600 mt-1 truncate">{desc}</p>
@@ -264,7 +264,7 @@ export default function Home() {
       <div className ="flex flex-row">
         {/* Left sidebar: fixed so it scrolls independently from the main feed */}
         <aside
-          className={`fixed top-16 left-0 h-full px-2 py-4 mb-6 w-[25%] max-w-xl overflow-auto`}
+          className={`fixed top-16 left-1 h-full px-2 py-4 w-[25%] max-w-xl overflow-auto`}
         >
           <div className="pt-4">
             <SearchComponent />
