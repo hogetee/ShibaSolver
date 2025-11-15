@@ -6,11 +6,11 @@ import useCurrentUser from '@/hooks/useCurrentUser';
 
 import { LikeButton } from './LikeButton';
 import { DislikeButton } from './DislikeButton';
-import { ReplyButton } from './ReplyButton';
 import { MoreActionsMenu } from './MoreActionsMenu';
 import { SolutionTag } from './SolutionTag';
 import CommentContentDisplay from './CommentContent';
 import CommentEditor from './CommentEditor';
+import ReportCommentModal from '@/components/comment/ReportCommentModal';
 
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -26,7 +26,8 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
   level = 1 
 }) => {
   const { user, isLoading } = useCurrentUser();
-  const isOwner = user?.user_id === reply.author.user_id;
+  const isOwner = user?.user_id == reply.author.user_id;
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const initialContent: CommentContent = {
     text: reply.text,
@@ -37,7 +38,6 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
     likes,
     dislikes,
     userLikeStatus,
-    isReplying,
     anchorEl,
     isSolution,
     isEditing,
@@ -45,9 +45,6 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
     isDeleteModalOpen,
     toggleLike,
     toggleDislike,
-    handleToggleNewReply,
-    handleCancelReply,
-    handleCreateNewReply,
     handleMenuOpen,
     handleMenuClose,
     handleEdit,
@@ -66,6 +63,13 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
     "none",
     initialContent
   );
+
+  const handleReportModalOpen = () => {
+    setIsReportModalOpen(true);
+  };
+  const handleReportModalClose = () => {
+    setIsReportModalOpen(false);
+  };
 
   // Calculate indentation (max 3 levels to prevent too much nesting)
   const maxLevel = 3;
@@ -112,17 +116,6 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
             {/* Solution tag and actions */}
             <div className="flex items-center gap-2">
               {isSolution && <SolutionTag />}
-              {isOwner && !isLoading && (
-                <MoreActionsMenu
-                  anchorEl={anchorEl}
-                  handleMenuOpen={handleMenuOpen}
-                  handleMenuClose={handleMenuClose}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                  handleSetSolution={handleSetSolution}
-                  handleDeleteModalOpen={handleDeleteModalOpen}
-                />
-              )}
             </div>
           </div>
 
@@ -152,26 +145,26 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
                 userStatus={userLikeStatus}
                 onClick={toggleDislike}
               />
-              {/* Replies to replies can be limited to prevent infinite nesting */}
-              {level < maxLevel && (
-                <ReplyButton
-                  isReplying={isReplying}
-                  onClick={handleToggleNewReply}
+              {/* More Actions Menu - available for all users */}
+              {!isLoading && (
+                <MoreActionsMenu
+                  anchorEl={anchorEl}
+                  handleMenuOpen={handleMenuOpen}
+                  handleMenuClose={handleMenuClose}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                  handleSetSolution={handleSetSolution}
+                  handleDeleteModalOpen={handleDeleteModalOpen}
+                  handleDeleteModalClose={handleDeleteModalClose}
+                  owner={isOwner}
+                  handleReportClick={handleReportModalOpen}
                 />
               )}
             </div>
           )}
 
           {/* Reply input */}
-          {isReplying && (
-            <div className="mt-3 pl-4 border-l-2 border-blue-200">
-              <CommentEditor
-                initialContent={{ text: "", image: null }}
-                onSave={(content) => handleCreateNewReply(content.text)}
-                onCancel={handleCancelReply}
-              />
-            </div>
-          )}
+          {/* Removed ReplyButton as per edit hint */}
         </div>
       </div>
 
@@ -198,6 +191,14 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
           </DialogActions>
         </Dialog>
       </ThemeProvider>
+
+      {/* Report Modal */}
+      {isReportModalOpen && (
+        <ReportCommentModal
+          commentId={String(reply.id)} 
+          onClose={handleReportModalClose}
+        />
+      )}
     </div>
   );
 };
