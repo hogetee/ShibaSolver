@@ -264,7 +264,7 @@ export default function Home() {
       <div className ="flex flex-row">
         {/* Left sidebar: fixed so it scrolls independently from the main feed */}
         <aside
-          className={`fixed top-16 left-0 h-full p-4 mb-4 w-[25%] max-w-xl overflow-auto`}
+          className={`fixed top-16 left-0 h-full px-2 py-4 mb-6 w-[25%] max-w-xl overflow-auto`}
         >
           <div className="pt-4">
             <SearchComponent />
@@ -273,7 +273,7 @@ export default function Home() {
         </aside>
 
         <main 
-          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ml-[25%] ${
+          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ml-[26%] ${
             isOpen ? "mr-[20%]" : ""
           } `}
         >
