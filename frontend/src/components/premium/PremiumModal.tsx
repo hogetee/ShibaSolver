@@ -47,8 +47,11 @@ export default function PremiumModal({ onClose }: Props) {
                 <p>
                     For a limited time, activate Premium with a <span className="font-semibold text-lg text-amber-500">one-time purchase</span> — now <span className="mx-1 font-bold text-2xl text-amber-500">FREE !</span> — and get full access to all premium features.
                 </p>
+                <p className="text-sm text-gray-600 mt-4">
+                    You will be notified beforehand if the terms are updated.
+                </p>
             </div>
-            <div className="flex gap-3 justify-end mt-6">
+            <div className="flex gap-3 justify-end mt-4">
             <button
                 onClick={onClose}
                 className="px-4 py-2 rounded-md cursor-pointer bg-gray-100 hover:bg-gray-200"
