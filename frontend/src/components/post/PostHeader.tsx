@@ -84,7 +84,7 @@ export default function PostHeader({
     try {
       const method = nextState ? "POST" : "DELETE";
 
-      const res = await fetch(`${API_BASE}/posts/bookmarks/${postId}`, {
+      const res = await fetch(`${API_BASE}/api/v1/posts/bookmarks/${postId}`, {
         method,
         credentials: "include",
       });
