@@ -6,16 +6,15 @@ export interface CommentData {
         profile_picture: string;
     };
     text: string;
-    created_at: string; // ISO date
+    created_at: string;
     comment_image?: string | undefined;
     likes: number;
     dislikes: number;
     Replies: number;
-    is_solution : boolean;
-    updated_at?: string; // ISO date, optional
-    is_edited?: boolean; // optional
-    // parent_comment?: string | null; // ID of parent comment if this is a reply
-    // replies?: CommentData[]; // Array of nested replies (populated by frontend)
+    is_solution: boolean;
+    updated_at?: string;
+    is_edited?: boolean;
+    parent_comment: number | null; // ADD THIS - ID of parent comment if this is a reply
 }
 
 export interface CommentContent {
@@ -27,6 +26,7 @@ export type UserLikeStatus = 'none' | 'liked' | 'disliked';
 
 export interface CommentProps {
     commentData: CommentData;
+    allComments?: CommentData[];
     onDelete?: (commentId:string) => void;
     postId: string;
 }
@@ -52,6 +52,8 @@ export interface MoreActionsButtonProps {
     handleSetSolution: () => void;
     handleDeleteModalOpen: () => void;
     handleDeleteModalClose: () => void;
+    owner?: boolean;
+    handleReportClick: () => void;
 }
 
 // New interfaces for reply functionality

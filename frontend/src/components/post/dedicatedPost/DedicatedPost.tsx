@@ -7,34 +7,15 @@ import DedicatedPostAuthor from './DedicatedPostAuthor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import EditPostModal, { UpdatedPostData } from '../EditPostModal';
 import DeletePostModal from '../DeletePostModal';
+import ReportPostModal from '../ReportPostModal';
 import { useUpdatePost } from '@/hooks/useUpdatePost';
 import { useDeletePost } from '@/hooks/useDeletePost';
-
-// --- Interface for post data (same shape as main Post) ---
-export interface DedicatedPostData {
-  post_id: string;
-  title: string;
-  description: string;
-  post_image?: string;
-  is_solved: boolean;
-  created_at: string;
-  tags: string[];
-  author: {
-    user_id: string;
-    display_name: string;
-    profile_picture: string;
-  };
-  stats: {
-    likes: number;
-    dislikes: number;
-  };
-  liked_by_user: boolean;
-  disliked_by_user: boolean;
-}
+import { PostData } from '../Post';
+import { useRouter } from 'next/navigation';
 
 interface DedicatedPostProps {
-  dedicatedPostData: DedicatedPostData;
-  onPostUpdate?: (updatedPost: DedicatedPostData) => void;
+  dedicatedPostData: PostData;
+  onPostUpdate?: (updatedPost: PostData) => void;
   onPostDelete?: (postId: string) => void;
 }
 
@@ -43,24 +24,25 @@ const DedicatedPost = ({
   onPostUpdate,
   onPostDelete,
 }: DedicatedPostProps) => {
+  const router = useRouter();
   const [postData, setPostData] = useState(initialData);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { user } = useCurrentUser();
   const { updatePost, isUpdating } = useUpdatePost();
   const { deletePost, isDeleting } = useDeletePost();
 
-  const isCurrentUserAuthor = user ? String(user.user_id) === postData.author.user_id : false;
+  const isCurrentUserAuthor = user ? String(user.user_id) === String(postData.author.user_id) : false;
 
-  // ✅ Handle save after editing post
   const handleSaveEdit = async (dataFromModal: UpdatedPostData) => {
     try {
       const response = await updatePost(postData.post_id, dataFromModal);
       if (!response || !response.data) throw new Error('Invalid update response');
 
       const updatedApiData = response.data;
-      const updatedPost: DedicatedPostData = {
+      const updatedPost: PostData = {
         ...postData,
         title: updatedApiData.title,
         description: updatedApiData.description,
@@ -78,12 +60,12 @@ const DedicatedPost = ({
     }
   };
 
-  // ✅ Handle confirm delete
   const handleConfirmDelete = async () => {
     try {
       await deletePost(postData.post_id);
       setIsDeleteModalOpen(false);
       onPostDelete?.(postData.post_id);
+      router.push('/');
     } catch (error) {
       console.error('Error deleting dedicated post:', error);
       alert(`Failed to delete post: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -93,24 +75,22 @@ const DedicatedPost = ({
   return (
     <>
       <div className="w-full min-h-[30vh] bg-white rounded-2xl shadow-lg p-6 flex flex-col font-display">
-        {/* Header (tags + solved indicator + edit/delete if author) */}
         <PostHeader
           isSolved={postData.is_solved}
           tags={postData.tags}
           isCurrentUserAuthor={isCurrentUserAuthor}
           onEditClick={() => setIsEditModalOpen(true)}
           onDeleteClick={() => setIsDeleteModalOpen(true)}
+          onReportClick={() => setIsReportModalOpen(true)} 
           postId={postData.post_id}
         />
 
-        {/* Title + description + image */}
         <PostContent
           title={postData.title}
           description={postData.description}
           postImage={postData.post_image}
         />
 
-        {/* Author info + like/dislike controls */}
         <DedicatedPostAuthor
           postId={postData.post_id}
           author={postData.author}
@@ -120,7 +100,6 @@ const DedicatedPost = ({
         />
       </div>
 
-      {/* --- Edit modal --- */}
       {isEditModalOpen && (
         <EditPostModal
           postToEdit={postData}
@@ -130,12 +109,18 @@ const DedicatedPost = ({
         />
       )}
 
-      {/* --- Delete modal --- */}
       {isDeleteModalOpen && (
         <DeletePostModal
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleConfirmDelete}
           isDeleting={isDeleting}
+        />
+      )}
+
+      {isReportModalOpen && (
+        <ReportPostModal
+          postId={postData.post_id}
+          onClose={() => setIsReportModalOpen(false)}
         />
       )}
     </>

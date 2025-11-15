@@ -1,110 +1,145 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { PostData } from "@/components/post/Post"; // type-only import
+import { userService } from "@/utils/userService";
+import { UserData } from "@/utils/userService";
+import { set } from "mongoose";
 
 type UseUserPostsResult = {
   posts: PostData[];
   isLoading: boolean;
   error: string | null;
+  currentPage: number;
+  totalPages: number;
+  totalPosts: number;
+  setPage: (page: number) => void;
   refetch: () => void;
 };
 
-export default function useUserPosts(username?: string | null): UseUserPostsResult {
+export default function useUserPosts(
+  username?: string | null
+): UseUserPostsResult {
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [nonce, setNonce] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalPosts, setTotalPosts] = useState(0);
 
-  const refetch = () => setNonce((n) => n + 1);
+  const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
+  const POSTS_PER_PAGE = 5;
 
   useEffect(() => {
-    if (!username) return;
-    let aborted = false;
-    const controller = new AbortController();
-
-    async function run() {
-      try {
-        setLoading(true);
-        setError(null);
-        const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "1";
-        if (USE_MOCK) {
-          await new Promise((r) => setTimeout(r, 200));
-          const mock: PostData[] = [
-            {
-              post_id: "post-001",
-              title: "How to solve these chemical equations",
-              description: "I need help with these chemical equations. I'm stuck on balancing the atoms.",
-              is_solved: true,
-              created_at: new Date().toISOString(),
-              tags: ["Science"],
-              author: {
-                user_id: username || "user-1",
-                display_name: username || "User",
-                profile_picture: "/image/DefaultAvatar.png",
-              },
-              stats: { likes: 12, dislikes: 4 },
-              topComment: {
-                comment_id: "comment-101",
-                text: "This is very helpful! Remember to balance the hydrogens last.",
-                created_at: new Date().toISOString(),
-                likes: 15,
-                dislikes: 10,
-                author: {
-                  user_id: "user-tee",
-                  display_name: "Tee",
-                  profile_picture: "/image/DefaultAvatar.png",
-                },
-              },
-            },
-          ];
-          if (!aborted) setPosts(mock);
-        } else {
-          const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-          const res = await fetch(`${BASE_URL}/api/users/${encodeURIComponent(username!)}/posts`, {
-            signal: controller.signal,
-            credentials: "include",
-          });
-          if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            throw new Error(body?.message || `Request failed (${res.status})`);
-          }
-          const payload = await res.json();
-          // Map backend fields -> UI PostData
-          const list: PostData[] = (payload?.data ?? []).map((p: any) => ({
-            post_id: String(p.post_id),
-            title: p.title,
-            description: p.description,
-            is_solved: Boolean(p.is_solved),
-            created_at: p.create_at || p.created_at || new Date().toISOString(),
-            tags: Array.isArray(p.tag) ? p.tag : (p.tag ? [p.tag] : []),
-            post_image: p.problem_image || undefined,
-            author: {
-              user_id: String(p.user_id),
-              display_name: username || String(p.user_id),
-              profile_picture: "/image/DefaultAvatar.png",
-            },
-            stats: { likes: 0, dislikes: 0 },
-          }));
-          if (!aborted) setPosts(list);
-        }
-      } catch (err: any) {
-        if (aborted) return;
-        setError(err?.message || "Failed to load posts");
-        setPosts([]);
-      } finally {
-        if (!aborted) setLoading(false);
-      }
+    if (!username) {
+      setUserId(null);
+      return;
     }
 
-    run();
-    return () => {
-      aborted = true;
-      controller.abort();
+    const fetchUserId = async () => {
+      try {
+        const id = await userService.getUserIdByUsername(username);
+        setUserId(id.toString());
+        console.log("Fetched user ID:", id);
+      } catch (err) {
+        setError("Failed to fetch user ID");
+        setUserId(null);
+      }
     };
-  }, [username, nonce]);
+    fetchUserId();
+  }, [username]);
 
-  return { posts, isLoading: loading, error, refetch };
+  const fetchUserData = useCallback(async () => {
+    if (!username) return;
+
+    try {
+      const userResponse = await userService.getUserByUsername(username);
+      
+      setUserData(userResponse);
+
+      return userResponse;
+    } catch (err) {
+      setError((err as Error).message || "Failed to fetch user data");
+    }
+    fetchUserData();
+  }, [username, BASE_URL]);
+
+  const fetchPosts = useCallback(
+    async (pageNum: number, reset = false) => {
+      if (!userId) return;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const postsResponse = await fetch(
+          `${BASE_URL}/api/v1/users/${userId}/posts?page=${pageNum}&limit=${POSTS_PER_PAGE}`
+        );
+        if (!postsResponse.ok) {
+          throw new Error(`Error fetching posts: ${postsResponse.statusText}`);
+        }
+
+        const postsData = await postsResponse.json();
+        console.log("Posts data fetched:", postsData);
+
+        const postsArray = postsData.data as PostData[];
+
+        const totalPostsCount = postsData.meta.total as number;
+        const totalPagesCount = postsData.meta.totalPages as number;
+        setTotalPosts(totalPostsCount);
+        setTotalPages(totalPagesCount);
+
+        const currentUserData = await fetchUserData();
+        console.log("User data after fetching posts:", currentUserData?.data);
+        console.log("User display name:", currentUserData?.data?.display_name);
+        console.log("User profile picture:", currentUserData?.data?.profile_picture);
+
+        const transformedPosts = postsArray.map((post) => ({
+          ...post,
+          // Ensure stats exist
+          stats: post.stats || { likes: 0, dislikes: 0 },
+          // Ensure author exists
+          author: post.author || {
+            display_name: currentUserData?.data?.display_name || "Unknown",
+            profile_picture: currentUserData?.data?.profile_picture || "https://www.gravatar.com/avatar/?d=mp",
+          },
+          // Ensure boolean fields exist
+          liked_by_user: Boolean(post.liked_by_user),
+          disliked_by_user: Boolean(post.disliked_by_user),
+        }));
+
+        setPosts(transformedPosts);
+        setCurrentPage(pageNum);
+      } catch (err) {
+        setError((err as Error).message || "Failed to fetch posts");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userId, BASE_URL, fetchUserData]
+  );
+
+  const setPage = useCallback((pageNum: number) => {
+    if (pageNum >= 1 && pageNum <= totalPages && pageNum !== currentPage) {
+      fetchPosts(pageNum);
+    }
+  }, [totalPages, currentPage, fetchPosts]);
+
+  const refetch = useCallback(() => {
+    setCurrentPage(1);
+    setPosts([]);
+    setTotalPages(0);
+    setTotalPosts(0);
+    setError(null);
+    fetchPosts(1);
+  }, [fetchPosts]);
+
+  useEffect(() => {
+    if (username) {
+      refetch();
+    }
+  }, [username, refetch]);
+
+  return { posts, isLoading: loading, error, currentPage, totalPages, totalPosts, setPage, refetch };
 }
-
-
