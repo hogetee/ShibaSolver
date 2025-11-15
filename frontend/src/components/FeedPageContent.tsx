@@ -264,7 +264,7 @@ export default function Home() {
       <div className ="flex flex-row">
         {/* Left sidebar: fixed so it scrolls independently from the main feed */}
         <aside
-          className={`fixed top-16 left-0 h-full w-[25%] max-w-xl overflow-auto`}
+          className={`fixed top-16 left-0 h-full p-4 w-[25%] max-w-xl overflow-auto`}
         >
           <div className="pt-4">
             <SearchComponent />
