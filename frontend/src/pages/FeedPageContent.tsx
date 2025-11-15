@@ -35,6 +35,7 @@ export default function Home() {
 
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [notificationError, setNotificationError] = useState<string | null>(null);
   const { isOpen } = useNotification();
 
   const fetchNotifications = async () => {
@@ -46,7 +47,13 @@ export default function Home() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (res.status === 401) {
+          setNotificationError("Please log in to view your notifications.");
+          setNotifications([]);
+          return;
+        }
         console.error(`Failed to load notifications: ${res.status}`);
+        setNotificationError(`Failed to load notifications: ${res.status}`);
         setNotifications([]);
         return;
       }
@@ -82,6 +89,11 @@ export default function Home() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (res.status === 401) {
+          setSavedError("Please log in to view your saved posts.");
+          setSavePosts([]);
+          return;
+        }
         const msg = body?.message || `Failed to load saved posts: ${res.status}`;
         setSavedError(msg);
         setSavePosts([]);
@@ -115,11 +127,6 @@ export default function Home() {
       setIsLoadingSaved(false);
     }
   };
-
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-      e.preventDefault();
-      window.location.href = href;
-    };
 
   useEffect(() => {
     fetchNotifications();
@@ -185,7 +192,7 @@ export default function Home() {
 
   const renderSavedPost = () => {
     if (isLoadingSaved) return <p className="text-center mt-4">Loading saved posts...</p>;
-    if (savedError) return <p className="text-center text-red-500 mt-4">{savedError}</p>;
+    if (savedError) return <p className="text-center text-gray-500 mt-4">{savedError}</p>;
     if (savePosts.length === 0)
       return <p className="text-center mt-4">No saved posts yet. Try saving some posts to see them here.</p>;
 
@@ -224,6 +231,20 @@ export default function Home() {
     );
   }
 
+  const renderNotification= () => { 
+    if (isLoadingNotifications) return <p className="text-center mt-4">Loading notifications...</p>;
+    if (notificationError) return <p className="text-center text-gray-500 mt-4">{notificationError}</p>;
+    if (notifications.length === 0) return <p className="text-center mt-4">No notifications.</p>;
+
+    return (
+      <div>
+        {notifications.map((noti) => (
+          <Notification key={noti.noti_id} notificationData={noti} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col font-display">
 
@@ -235,9 +256,7 @@ export default function Home() {
         `}
       >
         <h2 className="text-2xl font-bold mb-6 mt-5 ml-4">Notifications</h2>
-        {notifications.map((noti) => (
-          <Notification key={noti.noti_id} notificationData={noti} />
-        ))}
+        {renderNotification()}
       </aside>
 
       {/* FEED CONTENT (SHIFT LEFT WHEN OPEN) */}
