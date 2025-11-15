@@ -100,7 +100,7 @@ export default function usePostComments(
           return;
         }
 
-        const BASE_URL = process.env.BACKEND_URL;
+        const BASE_URL = process.env.NEXT_PUBLIC_API_URL ;
         const url = `${BASE_URL}/api/v1/comments/post/${encodeURIComponent(String(postId))}?sort=${sort}`;  
         
         // inside usePostComments, replace the fetch error handling
