@@ -1,0 +1,59 @@
+@import url("https://fonts.googleapis.com/css2?family=Sarabun&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Afacad&display=swap");
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #191825;
+  --color-accent-200: #f6d9ff;
+  --color-accent-400: #ab72c1;
+  --color-accent-600: #4b0082;
+  --color-dark-900: #191825;
+  --color-primary-00: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-accent-200: #f6d9ff;
+  --color-accent-400: #ab72c1;
+  --color-accent-600: #4b0082;
+  --color-dark-900: #191825;
+  --color-primary-00: #ffffff;
+  --font-display: "Afacad","Sarabun", sans-serif;
+}
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+} */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+@layer utilities {
+  .select-placeholder {
+    color: theme('colors.gray.400');
+  }
+  .select-placeholder option {
+    color: theme('colors.gray.900');
+  }
+}
+
+
+/* Force scrollbar to always be visible to prevent page shift when switching tabs */
+html {
+  overflow-y: scroll;
+}
+

@@ -1,0 +1,393 @@
+"use client";
+
+import React from "react";
+import { useEffect } from "react";
+import { CommentContent, CommentProps } from "./types";
+import { useCommentActions } from "@/components/comment/useCommentActions";
+import { formatTimeAgo } from "@/components/comment/utils";
+
+import { LikeButton } from "@/components/comment/LikeButton";
+import { DislikeButton } from "@/components/comment/DislikeButton";
+import { ReplyButton } from "@/components/comment/ReplyButton";
+import { MoreActionsMenu } from "@/components/comment/MoreActionsMenu";
+import { SolutionTag } from "./SolutionTag";
+import CommentContentDisplay from "./CommentContent";
+import CommentEditor from "./CommentEditor";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import ReportCommentModal from '@/components/comment/ReportCommentModal';
+import { ReplyItem } from "./ReplyItem";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "@/theme/theme";
+import CreateComment from "./CreateComment";
+import { useState } from "react";
+
+
+const Comment = ({ commentData, allComments = [], onDelete, postId }: CommentProps) => {
+  const hasReplies = commentData.Replies > 0;
+  const { user, isLoading, error, refetch } = useCurrentUser();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  const isOwner = user?.user_id == commentData.author.user_id;
+
+  const replies = allComments.filter(
+    (c) => c.parent_comment !== null && Number(c.parent_comment) === Number(commentData.id)
+  );
+  const initialContent: CommentContent = {
+    text: commentData.text,
+    image:
+      commentData.comment_image !== "null" && commentData.comment_image
+        ? commentData.comment_image
+        : null, // Use null instead of undefined for consistency
+  };
+
+  const {
+    likes,
+    dislikes,
+    userLikeStatus,
+    isRepliesOpen,
+    isReplying,
+    anchorEl,
+    isSolution,
+    isEditing,
+    draftContent,
+    displayContent,
+    isDeleteModalOpen,
+    toggleLike,
+    toggleDislike,
+    handleToggleReplies,
+    handleToggleNewReply,
+    handleCancelReply,
+    handleCreateNewReply,
+    handleMenuOpen,
+    handleMenuClose,
+    handleEdit,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleDeleteModalOpen,
+    handleDeleteModalClose,
+    handleDelete,
+    handleSetSolution,
+  } = useCommentActions(
+    commentData.id,
+    commentData.likes,
+    commentData.dislikes,
+    commentData.is_solution,
+    onDelete,
+    "none",
+    initialContent
+  );
+  const [replyContent, setReplyContent] = useState<CommentContent>({
+    text: "",
+    image: null,
+  });
+
+  useEffect(() => {
+      const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+      if (savedScrollPosition) {
+        window.scrollTo(0, parseInt(savedScrollPosition));
+        sessionStorage.removeItem("scrollPosition");
+      }
+    }, []);
+  
+  const handleSubmitWithRefresh = async (
+    text: string,
+    imageUrl?: string | null | undefined
+  ) => {
+    setIsSubmitting(true);
+
+    try {
+      await handleCreateNewReply(Number(postId), text, imageUrl);
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const scrollPosition = window.scrollY;
+      sessionStorage.setItem("scrollPosition", scrollPosition.toString());
+      window.location.reload();
+
+      console.log("Reply created and page refreshed.");
+      return true;
+    } catch (error) {
+      console.error("Failed to create reply:", error);
+      setIsSubmitting(false);
+      alert("Failed to create reply. Please try again.");
+      return false;
+    }
+  };
+
+  const handleReportModalOpen = () => {
+    setIsReportModalOpen(true);
+  };
+  const handleReportModalClose = () => {
+    setIsReportModalOpen(false);
+  }
+
+  return (
+    <div>
+      {/* for debugging */}
+      {/* <div style={{ fontSize: "10px", color: "red" }}>
+        Debug: currentUser={user?.user_id}, author={commentData.author.user_id},
+        isOwner={String(isOwner)}, loading={String(isLoading)}, isEditing=
+        {String(isEditing)}
+      </div> */}
+
+      <div className="flex items-start gap-3 relative font-display border-t pb-2 pt-4">
+        
+        <img
+          src={commentData.author.profile_picture || "/image/DefaultAvatar.png"}
+          alt={`${commentData.author.display_name}'s avatar`}
+          className="w-10 h-10 rounded-full"
+          onError={(e) => {
+            e.currentTarget.src = "/image/DefaultAvatar.png";
+          }}
+        />
+
+        <div className="flex-grow">
+          {/* Header and Text Content */}
+          <div className="flex items-start justify-between">
+            <div className="flex items-baseline  gap-3">
+              <span
+                className="font-semibold text-xl"
+                style={{ color: "var(--color-accent-400)" }}
+              >
+                {commentData.author.display_name}
+              </span>
+              <span className="text-base text-gray-400">
+                {formatTimeAgo(commentData.created_at)}
+              </span>
+            </div>
+            <div
+              className={`transition-all duration-300 ease-in-out transform ${
+                isSolution ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+            >
+              <SolutionTag />
+            </div>
+          </div>
+          {isEditing ? (
+            <CommentEditor
+              initialContent={displayContent || initialContent}
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+            />
+          ) : (
+            <CommentContentDisplay content={displayContent || initialContent} />
+          )}
+          {/* turn the other one into input */}
+          {/* ACTION ROW (Using individual imported components) */}
+          <div className="flex items-center justify-between text-gray-500">
+            {!isEditing && (
+              <div className="flex items-center gap-3 text-gray-500">
+                {/* 1. Like Button */}
+                <LikeButton
+                  count={likes}
+                  userStatus={userLikeStatus}
+                  onClick={toggleLike}
+                />
+
+                {/* 2. Dislike Button */}
+                <DislikeButton
+                  count={dislikes}
+                  userStatus={userLikeStatus}
+                  onClick={toggleDislike}
+                />
+                <div className="flex items-center gap-7">
+                  {/* 3. Reply Button */}
+                  <ReplyButton
+                    isReplying={isReplying}
+                    onClick={handleToggleNewReply}
+                  />
+
+                  {/* 4. More Actions Menu */}
+                  {!isLoading && (
+                    <MoreActionsMenu
+                      anchorEl={anchorEl}
+                      handleMenuOpen={handleMenuOpen}
+                      handleMenuClose={handleMenuClose}
+                      handleEdit={handleEdit}
+                      handleDelete={handleDelete}
+                      handleSetSolution={handleSetSolution}
+                      handleDeleteModalOpen={handleDeleteModalOpen}
+                      handleDeleteModalClose={handleDeleteModalClose}
+                      owner={isOwner}
+                      handleReportClick={handleReportModalOpen}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Reply Input Section: Opened by ReplyButton */}
+          {isReplying && (
+            <div className="w-full bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-3 flex flex-col font-display mt-3">
+              {/* <CommentEditor
+                initialContent={{ text: "", image: null }}
+                onSave={async (content) => {
+                  const ok = await handleCreateNewReply(content);
+                  if (ok) setReplyContent({ text: "", image: null });
+                }}
+                onCancel={() => {
+                  setReplyContent({ text: "", image: null });
+                  handleCancelReply();
+                }}
+              /> */}
+              <CreateComment
+                placeholder="Add your reply..."
+                author={
+                  user
+                    ? {
+                        profile_picture: user.profile_picture ?? undefined,
+                        display_name: user.display_name ?? undefined,
+                      }
+                    : undefined
+                }
+                onSubmit={handleSubmitWithRefresh}
+                disabled={isSubmitting}
+              />
+              {isSubmitting && (
+                <div className="flex items-center justify-center mt-2 text-accent-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-600 mr-2"></div>
+                  Creating reply...
+                </div>
+              )}
+            </div>
+          )}
+          {/* {isReplying && (
+            <div className="mt-4 ">
+              <div className="flex items-start gap-2">
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                <input
+                  type="text"
+                  placeholder="Write your reply..."
+                  className="w-full p-2 border-b-2 border-gray-300 focus:border-blue-500 outline-none text-sm text-gray-800"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    setReplyText("");
+                    handleCancelReply();
+                  }}
+                  className="text-sm px-3 py-1 text-accent-600 hover:bg-gray-100 rounded-full"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    const ok = await handleCreateNewReply(replyText);
+                    if (ok) setReplyText("");
+                  }}
+                  disabled={!replyText.trim()}
+                  className="text-sm px-3 py-1 bg-blue-500 text-white rounded-full"
+                >
+                  Reply
+                </button>
+              </div>
+            </div>
+          )} */}
+
+          {/* Replies Section: Opened by View Replies Toggle */}
+          {isRepliesOpen && replies.length > 0 && (
+          <div className="mt-4 relative pl-8">
+           
+            <div className="space-y-2">
+              {replies.map((reply) => (
+                <ReplyItem
+                  key={reply.id}
+                  reply={reply}
+                  onDelete={onDelete}
+                  level={1}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+          {/* View Replies Toggle */}
+          {hasReplies && (
+            <div className="mt-4 relative pl-8">
+              <button
+                className="text-purple-300 hover:text-blue-700 font-semibold text-sm"
+                onClick={handleToggleReplies}
+              >
+                {isRepliesOpen
+                  ? "Hide replies"
+                  : `View ${commentData.Replies} replies`}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isDeleteModalOpen && (
+        <ThemeProvider theme={theme}>
+          <Dialog
+            open={isDeleteModalOpen}
+            onClose={handleDeleteModalClose}
+            aria-labelledby="delete-dialog-title"
+            aria-describedby="delete-dialog-description"
+          >
+            <DialogTitle id="delete-dialog-title" className="text-xl">
+              Delete Comment
+            </DialogTitle>
+            <DialogContent>
+              <p
+                id="delete-dialog-description"
+                className="text-center font-display text-xl"
+              >
+                Are you sure you want to delete this comment? This action cannot
+                be undone.
+              </p>
+            </DialogContent>
+            <DialogActions
+              sx={{
+                justifyContent: "space-evenly",
+                padding: "16px 24px",
+                gap: 2,
+              }}
+            >
+              <Button
+                onClick={handleDeleteModalClose}
+                color="primary"
+                size="large"
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDelete}
+                color="error"
+                autoFocus
+                size="large"
+                variant="contained"
+                disableElevation
+                sx={{ fontSize: 24, padding: "8px 24px", minWidth: "10ch" }}
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </ThemeProvider>
+      )}
+
+      {isReportModalOpen && (
+        <ReportCommentModal
+          commentId={String(commentData.id)} 
+          onClose={handleReportModalClose}
+        />
+      )}
+    </div>
+  );
+};
+
+export default Comment;

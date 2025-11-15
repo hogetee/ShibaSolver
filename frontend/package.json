@@ -1,0 +1,34 @@
+{
+  "name": "shiba-solver",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@heroicons/react": "^2.2.0",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/material": "^7.3.2",
+    "cors": "^2.8.5",
+    "lucide-react": "^0.545.0",
+    "next": "^15.4.6",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/google.accounts": "^0.0.18",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwind-scrollbar": "^4.0.2",
+    "tailwindcss": "^4",
+    "typescript": "5.9.2"
+  }
+}
