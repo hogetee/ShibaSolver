@@ -273,11 +273,11 @@ export default function Home() {
         </aside>
 
         <main 
-          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ml-[26%] ${
+          className={`py-5 flex flex-1 items-start flex-col mb-10 transition-all duration-300 ml-[26%] ${
             isOpen ? "mr-[20%]" : ""
           } `}
         >
-          <h1 className="text-5xl font-bold p-4 mb-2">Recent Posts</h1>
+          <h1 className="text-4xl font-bold p-4 mb-2 font-sans">Recent Posts</h1>
           {renderContent()}
         </main>
       </div>
