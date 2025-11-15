@@ -155,6 +155,7 @@ export default function ReportPostDisplay({
     Boolean(postId) && !initialData
   );
   const [error, setError] = useState<string | null>(null);
+  const [isDeleted, setIsDeleted] = useState<boolean>(false);
 
   useEffect(() => {
     if (!postId) return;
@@ -177,7 +178,15 @@ export default function ReportPostDisplay({
 
         if (!response.ok) {
           if (!cancelled) {
-            setError(`Failed to fetch post (${response.status})`);
+            // Handle 404 specifically - post has been deleted
+            if (response.status === 404) {
+              setIsDeleted(true);
+              setError(null); // Don't set error for deleted posts
+            } else {
+              // Handle other errors normally
+              console.error(`ReportPostDisplay: Failed to fetch post (${response.status})`);
+              setError(`Failed to fetch post (${response.status})`);
+            }
           }
           return;
         }
@@ -197,6 +206,7 @@ export default function ReportPostDisplay({
         if (!cancelled) {
           setPostData(normalized);
           setError(null); // Clear error on success
+          setIsDeleted(false); // Clear deleted status on success
         }
       } catch (err) {
         if (!cancelled) {
@@ -307,7 +317,18 @@ export default function ReportPostDisplay({
           </div>
         </Link>
 
-        {error && (
+        {isDeleted && (
+          <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+            <p className="text-sm text-blue-800 font-medium">
+              Post has already been deleted
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Showing saved report data from when the report was created.
+            </p>
+          </div>
+        )}
+
+        {error && !isDeleted && (
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
             <p className="text-sm text-amber-800 font-medium">
               Unable to load full post details
@@ -315,11 +336,6 @@ export default function ReportPostDisplay({
             <p className="text-xs text-amber-600 mt-1">
               {error}
             </p>
-            {postData.description === "" && (
-              <p className="text-xs text-amber-600 mt-1">
-                The post may have been deleted. Showing saved report data.
-              </p>
-            )}
           </div>
         )}
       </div>
