@@ -1,11 +1,11 @@
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
-export default function useEditProfileNavigation({ payload, setErrors, setIsSubmitting, onProfileUpdate }) {
+export default function useEditProfileNavigation({ setErrors, setIsSubmitting, onProfileUpdate }) {
   const router = useRouter();
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
 
-  const updateProfile = useCallback(async () => {
+  const updateProfile = useCallback(async (payload) => {
     if (!payload) return false;
 
     try {
@@ -35,8 +35,10 @@ export default function useEditProfileNavigation({ payload, setErrors, setIsSubm
       setErrors((prev) => ({ ...prev, submit: 'Network error. Please try again.' }));
       setIsSubmitting(false);
       return false;
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [payload, router, apiBase, setErrors, setIsSubmitting, onProfileUpdate]);
+  }, [router, apiBase, setErrors, setIsSubmitting, onProfileUpdate]);
 
   const handleDeleteSuccess = useCallback(() => {
     router.push('/');

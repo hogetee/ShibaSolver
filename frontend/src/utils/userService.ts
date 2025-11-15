@@ -42,6 +42,18 @@ export const userService = {
         return data.data.user_id;
     },
 
+    async getUserProfileByUsername(username: string): Promise<number> {
+        const response = await fetch(`${BASE_URL}/api/v1/users/${username}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch user profile");
+        }
+        const data = await response.json();
+        console.log("data:", data);
+        console.log("userService.getUserProfileByUsername:", { username });
+        console.log("Response data:", data.data.profile_picture);
+        return data.data.profile_picture;
+    },
+
     async getUserPostsCount(userId: number): Promise<number> {
         const response = await fetch(`${BASE_URL}/api/v1/users/${userId}/posts`);
         if (!response.ok) {

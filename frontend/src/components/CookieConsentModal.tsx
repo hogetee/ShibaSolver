@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
 
 export default function CookieConsentModal() {
-  const { hasConsented, acceptAll, rejectAll, showModal } = useCookieConsent();
+  const { hasConsented, acceptAll, showModal } = useCookieConsent();
 
   return (
     <div
@@ -64,12 +64,6 @@ export default function CookieConsentModal() {
             className="flex-auto sm:text-xl text-sm bg-accent-200 text-accent-600 font-bold py-3 px-6 rounded-xl hover:bg-white transition-colors cursor-pointer whitespace-nowrap"
           >
             Accept All
-          </button>
-          <button
-            onClick={rejectAll}
-            className="flex-auto sm:text-xl text-sm bg-accent-200 text-accent-600 font-bold py-3 px-6 rounded-xl hover:bg-white transition-colors cursor-pointer whitespace-nowrap"
-          >
-            Reject All
           </button>
         </div>
       </div>

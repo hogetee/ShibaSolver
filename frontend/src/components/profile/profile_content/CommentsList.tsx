@@ -1,11 +1,20 @@
 "use client";
-import Comment from "@/components/comment/Comment";
 import { CommentData } from "@/components/comment/types";
 import useUserComments from "@/hooks/useUserComments";
 import Pagination from "./Pagination";
 import ProfileComment from "./ProfileComment";
 
-export default function CommentsList({ username }: { username?: string }) {
+import { useEffect } from "react";
+
+type CommentsListProps = {
+  username?: string;
+  onTotalCommentsChange?: (count: number) => void;
+};
+
+export default function CommentsList({
+  username,
+  onTotalCommentsChange,
+}: CommentsListProps) {
   const {
     comments,
     isLoading,
@@ -17,7 +26,7 @@ export default function CommentsList({ username }: { username?: string }) {
     refetch,
   } = useUserComments(username);
 
-  console.log("CommentsList Debug:", { username, comments, isLoading, error });
+  //console.log("CommentsList Debug:", { username, comments, isLoading, error });
 
   const handleCommentUpdate = (updateComment: CommentData) => {
     // You could update the local state here if needed
@@ -29,6 +38,12 @@ export default function CommentsList({ username }: { username?: string }) {
     // Refetch the comments to update the list
     refetch();
   };
+
+  useEffect(() => {
+    if (typeof totalComments === "number" && onTotalCommentsChange) {
+      onTotalCommentsChange(totalComments);
+    }
+  }, [totalComments, onTotalCommentsChange]);
 
   if (!username) {
     return (
@@ -69,7 +84,7 @@ export default function CommentsList({ username }: { username?: string }) {
       ) : (
         <div className="flex flex-col gap-4" >
           {comments?.map((c) => (
-            <div key={c.id || `comment-${c.created_at}-${c.text?.substring(0, 10)}`} className="bg-white rounded-lg p-4 text-white">
+            <div key={c.comment_id || `comment-${c.created_at}-${c.text?.substring(0, 10)}`} className="bg-white rounded-lg p-4 text-white">
               <ProfileComment
                 commentData={c}
                 onDelete={handleCommentDelete}

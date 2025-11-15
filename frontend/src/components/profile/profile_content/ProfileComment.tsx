@@ -8,9 +8,10 @@ import { LikeButton } from "@/components/comment/LikeButton";
 import { DislikeButton } from "@/components/comment/DislikeButton";
 import { useCommentActions } from "@/components/comment/useCommentActions";
 import { slugify } from "@/utils/slugify";
+import useCommentRating from "@/hooks/useCommentRating";
 
 export interface profileCommentData {
-  id: string;
+  comment_id: string;
   post_id: string;
   post_title: string;
   author: {
@@ -40,7 +41,9 @@ export default function ProfileComment({
   onDelete,
 }: ProfileCommentProps) {
   const router = useRouter();
-
+  // console.log("Rendering ProfileComment for comment ID:", commentData.comment_id);
+  const { rating, isLoading } = useCommentRating(commentData.comment_id);
+  //console.log(`ProfileComment Debug for comment ${commentData.comment_id}:`, { rating, isLoading });
   const handlePostClick = () => {
     if (commentData.post_id) {
       router.push(
@@ -54,14 +57,24 @@ export default function ProfileComment({
     image: commentData.comment_image,
   };
 
+  const normalizedUserRating =
+    rating === "like"
+      ? "liked"
+      : rating === "dislike"
+      ? "disliked"
+      : "none";
+
+  //console.log(`${commentData.text} Normalized Like/Dislike: ${normalizedUserRating}`);
+  //console.log("ProfileComment Like/Dislike:", { normalizedUserRating });
+
   const { likes, dislikes, userLikeStatus, toggleLike, toggleDislike } =
     useCommentActions(
-      commentData.id,
-      commentData.likes,
-      commentData.dislikes,
+      commentData.comment_id,
+      Number(commentData.likes),
+      Number(commentData.dislikes),
       commentData.is_solution,
       onDelete,
-      "none",
+      normalizedUserRating,
       content
     );
 
@@ -110,20 +123,22 @@ export default function ProfileComment({
               <SolutionTag />
             </div>
           </div>
-          <CommentContentDisplay content={content} />
+          <div onClick={handlePostClick} className="cursor-pointer">
+            <CommentContentDisplay content={content} />
+          </div>
           <div className="flex items-center gap-3 text-gray-500">
             {/* 1. Like Button */}
             <LikeButton
               count={likes}
               userStatus={userLikeStatus}
-              onClick={handlePostClick}
+              onClick={toggleLike}
             />
 
             {/* 2. Dislike Button */}
             <DislikeButton
               count={dislikes}
               userStatus={userLikeStatus}
-              onClick={handlePostClick}
+              onClick={toggleDislike}
             />
           </div>
         </div>

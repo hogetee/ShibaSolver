@@ -27,12 +27,12 @@ export default function ProfileTabs({ postCountLabel, commentCountLabel }: { pos
           '& .MuiTab-root:focus': { color: 'rgb(255,255,255)' }
         }}
       >
-        <Tab value="posts" label={`Posts (${postCountLabel})`} sx={{
+        <Tab value="posts" label={postCountLabel ? `Posts (${postCountLabel})` : "Posts"} sx={{
           fontWeight: 'bold',
           fontFamily: 'inherit',
           fontSize: '1.25rem',
         }}/>
-        <Tab value="comments" label={`Comments (${commentCountLabel})`} sx={{
+        <Tab value="comments" label={commentCountLabel ? `Comments (${commentCountLabel})` : "Comments"} sx={{
           fontWeight: 'bold',
           fontFamily: 'inherit',
           fontSize: '1.25rem',

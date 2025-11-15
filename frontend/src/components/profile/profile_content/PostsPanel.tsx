@@ -1,18 +1,21 @@
 import PostsList from "./PostsList";
-import { useSearchParams } from "next/navigation";
 
+type PostsPanelProps = {
+  username?: string;
+  onTotalPostsChange?: (count: number) => void;
+};
 
-export default function PostsPanel({ username }: { username?: string }) {
-  console.log("PostsPanel received username:", username);
+export default function PostsPanel({
+  username,
+  onTotalPostsChange,
+}: PostsPanelProps) {
+  // console.log("PostsPanel received username:", username);
   return (
     <div className="pt-4">
-      {/* <div className="mb-4 flex items-baseline">
-        <h2 className="text-3xl font-bold text-white">Posts</h2>
-        {countLabel ? (
-          <span className="text-2xl text-white ml-2 mr-2">{`(${countLabel})`}</span>
-        ) : null}
-      </div> */}
-      <PostsList username={username} />
+      <PostsList
+        username={username}
+        onTotalPostsChange={onTotalPostsChange}
+      />
     </div>
   );
 }
