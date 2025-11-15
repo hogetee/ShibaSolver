@@ -99,7 +99,7 @@ export default function ReportAccountDisplay({
 
         const json = await response.json().catch(() => null);
 
-        console.log("Fetched account data:", json);
+        // console.log("Fetched account data:", json);
 
         if (!response.ok) {
           if (!cancelled) {
