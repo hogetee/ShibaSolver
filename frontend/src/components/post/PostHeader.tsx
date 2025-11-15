@@ -52,7 +52,7 @@ export default function PostHeader({
       if (!postId) return;
 
       try {
-        const res = await fetch(`${API_BASE}/posts/bookmarks`, {
+        const res = await fetch(`${API_BASE}/api/v1/posts/bookmarks`, {
           credentials: "include",
         });
 
