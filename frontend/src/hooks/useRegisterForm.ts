@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { uploadImageToCloudinary } from "@/utils/uploadImage";
 
 function apiBase(): string {
   return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
@@ -125,6 +126,28 @@ export function useRegisterForm({ initial = {} }: Props) {
     setErrors(newErrors);
     if (newErrors.username || newErrors.displayName || newErrors.agree) return;
 
+    let profilePicUrl: string | null = null;
+    const profilePicValue = formData.profilePic as unknown;
+    try {
+      if (
+        typeof window !== "undefined" &&
+        profilePicValue &&
+        typeof profilePicValue === "object" &&
+        profilePicValue instanceof File
+      ) {
+        profilePicUrl = await uploadImageToCloudinary(profilePicValue);
+      } else if (typeof profilePicValue === "string") {
+        profilePicUrl = profilePicValue;
+      }
+    } catch (uploadErr) {
+      console.error("Failed to upload profile image:", uploadErr);
+      setErrors((prev) => ({
+        ...prev,
+        submit: "Failed to upload profile picture. Please try again.",
+      }));
+      return;
+    }
+
     const payload = {
       user_name: formData.username.trim(),
       display_name: formData.displayName.trim(),
@@ -133,8 +156,7 @@ export function useRegisterForm({ initial = {} }: Props) {
       interested_subjects: (formData.subjects || []).map((s: any) =>
         typeof s === "string" ? s : s?.name
       ),
-      profile_picture:
-        typeof formData.profilePic === "string" ? formData.profilePic : null,
+      profile_picture: profilePicUrl,
     };
 
     try {

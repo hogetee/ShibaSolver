@@ -39,7 +39,7 @@ export default function UserProfilePage({ searchParams }: Props) {
   // Derive username from location.pathname since this component is used by app/user/[username]/page.tsx
   const username = typeof window !== 'undefined' ? (window.location.pathname.split('/').pop() || null) : null;
   const { user, isLoading, error } = useUserProfile(username);
-
+  const usernameStr = typeof username === 'string' ? username : undefined;
   return (
     <div>
       <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
@@ -57,7 +57,7 @@ export default function UserProfilePage({ searchParams }: Props) {
       ) : user ? (
         <>
           <ProfileHeader dummyUser={user as unknown as any} />
-          <ProfileContent searchParams={{ ...(searchParams || {}), tab: tabParam }} />
+          <ProfileContent searchParams={{ ...(searchParams || {}), tab: tabParam }} username={usernameStr}/>
         </>
       ) : (
         <div className="w-full flex justify-center py-8 text-neutral-700">User not found.</div>

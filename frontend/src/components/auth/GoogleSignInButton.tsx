@@ -25,7 +25,8 @@ export default function GoogleSignInButton({ onSuccess, className = "" }: Google
         window.google.accounts.id.renderButton(buttonRef.current, {
           theme: 'outline',
           size: 'large',
-          width: '100%',
+          // width: '300',
+          type: 'standard',
           text: 'signin_with',
           shape: 'rectangular',
         });
@@ -47,7 +48,8 @@ export default function GoogleSignInButton({ onSuccess, className = "" }: Google
             window.google.accounts.id.renderButton(buttonRef.current, {
               theme: 'outline',
               size: 'large',
-              width: '100%',
+              // width: '300',
+              type: 'standard',
               text: 'signin_with',
               shape: 'rectangular',
             });

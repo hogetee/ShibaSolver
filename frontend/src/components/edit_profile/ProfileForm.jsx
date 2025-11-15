@@ -14,8 +14,35 @@ import useEditProfileForm from "@/hooks/useEditProfileForm";
 import useEditProfileNavigation from "@/hooks/useEditProfileNavigation";
 
 export default function ProfileForm({ userData, onProfileUpdate }) {
-  const payload = useEditProfileForm({ userData, onProfileUpdate });
-  const { updateProfile, handleDeleteSuccess } = useEditProfileNavigation({ payload, onProfileUpdate });
+  const {
+    formData,
+    setFormData,
+    errors,
+    setErrors,
+    showDeleteModal,
+    setShowDeleteModal,
+    usernameStatus,
+    isSubmitting,
+    setIsSubmitting,
+    handleChange,
+    handleSubjectsChange,
+    handleProfilePicChange,
+    handleSubmit: buildPayload,
+    educationLevels,
+    subjects,
+  } = useEditProfileForm({ userData });
+  const { updateProfile, handleDeleteSuccess } = useEditProfileNavigation({
+    setErrors,
+    setIsSubmitting,
+    onProfileUpdate,
+  });
+
+  const handleSubmit = async (event) => {
+    const payload = await buildPayload(event);
+    if (payload) {
+      await updateProfile(payload);
+    }
+  };
 
   return (
 

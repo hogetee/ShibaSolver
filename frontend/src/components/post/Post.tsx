@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PostHeader from './PostHeader';
 import PostContent from './PostContent';
 import PostAuthor from './PostAuthor';
@@ -49,12 +49,12 @@ export interface PostData {
 
 interface PostProps {
   postData: PostData;
+  userRating?: 'like' | 'dislike' | null;
   onPostUpdate: (updatedPost: PostData) => void;
   onPostDelete: (postId: string) => void;
 }
 
-const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostProps) => {
-
+const Post = ({ postData: initialPostData, userRating, onPostUpdate, onPostDelete }: PostProps) => {
   const [postData, setPostData] = useState(initialPostData);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -62,6 +62,10 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
   const { user } = useCurrentUser();
   const { updatePost, isUpdating, error: updateError } = useUpdatePost(); 
   const { deletePost, isDeleting } = useDeletePost();
+
+  useEffect(() => {
+    setPostData(initialPostData);
+  }, [initialPostData]);
 
   const isCurrentUserAuthor = user ? String(user.user_id) === postData.author.user_id : false;
   const href = `/post/${postData.post_id}/${slugify(postData.title)}`;
@@ -139,8 +143,8 @@ const Post = ({ postData: initialPostData, onPostUpdate, onPostDelete }: PostPro
         postId={postData.post_id}
         author={postData.author}
         stats={postData.stats}
-        liked_by_user={postData.liked_by_user}
-        disliked_by_user={postData.disliked_by_user}
+        liked_by_user={userRating !== undefined ? userRating === 'like' : postData.liked_by_user}
+        disliked_by_user={userRating !== undefined ? userRating === 'dislike' : postData.disliked_by_user}
       />
 
       <hr className="my-4 border-gray-200/80" />

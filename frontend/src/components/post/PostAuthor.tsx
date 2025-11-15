@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useEffect, useState } from "react";
 
 type Author = {
   display_name: string
@@ -27,11 +27,21 @@ const PostAuthor = ({
   liked_by_user,
   disliked_by_user,
 }: PostAuthorProps) => {
-  const [liked, setLiked] = useState(liked_by_user)
-  const [disliked, setDisliked] = useState(disliked_by_user)
-  const [likes, setLikes] = useState(stats.likes)
-  const [dislikes, setDislikes] = useState(stats.dislikes)
-  const [loading, setLoading] = useState(false)
+  const [liked, setLiked] = useState(liked_by_user);
+  const [disliked, setDisliked] = useState(disliked_by_user);
+  const [likes, setLikes] = useState(stats.likes);
+  const [dislikes, setDislikes] = useState(stats.dislikes);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLiked(liked_by_user);
+    setDisliked(disliked_by_user);
+  }, [liked_by_user, disliked_by_user]);
+
+  useEffect(() => {
+    setLikes(stats.likes);
+    setDislikes(stats.dislikes);
+  }, [stats.likes, stats.dislikes]);
 
   // ---- Helper: POST like/dislike ----
   async function postRate(
@@ -125,13 +135,13 @@ const PostAuthor = ({
       const my_rating = rating?.rating_type ?? json?.data?.my_rating
 
       if (summary) {
-        setLikes(Number(summary.likes))
-        setDislikes(Number(summary.dislikes))
+        setLikes(Number(summary.likes));
+        setDislikes(Number(summary.dislikes));
       }
 
       if (my_rating) {
-        setLiked(my_rating === 'like')
-        setDisliked(my_rating === 'dislike')
+        setLiked(my_rating === "like");
+        setDisliked(my_rating === "dislike");
       }
     } catch (err) {
       console.error('Like action failed:', err)
@@ -198,8 +208,8 @@ const PostAuthor = ({
       {/* --- Author Info --- */}
       <div className="flex items-center gap-3">
         <img
-          src={author.profile_picture}
-          alt={`${author.display_name}'s avatar`}
+          src={author.profile_picture || "https://www.gravatar.com/avatar/?d=mp"}
+          alt={`${author.display_name[0]}'s avatar`}
           className="w-10 h-10 rounded-full"
         />
         <span className="font-semibold text-dark-900">

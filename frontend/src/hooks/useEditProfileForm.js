@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState, useRef } from "react";
+import { uploadImageToCloudinary } from "@/utils/uploadImage";
 // import type { MappedUser } from "./useUserProfile"; // Uncomment and adjust if using TypeScript
 
 // example Options for dropdowns with colors
@@ -14,7 +15,7 @@ const subjects = [
 
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
-export default function useEditProfileForm({ userData, onProfileUpdate}) {
+export default function useEditProfileForm({ userData }) {
     const apiBase = () => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
     
       // Initialize form data with user data or default values
@@ -117,6 +118,23 @@ export default function useEditProfileForm({ userData, onProfileUpdate}) {
           return;
         }
     
+        let profilePicUrl = null;
+        try {
+          if (formData.profilePic instanceof File) {
+            profilePicUrl = await uploadImageToCloudinary(formData.profilePic);
+          } else if (typeof formData.profilePic === "string") {
+            profilePicUrl = formData.profilePic;
+          }
+        } catch (uploadErr) {
+          console.error("Failed to upload profile image:", uploadErr);
+          setErrors((prev) => ({
+            ...prev,
+            submit: "Failed to upload profile picture. Please try again.",
+          }));
+          setIsSubmitting(false);
+          return null;
+        }
+
         const payload = {
           user_name: formData.username.trim(),
           display_name: formData.displayName.trim(),
@@ -125,9 +143,27 @@ export default function useEditProfileForm({ userData, onProfileUpdate}) {
           interested_subjects: (formData.subjects || []).map((s) =>
             typeof s === 'string' ? s : s?.name
           ),
-          profile_picture: typeof formData.profilePic === 'string' ? formData.profilePic : null,
+          profile_picture: profilePicUrl,
         };
 
         return payload;
     }
+
+    return {
+      formData,
+      setFormData,
+      errors,
+      setErrors,
+      showDeleteModal,
+      setShowDeleteModal,
+      usernameStatus,
+      isSubmitting,
+      setIsSubmitting,
+      handleChange,
+      handleSubjectsChange,
+      handleProfilePicChange,
+      handleSubmit,
+      educationLevels,
+      subjects,
+    };
 }

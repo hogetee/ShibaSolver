@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { CommentContent, UserLikeStatus } from "@/components/comment/types";
 import { CommentActions } from "@/components/comment/types";
@@ -9,15 +9,22 @@ export const useCommentActions = (
   initialDislikes: number,
   initialSolution: boolean,
   onDelete?: (commentId: string) => void,
-  initialUserStatus: UserLikeStatus = "none",
+  initialUserStatus: UserLikeStatus | "none" = "none",
   initialContent?: CommentContent
 ): CommentActions => {
-  const [liked, setLiked] = useState(false);
-  const [disliked, setDisliked] = useState(false);
+  const [liked, setLiked] = useState(initialUserStatus === "liked");
+  const [disliked, setDisliked] = useState(initialUserStatus === "disliked");
   const [loading, setLoading] = useState(false);
   const [likes, setLikes] = useState(initialLikes);
   const [dislikes, setDislikes] = useState(initialDislikes);
   const [userLikeStatus, setUserLikeStatus] = useState(initialUserStatus);
+
+  // Update state when initialUserStatus changes (e.g., when rating is fetched)
+  useEffect(() => {
+    setLiked(initialUserStatus === "liked");
+    setDisliked(initialUserStatus === "disliked");
+    setUserLikeStatus(initialUserStatus);
+  }, [initialUserStatus]);
 
   const [isRepliesOpen, setIsRepliesOpen] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
