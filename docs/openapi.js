@@ -199,6 +199,20 @@ module.exports = {
           email: { type: 'string', format: 'email' },
         },
       },
+      BannedUserSummary: {
+        type: 'object',
+        properties: {
+          user_id: { type: 'integer' },
+          user_name: { type: 'string', nullable: true },
+          display_name: { type: 'string', nullable: true },
+          email: { type: 'string', format: 'email' },
+          user_state: {
+            type: 'string',
+            enum: ['normal', 'ban', 'suspend', 'deleted'],
+          },
+          banned_at: { type: 'string', format: 'date-time', nullable: true },
+        },
+      },
       Post: {
         type: 'object',
         properties: {

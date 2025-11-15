@@ -191,6 +191,54 @@ module.exports = {
       },
     },
   },
+  '/api/v1/admins/users/banned': {
+    get: {
+      tags: ['Admins'],
+      summary: 'List banned users',
+      security: [{ AdminBearerAuth: [] }],
+      parameters: [
+        {
+          name: 'search',
+          in: 'query',
+          schema: { type: 'string' },
+          description: 'Filter by username, display name or email',
+        },
+        {
+          name: 'limit',
+          in: 'query',
+          schema: { type: 'integer', default: 20, maximum: 100 },
+          description: 'Page size (max 100)',
+        },
+        {
+          name: 'offset',
+          in: 'query',
+          schema: { type: 'integer', default: 0 },
+          description: 'Offset for pagination',
+        },
+      ],
+      responses: {
+        200: jsonResponse('Banned users list', {
+          allOf: [
+            baseResponseRef,
+            {
+              type: 'object',
+              properties: {
+                count: { type: 'integer' },
+                total: { type: 'integer' },
+                pagination: { $ref: '#/components/schemas/PaginationMeta' },
+                data: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/BannedUserSummary' },
+                },
+              },
+            },
+          ],
+        }),
+        401: jsonResponse('Not authenticated', errorResponseRef),
+        403: jsonResponse('Forbidden', errorResponseRef),
+      },
+    },
+  },
   '/api/v1/admins/posts/{postId}': {
     delete: {
       tags: ['Admins'],

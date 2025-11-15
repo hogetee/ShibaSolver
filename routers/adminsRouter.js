@@ -6,6 +6,7 @@ router.use(adminProtect);
 
 //GET
 router.get('/', adminsCtrl.getAllAdmins);
+router.get('/users/banned', adminsCtrl.getBannedUsers);
 //router.get('/:id', adminsCtrl.getAdmin);
 //DELETE
 router.delete('/posts/:postId', adminProtect, adminsCtrl.adminDeletePost);

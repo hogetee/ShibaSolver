@@ -68,6 +68,82 @@ exports.getAllAdmins = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get banned users with optional search & pagination
+ * @route   GET /api/v1/admins/users/banned
+ * @access  Private/Admin
+ */
+exports.getBannedUsers = async (req, res, next) => {
+  try {
+    const pool = req.app.locals.pool;
+    const adminId = req.admin?.admin_id;
+    if (!adminId) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const MAX_LIMIT = 100;
+    const searchRaw = (req.query.search || '').trim();
+
+    let limit = Number.parseInt(req.query.limit, 10);
+    if (!Number.isInteger(limit) || limit <= 0) limit = 20;
+    limit = Math.min(limit, MAX_LIMIT);
+
+    let offset = Number.parseInt(req.query.offset, 10);
+    if (!Number.isInteger(offset) || offset < 0) offset = 0;
+
+    const whereParts = [`user_state = 'ban'::user_state`];
+    const params = [];
+
+    if (searchRaw) {
+      const searchTerm = `%${searchRaw.toLowerCase()}%`;
+      const usernameIdx = params.length + 1;
+      params.push(searchTerm);
+      const displayIdx = params.length + 1;
+      params.push(searchTerm);
+      const emailIdx = params.length + 1;
+      params.push(searchTerm);
+      whereParts.push(
+        `(LOWER(user_name) LIKE $${usernameIdx} OR LOWER(display_name) LIKE $${displayIdx} OR LOWER(email) LIKE $${emailIdx})`
+      );
+    }
+
+    const whereClause = `WHERE ${whereParts.join(' AND ')}`;
+    const countSql = `SELECT COUNT(*)::int AS total FROM users ${whereClause};`;
+    const { rows: countRows } = await pool.query(countSql, params);
+    const total = countRows[0]?.total ?? 0;
+
+    const limitIdx = params.length + 1;
+    const offsetIdx = params.length + 2;
+
+    const dataSql = `
+      SELECT 
+        user_id,
+        user_name,
+        display_name,
+        email,
+        user_state,
+        updated_at AS banned_at
+      FROM users
+      ${whereClause}
+      ORDER BY updated_at DESC, user_id ASC
+      LIMIT $${limitIdx}
+      OFFSET $${offsetIdx};
+    `;
+    const dataParams = [...params, limit, offset];
+    const { rows } = await pool.query(dataSql, dataParams);
+
+    return res.status(200).json({
+      success: true,
+      count: rows.length,
+      total,
+      pagination: { limit, offset },
+      data: rows,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @desc    Admin delete a post (soft delete) and cascade delete comments
  * @route   DELETE /api/v1/admins/posts/:postId
  * @access  Private/Admin
