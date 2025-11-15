@@ -18,20 +18,12 @@ interface ApiResponse {
   tags: string[];
 }
 
-async function getNotificationData(): Promise<NotificationData[]> {
-  return [
-    { noti_id: "1", message: "Nano liked your post", time: "2 hrs ago" },
-    { noti_id: "2", message: "Nano replied: “Thanks ...”", time: "2 hrs ago" },
-    { noti_id: "3", message: "Tan replied: “I agree ...”", time: "yesterday" },
-  ];
-}
-
 export default function Home() {
+
+  const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+
   const { posts, setPosts, isLoading, error } = useFetchFeeds();
 
-  const { isOpen, toggle } = useNotification();
-
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { user: currentUser } = useCurrentUser();
@@ -41,11 +33,47 @@ export default function Home() {
   const [isLoadingSaved, setIsLoadingSaved] = useState(false);
   const [savedError, setSavedError] = useState<string | null>(null);
 
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const { isOpen } = useNotification();
+
+  const fetchNotifications = async () => {
+    setIsLoadingNotifications(true);
+    try {
+      const res = await fetch(`${BASE}/api/v1/notifications`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error(`Failed to load notifications: ${res.status}`);
+        setNotifications([]);
+        return;
+      }
+      
+      const items = Array.isArray(body.data) ? body.data : body.rows ?? [];
+
+      const mapped: NotificationData[] = items.map((n: any) => ({
+        // notification_id, notification_type, message, link, is_read, created_at
+        noti_id: String(n.notification_id),
+        message: n.message,
+        created_at: n.created_at,
+        is_read: Boolean(n.is_read),
+      }));
+
+      setNotifications(mapped);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      setNotifications([]);
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  };
+
   const fetchSavedPosts = async () => {
     setIsLoadingSaved(true);
     setSavedError(null);
     try {
-      const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
       const res = await fetch(`${BASE}/api/v1/posts/bookmarks`, {
         method: "GET",
         credentials: "include",
@@ -92,10 +120,6 @@ export default function Home() {
     };
 
   useEffect(() => {
-    async function fetchNotifications() {
-      const data = await getNotificationData();
-      setNotifications(data);
-    }
     fetchNotifications();
     fetchSavedPosts();
   }, []);
@@ -204,8 +228,8 @@ export default function Home() {
       {/* ✅ Notification Sidebar — RIGHT SIDE */}
       <aside
         className={`
-          fixed top-16 right-0 h-full border-l p-2 transition-transform duration-300 bg-white
-          ${isOpen ? "translate-x-0 w-[20%]" : "translate-x-full w-[20%]"}
+          fixed top-16 right-0 h-full border-l p-2 transition-transform duration-300 bg-white w-[20%] max-w-xl
+          ${isOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
         <h2 className="text-2xl font-bold mb-6 mt-5 ml-4">Notifications</h2>
