@@ -10,9 +10,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 export default function FeedPage() {
   return (
     <div className="min-h-screen pt-16">
-      <NotificationProvider>
         <FeedPageContent />
-        </NotificationProvider>
     </div>
   );
 }
