@@ -24,7 +24,7 @@ const formatTimeAgo = (dateString: string) => {
     return ""; // หรือ return ค่า default
   }
 
-  const seconds = Math.floor((now.getTime() - commentDate.getTime() + (new Date().getTimezoneOffset() * 60000)) / 1000);
+  const seconds = Math.floor((now.getTime() - commentDate.getTime() + (new Date().getTimezoneOffset() * 60 * 60 * 1000)) / 1000);
 
   if (seconds < 0) {
     // กรณีเวลาในอนาคต (อาจเกิดจาก time sync)
