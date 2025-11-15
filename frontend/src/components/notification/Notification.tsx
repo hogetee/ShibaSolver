@@ -52,6 +52,8 @@ export interface NotificationData {
   message: string;
   created_at: string;
   is_read: boolean;
+  href: string;
+  type: string;
 }
 
 interface NotificationProps {
@@ -63,7 +65,11 @@ const Notification = ({ notificationData }: NotificationProps) => {
   return (
     <aside className= "p-1 flex flex-col">
       <ul className="space-y-2 text-sm">
-          <li key={notificationData.noti_id} className="bg-purple-100 rounded p-2 flex justify-between items-center">
+          <li 
+            key={notificationData.noti_id} 
+            className="bg-purple-100 rounded p-2 flex justify-between items-center cursor-pointer hover:bg-purple-200"
+            onClick={() => window.location.href = notificationData.href}
+          >
             <span className = "w-[80%]">
                 {notificationData.message}
             </span>

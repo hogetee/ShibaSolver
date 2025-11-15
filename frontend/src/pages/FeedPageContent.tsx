@@ -59,6 +59,8 @@ export default function Home() {
         message: n.message,
         created_at: n.created_at,
         is_read: Boolean(n.is_read),
+        href: n.link || "#",
+        type: n.notification_type,
       }));
 
       setNotifications(mapped);
