@@ -50,7 +50,7 @@ export const useCommentActions = (
     rating_type: "like" | "dislike"
   ) {
     try {
-      const res = await fetch("http://localhost:5003/api/v1/ratings", {
+      const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -80,7 +80,7 @@ export const useCommentActions = (
     target_id: number | string
   ) {
     try {
-      const res = await fetch("http://localhost:5003/api/v1/ratings", {
+      const res = await fetch(`${BASE_URL}/api/v1/ratings`, {
         method: "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

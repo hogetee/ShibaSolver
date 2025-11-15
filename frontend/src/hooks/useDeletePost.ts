@@ -11,13 +11,13 @@ interface DeleteApiResponse {
 export const useDeletePost = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
   const deletePost = async (postId: string): Promise<DeleteApiResponse> => {
     setIsDeleting(true);
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5003/api/v1/posts/${postId}`, {
+      const response = await fetch(`${API_BASE}/api/v1/posts/${postId}`, {
         method: 'DELETE',
         credentials: 'include', // สำคัญมาก! สำหรับส่ง Cookie ยืนยันตัวตน
       });

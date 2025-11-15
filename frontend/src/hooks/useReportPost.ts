@@ -39,8 +39,10 @@ export const useReportPost = () => {
       reason: reason,
     };
 
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+
     try {
-      const response = await fetch('http://localhost:5003/api/v1/reports/content', {
+      const response = await fetch(`${API_BASE}/api/v1/reports/content`, {
         method: 'POST',
         credentials: 'include', // สำคัญมาก! สำหรับส่ง Cookie ยืนยันตัวตน
         headers: {

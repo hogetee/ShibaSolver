@@ -33,13 +33,13 @@ export const useFetchFeeds = () => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
   useEffect(() => {
     const fetchFeeds = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:5003/api/v1/feeds', {
+        const response = await fetch(`${API_BASE}/api/v1/feeds`, {
           method: 'GET',
           credentials: 'include',
         });

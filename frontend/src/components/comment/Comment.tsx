@@ -139,7 +139,7 @@ const Comment = ({ commentData, allComments = [], onDelete, postId }: CommentPro
       <div className="flex items-start gap-3 relative font-display border-t pb-2 pt-4">
         
         <img
-          src={commentData.author.profile_picture}
+          src={commentData.author.profile_picture || "/image/DefaultAvatar.png"}
           alt={`${commentData.author.display_name}'s avatar`}
           className="w-10 h-10 rounded-full"
           onError={(e) => {
