@@ -1,4 +1,4 @@
-import DedicatedPost, { DedicatedPostData } from '@/components/post/dedicatedPost/DedicatedPost'
+import DedicatedPost, { type DedicatedPostData } from '@/components/post/dedicatedPost/DedicatedPost'
 
 
 interface Props {
