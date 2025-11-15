@@ -4,7 +4,7 @@ import DedicatedPost, { type DedicatedPostData } from '@/components/post/dedicat
 interface Props {
   postId: string;
 }
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ;
 
 async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
   const [postRes, ratingRes] = await Promise.all([
