@@ -15,8 +15,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 export default function TopMenu() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
-  const { isOpen, toggle, open } = useNotification();
-
+  const { isOpen, toggle, open, close } = useNotification(); // <-- ensure close exists
   const { user, isLoading, refetch } = useCurrentUser();
   const isLoggedIn = Boolean(user);
 
@@ -26,11 +25,13 @@ export default function TopMenu() {
     return () => window.removeEventListener("auth:logout", handleLogout);
   }, [refetch]);
 
+  /** Highlight active page */
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
   };
 
+  /** Notification bell behavior */
   const handleBellClick = () => {
     if (pathname !== "/") {
       router.push("/");
@@ -39,73 +40,85 @@ export default function TopMenu() {
     }
     toggle();
   };
+
+  /** 🚀 Close notifications when navigating to ANY other page */
+  useEffect(() => {
+    if (isOpen) {
+      close(); // always close when route changes
+    }
+  }, [pathname, isOpen, close]);
+
   if (isLoading) return null;
 
   return (
-   <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
+    <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
 
-  {/* Logo */}
-  <Link href="/">
-  <span className="font-sans font-black text-3xl text-white px-4">
-    Shiba
-  </span>
-</Link>
-
-  {/* NAV BUTTONS (all spacing controlled here) */}
-  <div className="flex items-center gap-6">  
-      
-      {/* Home */}
-      <IconButton
-        size="large"
-        className="!text-accent-200"
-        onClick={() => {
-          if (pathname === "/" && isOpen) toggle();
-          else router.push("/");
-        }}
-      >
-        {isActive("/") && !isOpen
-          ? <Home sx={{ fontSize: 36 }} />
-          : <HomeOutlined sx={{ fontSize: 36 }} />}
-      </IconButton>
-
-      {/* Settings */}
-      <Link href="/settings">
-        <IconButton size="large" className="!text-accent-200">
-          {isActive("/settings")
-            ? <Settings sx={{ fontSize: 36 }} />
-            : <SettingsOutlined sx={{ fontSize: 36 }} />}
-        </IconButton>
+      {/* Logo */}
+      <Link href="/">
+        <span className="font-sans font-black text-3xl text-white px-4">
+          Shiba
+        </span>
       </Link>
 
-      {/* Notification */}
-      <IconButton
-        size="large"
-        className="!text-accent-200"
-        onClick={handleBellClick}
-      >
-        {isOpen
-          ? <Notifications sx={{ fontSize: 36 }} />
-          : <NotificationsNone sx={{ fontSize: 36 }} />}
-      </IconButton>
+      {/* Buttons */}
+      <div className="flex items-center gap-6">
 
-      {/* Profile / Sign in */}
-      {isLoggedIn ? (
-        <Link href={`/user/${user?.user_name}`}>
-          <Avatar
-            src={user?.profile_picture ?? "/default-avatar.png"}
-            className="cursor-pointer"
-          />
-        </Link>
-      ) : (!isLoading && (
-        <Link
-          href="/signup"
-          className="font-display font-semibold text-xl text-primary-0 rounded-full bg-white py-2 px-6 hover:bg-accent-200"
+        {/* Home */}
+        <IconButton
+          size="large"
+          className="!text-accent-200"
+          onClick={() => {
+            if (pathname === "/" && isOpen) close();
+            else router.push("/");
+          }}
         >
-          Sign in
-        </Link>
-      ))}
+          {isActive("/") && !isOpen
+            ? <Home sx={{ fontSize: 36 }} />
+            : <HomeOutlined sx={{ fontSize: 36 }} />}
+        </IconButton>
 
-  </div>
-</nav>
+        {/* Settings */}
+        <Link href="/settings">
+          <IconButton
+            size="large"
+            className="!text-accent-200"
+            onClick={() => isOpen && close()}   // <-- ensure settings closes panel
+          >
+            {isActive("/settings")
+              ? <Settings sx={{ fontSize: 36 }} />
+              : <SettingsOutlined sx={{ fontSize: 36 }} />}
+          </IconButton>
+        </Link>
+
+        {/* Notification */}
+        <IconButton
+          size="large"
+          className="!text-accent-200"
+          onClick={handleBellClick}
+        >
+          {isOpen
+            ? <Notifications sx={{ fontSize: 36 }} />
+            : <NotificationsNone sx={{ fontSize: 36 }} />}
+        </IconButton>
+
+        {/* Profile / Sign in */}
+        {isLoggedIn ? (
+          <Link href={`/user/${user?.user_name}`}>
+            <Avatar
+              src={user?.profile_picture ?? "/default-avatar.png"}
+              className="cursor-pointer"
+            />
+          </Link>
+        ) : (!isLoading && (
+          <Link
+            href="/signup"
+            className="font-display font-semibold text-xl text-primary-0 rounded-full bg-white py-2 px-6 hover:bg-accent-200"
+          >
+            Sign in
+          </Link>
+        ))}
+
+      </div>
+    </nav>
   );
 }
