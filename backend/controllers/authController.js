@@ -23,6 +23,8 @@ function cookieOpts() {
 
 exports.googleLogin = async (req, res) => {
   try {
+    console.log("BODY /api/v1/auth/google:", req.body);
+    console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
     const { id_token } = req.body;
     if (!id_token) {
       return res.status(400).json({
