@@ -264,6 +264,7 @@ export default function ReportPostDisplay({
           isCurrentUserAuthor={false}
           onEditClick={() => null}
           onDeleteClick={() => null}
+          onReportClick={() => null}
         />
 
         <Link

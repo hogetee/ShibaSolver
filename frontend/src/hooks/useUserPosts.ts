@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { PostData } from "@/components/post/Post"; // type-only import
 import { userService } from "@/utils/userService";
 import { UserData } from "@/utils/userService";
-import { set } from "mongoose";
+
 
 type UseUserPostsResult = {
   posts: PostData[];

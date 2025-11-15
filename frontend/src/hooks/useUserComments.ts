@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { userService } from "@/utils/userService";
 import { profileCommentData } from "@/components/profile/profile_content/ProfileComment";
 import { postService } from "@/utils/postService";
-import { set } from "mongoose";
 
 type UseUserCommentsResult = {
   comments: profileCommentData[];

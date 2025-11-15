@@ -1,15 +1,15 @@
 'use client';
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import UserProfilePage from '@/pages/UserProfilePage';
 
 export default function MeProfilePage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Attempt to read the authenticated username from client storage
-    // If not found, redirect to home (could be a login page in future)
-    const username = typeof window !== 'undefined' ? localStorage.getItem('username') : null;
+    const username = localStorage.getItem('username');
+
     if (username && username.trim().length > 0) {
       router.replace(`/user/${username}`);
     } else {
@@ -18,9 +18,8 @@ export default function MeProfilePage() {
   }, [router]);
 
   return (
-    // This is just shown briefly during redirect
-    <div className="min-h-screen p-4">
-      <UserProfilePage />
+    <div className="min-h-screen flex items-center justify-center">
+      {loading && <p>Redirecting...</p>}
     </div>
   );
 }

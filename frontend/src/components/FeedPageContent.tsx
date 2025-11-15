@@ -12,6 +12,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import SearchComponent from "@/components/topMenu/SearchComponent";
 import { slugify } from "@/utils/slugify";
 
+
 interface ApiResponse {
   success: boolean;
   data: PostData;

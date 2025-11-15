@@ -179,7 +179,7 @@ export function useRegisterForm({ initial = {} }: Props) {
 
       const username = json.data?.user_name || payload.user_name;
       if (username) localStorage.setItem("username", username);
-      router.push(`/user/${username}`);
+      window.location.href = `/user/${username}`;
     } catch (err) {
       setErrors((prev) => ({
         ...prev,
