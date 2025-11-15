@@ -100,7 +100,7 @@ export default function usePostComments(
           return;
         }
 
-        const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
+        const BASE_URL = process.env.BACKEND_URL ;
         const url = new URL(`/api/v1/comments/post/${encodeURIComponent(String(postId))}`, BASE_URL);
         url.searchParams.set("sort", sort);
 
