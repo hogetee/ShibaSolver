@@ -126,8 +126,7 @@ const BannedUser: React.FC<BannedUserProps> = ({
             </span>
           </div>
         {/* </div> */}
-
-    </div>
+      </div>
      );
 };
 

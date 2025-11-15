@@ -1,6 +1,8 @@
 'use client';
 import BannedUser from '@/components/banned_log/banned_user';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 
 interface BannedUserData {
   userId: number | string;
@@ -87,24 +89,36 @@ export default function BannedAccountsPage() {
     fetchBannedUsers();
   }, []);
 
+  const router = useRouter();
+
   return (
       <div className="max-w-3xl mx-auto px-4 py-8 pt-20 font-display">
           <div className="max-w-6xl mx-auto">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Banned Accounts</h1>
-              <p className="text-gray-600 mb-6">Manage banned user accounts and review ban appeals</p>
-              
-              <div className="space-y-4">
-                  {bannedUsers.map((user) => (
-                    <BannedUser
-                      key={user.userId}
-                      name={user.name}
-                      nickname={user.nickname}
-                      bannedDate={user.bannedDate}
-                      profileImage={user.profileImage}
-                      userId={Number(user.userId)}
-                    />
-                  ))}
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Banned Accounts</h1>
+                <p className="text-gray-600">Manage banned user accounts and review ban appeals</p>
               </div>
+              <button
+                aria-label="Back to admin"
+                onClick={() => router.push('/admin')}
+                className="ml-4 cursor-pointer inline-flex items-center justify-center bg-accent-200 p-2 rounded-full text-accent-400 hover:text-accent-600 hover:bg-accent-400/50"
+              >
+                <KeyboardArrowLeftIcon fontSize="small" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {bannedUsers.map((user) => (
+                <BannedUser
+                  key={user.userId}
+                  name={user.name}
+                  nickname={user.nickname}
+                  bannedDate={user.bannedDate}
+                  profileImage={user.profileImage}
+                  userId={Number(user.userId)}
+                />
+              ))}
+            </div>
           </div>
       </div>
   );
