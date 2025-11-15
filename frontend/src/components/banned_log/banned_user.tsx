@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 interface BannedUserProps {
   name: string;
   nickname: string;
-  reasonOfBan: string;
   bannedDate: string;
   profileImage: string;
   userId: number;
@@ -14,7 +13,6 @@ interface BannedUserProps {
 const BannedUser: React.FC<BannedUserProps> = ({
   name,
   nickname,
-  reasonOfBan,
   bannedDate,
   profileImage,
   userId,
@@ -84,19 +82,19 @@ const BannedUser: React.FC<BannedUserProps> = ({
 
 
 
-        <div className="grid grid-cols-1 md:grid-cols-2 items-start gap-3 px-5">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 items-end gap-3 px-5"> */}
           {/* Left: Reason of Ban (label stays fixed, value wraps) */}
-          <div className="flex items-start gap-3 max-w-full">
+          {/* <div className="flex items-start gap-3 max-w-full">
             <span className="bg-[#4B0082] text-white py-2 px-3 rounded-lg text-xl font-bold shrink-0">
               Reason of Ban
             </span>
             <span className="font-bold text-xl  whitespace-normal flex-1 min-w-0 max-w-full mt-2">
               {reasonOfBan}
             </span>
-          </div>
+          </div> */}
 
           {/* Right: Banned Since (align to right on md+, stays below on small screens) */}
-          <div className="flex items-start gap-3 justify-start md:justify-end max-w-full">
+          <div className="flex items-end gap-3 justify-end md:justify-end max-w-full">
             <span className="bg-[#4B0082] text-white py-2 px-3 rounded-lg text-xl font-bold shrink-0">
               Banned Since
             </span>
@@ -104,7 +102,7 @@ const BannedUser: React.FC<BannedUserProps> = ({
               {bannedDate}
             </span>
           </div>
-        </div>
+        {/* </div> */}
 
     </div>
      );
