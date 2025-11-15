@@ -86,7 +86,7 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
       >
         {/* Profile picture */}
         <img
-          src={reply.author.profile_picture}
+          src={reply.author.profile_picture || "/image/DefaultAvatar.png"}
           alt={`${reply.author.display_name}'s avatar`}
           className="w-8 h-8 rounded-full flex-shrink-0"
           onError={(e) => {

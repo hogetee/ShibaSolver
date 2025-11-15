@@ -4,10 +4,12 @@ import DedicatedPost, { type DedicatedPostData } from '@/components/post/dedicat
 interface Props {
   postId: string;
 }
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+
 async function getPostWithRatings(postId: string): Promise<DedicatedPostData> {
   const [postRes, ratingRes] = await Promise.all([
-    fetch(`http://localhost:5003/api/v1/posts/${postId}`, { cache: 'no-store' }),
-    fetch(`http://localhost:5003/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
+    fetch(`${API_BASE}/api/v1/posts/${postId}`, { cache: 'no-store' }),
+    fetch(`${API_BASE}/api/v1/ratings/summary?target_type=post&ids=${postId}`, {
       cache: 'no-store',
       credentials: 'include',
     }),

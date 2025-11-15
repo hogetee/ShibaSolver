@@ -34,6 +34,8 @@ const PostAuthor = ({
   const [dislikes, setDislikes] = useState(stats.dislikes)
   const [loading, setLoading] = useState(false)
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+
   // -------------------------------------------------------
   // 🔥 FIX #1 — Fetch real rating on mount AFTER REFRESH
   // -------------------------------------------------------
@@ -41,7 +43,7 @@ const PostAuthor = ({
     async function fetchRealRating() {
       try {
         const res = await fetch(
-          `http://localhost:5003/api/v1/ratings/summary?target_type=post&ids=${postId}`,
+          `${API_BASE}/api/v1/ratings/summary?target_type=post&ids=${postId}`,
           { credentials: 'include' }
         );
 
@@ -72,7 +74,7 @@ const PostAuthor = ({
   // =======================================================
 
   async function postRate(target_type: 'post' | 'comment', target_id: number | string, rating_type: 'like' | 'dislike') {
-    const res = await fetch('http://localhost:5003/api/v1/ratings', {
+    const res = await fetch(`${API_BASE}/api/v1/ratings`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -88,7 +90,7 @@ const PostAuthor = ({
   }
 
   async function deleteRate(target_type: 'post' | 'comment', target_id: number | string) {
-    const res = await fetch('http://localhost:5003/api/v1/ratings', {
+    const res = await fetch(`${API_BASE}/api/v1/ratings`, {
       method: 'DELETE',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -197,7 +199,7 @@ const PostAuthor = ({
       {/* Author */}
       <div className="flex items-center gap-3">
         <img
-          src={author.profile_picture || "https://www.gravatar.com/avatar/?d=mp"}
+          src={author.profile_picture || "/image/DefaultAvatar.png"}
           alt={author.display_name}
           className="w-10 h-10 rounded-full"
         />
