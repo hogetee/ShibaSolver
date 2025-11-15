@@ -16,6 +16,7 @@ interface ReportApiResponse {
 export const useReportComment = () => {
   const [isReporting, setIsReporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
   
   // ✅ 1. เปลี่ยนชื่อฟังก์ชันเป็น reportComment
   const reportComment = async (commentId: string, reason: string): Promise<ReportApiResponse | undefined> => {
@@ -38,7 +39,7 @@ export const useReportComment = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5003/api/v1/reports/content', {
+      const response = await fetch(`${API_BASE}/api/v1/reports/content`, {
         method: 'POST',
         credentials: 'include',
         headers: {

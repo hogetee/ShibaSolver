@@ -11,7 +11,7 @@ interface ApiResponse {
 export const useCreatePost = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
   const createPost = async (postData: NewPostData): Promise<ApiResponse> => {
     setIsCreating(true);
     setError(null);
@@ -24,7 +24,8 @@ export const useCreatePost = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5003/api/v1/posts', {
+      
+      const response = await fetch(`${API_BASE}/api/v1/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -15,7 +15,7 @@ interface ReportApiResponse {
 export const useReportUser = () => {
   const [isReporting, setIsReporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
   const reportUser = async (userId: string, reason: string): Promise<ReportApiResponse | undefined> => {
     setIsReporting(true);
     setError(null);
@@ -36,7 +36,7 @@ export const useReportUser = () => {
 
     try {
       // 3. ยิงไปที่ Endpoint ใหม่ /reports/accounts
-      const response = await fetch('http://localhost:5003/api/v1/reports/accounts', {
+      const response = await fetch(`${API_BASE}/api/v1/reports/accounts`, {
         method: 'POST',
         credentials: 'include',
         headers: {
