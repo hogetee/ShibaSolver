@@ -2,10 +2,21 @@ import React from "react";
 
 const formatTimeAgo = (dateString: string) => {
   if (!dateString) return "";
+  // Normalize incoming DB timestamp so it parses as UTC (+00:00)
+  const normalizeToUTC = (s: string) => {
+    let t = String(s).trim();
+    // Replace first whitespace between date and time with 'T'
+    t = t.replace(/\s+/, "T");
+    // Truncate fractional seconds to milliseconds (if present)
+    t = t.replace(/\.(\d{3})\d+/, ".$1");
+    // Strip any existing timezone designator (Z or +HH[:MM] / -HH[:MM])
+    t = t.replace(/[Zz]|[+-]\d{2}:?\d{2}$/, "");
+    // Append Z to force UTC parsing
+    return t + "Z";
+  };
 
-  dateString += "+00";
   const now = new Date();
-  const commentDate = new Date(dateString);
+  const commentDate = new Date(normalizeToUTC(dateString));
   
   // ตรวจสอบว่า Date ถูกต้องหรือไม่
   if (isNaN(commentDate.getTime())) {
