@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS tags (
+    tag_id   BIGSERIAL PRIMARY KEY,
+    tag_name TEXT NOT NULL UNIQUE
+);
