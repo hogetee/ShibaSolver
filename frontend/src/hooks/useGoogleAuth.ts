@@ -6,7 +6,7 @@ export function useGoogleAuth() {
 
   const handleGoogleResponse = (response: any) => {
     // response.credential is the Google id_token
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
     fetch(`${API_BASE}/api/v1/auth/google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

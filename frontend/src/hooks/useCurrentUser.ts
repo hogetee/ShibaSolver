@@ -61,7 +61,7 @@ export function useCurrentUser(): UseCurrentUserResult {
           };
           if (!aborted) setData(mock);
         } else {
-          const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+          const BASE_URL = process.env.NEXT_PUBLIC_API_URL  ;
           const res = await fetch(`${BASE_URL}/api/v1/auth/me`, {
             signal: controller.signal,
             credentials: "include",

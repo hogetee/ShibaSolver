@@ -32,7 +32,7 @@ const PostAuthor = ({
   const [dislikes, setDislikes] = useState(stats.dislikes);
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
 
   // 🚀 ==============================
   // FETCH USER RATING ON PAGE LOAD

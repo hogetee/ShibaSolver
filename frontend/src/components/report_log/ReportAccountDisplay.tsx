@@ -12,7 +12,7 @@ export interface ReportAccountDisplayData {
 }
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5003";
+  process.env.NEXT_PUBLIC_BACKEND_URL  ;
 
 const DEFAULT_AVATAR = "/image/DefaultAvatar.png";
 

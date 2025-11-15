@@ -98,7 +98,7 @@ export function useUserProfile(username?: string | null): UseUserResult {
         } else {
           // Adjust BASE_URL to your backend origin as needed
           const BASE_URL =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+            process.env.NEXT_PUBLIC_API_URL  ;
           // Backend should provide this route; alternatively implement resolve-username -> id
           const res = await fetch(
             `${BASE_URL}/api/v1/users/${encodeURIComponent(username)}`,

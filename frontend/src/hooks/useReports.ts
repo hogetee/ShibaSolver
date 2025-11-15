@@ -11,7 +11,7 @@ export default function useReports() {
   const [loading, setLoading] = useState(false);
 
   const BACKEND_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5003";
+    process.env.NEXT_PUBLIC_BACKEND_URL  ;
 
   const fetchPostReports = async (status: "unreviewed" | "reviewed") => {
     setLoading(true);

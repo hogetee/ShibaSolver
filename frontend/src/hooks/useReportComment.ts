@@ -16,7 +16,7 @@ interface ReportApiResponse {
 export const useReportComment = () => {
   const [isReporting, setIsReporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
   
   // ✅ 1. เปลี่ยนชื่อฟังก์ชันเป็น reportComment
   const reportComment = async (commentId: string, reason: string): Promise<ReportApiResponse | undefined> => {

@@ -24,7 +24,7 @@ const subjects = [
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
 export default function useEditProfileForm({ userData }) {
-    const apiBase = () => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
+    const apiBase = () => process.env.NEXT_PUBLIC_API_URL   ;
     
       // Initialize form data with user data or default values
       const [formData, setFormData] = useState({

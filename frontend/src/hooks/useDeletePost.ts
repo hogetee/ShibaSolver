@@ -11,7 +11,7 @@ interface DeleteApiResponse {
 export const useDeletePost = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
   const deletePost = async (postId: string): Promise<DeleteApiResponse> => {
     setIsDeleting(true);
     setError(null);

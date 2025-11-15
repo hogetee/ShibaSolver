@@ -11,7 +11,7 @@ interface ApiResponse {
 export const useCreatePost = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
   const createPost = async (postData: NewPostData): Promise<ApiResponse> => {
     setIsCreating(true);
     setError(null);

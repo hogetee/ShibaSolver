@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function PremiumModal({ onClose }: Props) {
-    const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+    const BASE = process.env.NEXT_PUBLIC_API_URL  ;
     const handleConfirm = async () => {
         try {
             const res = await fetch(`${BASE}/api/v1/users/premium`, {

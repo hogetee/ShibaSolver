@@ -3,7 +3,7 @@ import { useCallback } from "react";
 
 export default function useEditProfileNavigation({ setErrors, setIsSubmitting, onProfileUpdate }) {
   const router = useRouter();
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
+  const apiBase = process.env.NEXT_PUBLIC_API_URL   ;
 
   const updateProfile = useCallback(async (payload) => {
     if (!payload) return false;

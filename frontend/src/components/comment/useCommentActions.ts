@@ -42,7 +42,7 @@ export const useCommentActions = (
   );
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const BASE_URL = process.env.BACKEND_URL || "http://localhost:5003";
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ;
 
   async function postRate(
     target_type: "post" | "comment",

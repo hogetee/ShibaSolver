@@ -15,7 +15,7 @@ interface ReportApiResponse {
 export const useReportUser = () => {
   const [isReporting, setIsReporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
   const reportUser = async (userId: string, reason: string): Promise<ReportApiResponse | undefined> => {
     setIsReporting(true);
     setError(null);

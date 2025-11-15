@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5003";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL  ;
 
 export const postService = {
     async getPostTitleById(postId: string): Promise<string> {

@@ -33,7 +33,7 @@ export const useFetchFeeds = () => {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
   useEffect(() => {
     const fetchFeeds = async () => {
       setIsLoading(true);

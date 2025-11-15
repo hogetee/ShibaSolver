@@ -63,7 +63,7 @@ const subjects = [
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
 function apiBase(): string {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  return process.env.NEXT_PUBLIC_API_URL  ;
 }
 
 export default function RegisterForm({ initial = {} }: Props) {

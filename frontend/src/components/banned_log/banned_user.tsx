@@ -20,7 +20,7 @@ const BannedUser: React.FC<BannedUserProps> = ({
 
   const [isUnbanning, setIsUnbanning] = useState(false);
 
-  const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
+  const BASE = process.env.NEXT_PUBLIC_API_URL   ;
 
   const formatDateDMY = (iso?: string) => {
     if (!iso) return '';

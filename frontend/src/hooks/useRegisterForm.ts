@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { uploadImageToCloudinary } from "@/utils/uploadImage";
 
 function apiBase(): string {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  return process.env.NEXT_PUBLIC_API_URL  ;
 }
 
 type Initial = {

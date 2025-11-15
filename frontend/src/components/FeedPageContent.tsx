@@ -21,7 +21,7 @@ interface ApiResponse {
 
 export default function Home() {
 
-  const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const BASE = process.env.NEXT_PUBLIC_API_URL  ;
 
   const { posts, setPosts, isLoading, error } = useFetchFeeds();
 

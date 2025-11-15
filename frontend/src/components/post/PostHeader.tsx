@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MoreVertical, Bookmark, Flag, Pencil, Trash2 } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
 
 interface PostHeaderProps {
   isSolved: boolean;

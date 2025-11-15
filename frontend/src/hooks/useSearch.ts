@@ -43,7 +43,7 @@ type UseSearchResult = {
 };
 
 // Move BASE_URL outside the component or use a constant
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL  ;
 
 export function useSearch({
   mode,

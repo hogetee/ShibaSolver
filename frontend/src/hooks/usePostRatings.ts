@@ -12,7 +12,7 @@ type StatsMap = Record<
   }
 >;
 
-const FALLBACK_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+const FALLBACK_API_URL = process.env.NEXT_PUBLIC_API_URL  ;
 
 export default function usePostRatings(posts: PostData[] | null) {
   const [postRatings, setPostRatings] = useState<RatingMap>({});

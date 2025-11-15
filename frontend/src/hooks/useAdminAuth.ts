@@ -29,7 +29,7 @@ export function useAdminAuth() {
 
     try {
       const API_BASE =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+        process.env.NEXT_PUBLIC_API_URL  ;
       const response = await fetch(`${API_BASE}/api/v1/adminAuth/login`, {
         method: "POST",
         headers: {
@@ -70,7 +70,7 @@ export function useAdminAuth() {
   const logoutAdmin = async () => {
     try {
       // Call logout endpoint - backend will clear the admin_access_token cookie
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL  ;
       await fetch(`${API_BASE}/api/v1/adminAuth/logout`, {
         method: "POST",
         credentials: "include",

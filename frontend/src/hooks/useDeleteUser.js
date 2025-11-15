@@ -4,7 +4,7 @@ export const useDeleteUser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL   ;
 
   const deleteUser = async () => {
     setIsLoading(true);

@@ -41,7 +41,7 @@ const mockBannedUsers = [
 ];
 
 export default function BannedAccountsPage() {
-  const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+  const BASE = process.env.NEXT_PUBLIC_API_URL  ;
   const [bannedUsers, setBannedUsers] = useState<BannedUserData[]>([]);
   const [isLoadingBanned, setIsLoadingBanned] = useState(true);
   const [errorBanned, setErrorBanned] = useState<string | null>(null);
