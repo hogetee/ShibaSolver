@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 interface BannedUserProps {
   name: string;
   nickname: string;
-  reasonOfBan: string;
   bannedDate: string;
   profileImage: string;
   userId: number;
@@ -14,7 +13,6 @@ interface BannedUserProps {
 const BannedUser: React.FC<BannedUserProps> = ({
   name,
   nickname,
-  reasonOfBan,
   bannedDate,
   profileImage,
   userId,
@@ -23,6 +21,31 @@ const BannedUser: React.FC<BannedUserProps> = ({
   const [isUnbanning, setIsUnbanning] = useState(false);
 
   const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
+
+  const formatDateDMY = (iso?: string) => {
+    if (!iso) return '';
+    // Try to parse the incoming timestamp. Treat timezone-less strings as UTC.
+    let d = new Date(iso);
+    if (isNaN(d.getTime())) {
+      d = new Date(iso + 'Z');
+      if (isNaN(d.getTime())) return iso; // fallback to raw string
+    }
+
+    const tz7 = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+    
+    const dayChanged = (
+      tz7.getUTCFullYear() !== d.getUTCFullYear() ||
+      tz7.getUTCMonth() !== d.getUTCMonth() ||
+      tz7.getUTCDate() !== d.getUTCDate()
+    );
+
+    const useDate = dayChanged ? tz7 : d;
+
+    const day = String(useDate.getUTCDate()).padStart(2, '0');
+    const month = String(useDate.getUTCMonth() + 1).padStart(2, '0');
+    const year = useDate.getUTCFullYear() + 543;
+    return `${day} / ${month} / ${year}`;
+  };
 
   const handleUnban = async () => {
     setIsUnbanning(true);
@@ -82,31 +105,28 @@ const BannedUser: React.FC<BannedUserProps> = ({
         </button>
         </div>
 
-
-
-        <div className="grid grid-cols-1 md:grid-cols-2 items-start gap-3 px-5">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 items-end gap-3 px-5"> */}
           {/* Left: Reason of Ban (label stays fixed, value wraps) */}
-          <div className="flex items-start gap-3 max-w-full">
+          {/* <div className="flex items-start gap-3 max-w-full">
             <span className="bg-[#4B0082] text-white py-2 px-3 rounded-lg text-xl font-bold shrink-0">
               Reason of Ban
             </span>
             <span className="font-bold text-xl  whitespace-normal flex-1 min-w-0 max-w-full mt-2">
               {reasonOfBan}
             </span>
-          </div>
+          </div> */}
 
           {/* Right: Banned Since (align to right on md+, stays below on small screens) */}
-          <div className="flex items-start gap-3 justify-start md:justify-end max-w-full">
+          <div className="flex items-end gap-3 justify-end md:justify-end max-w-full">
             <span className="bg-[#4B0082] text-white py-2 px-3 rounded-lg text-xl font-bold shrink-0">
               Banned Since
             </span>
-            <span className="font-bold text-xl break-words whitespace-nowrap ml-2 mt-2">
-              {bannedDate}
+            <span className="font-semibold text-xl break-words whitespace-nowrap ml-2 mt-2">
+              {formatDateDMY(bannedDate)}
             </span>
           </div>
-        </div>
-
-    </div>
+        {/* </div> */}
+      </div>
      );
 };
 
