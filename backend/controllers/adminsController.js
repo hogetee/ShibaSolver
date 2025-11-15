@@ -119,6 +119,7 @@ exports.getBannedUsers = async (req, res, next) => {
         user_id,
         user_name,
         display_name,
+        profile_picture,
         email,
         user_state,
         updated_at AS banned_at
