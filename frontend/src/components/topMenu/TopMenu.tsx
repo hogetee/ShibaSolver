@@ -45,12 +45,11 @@ export default function TopMenu() {
    <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
 
   {/* Logo */}
-  <Link
-    href="/"
-    className="font-sans font-black text-3xl text-white px-4"
-  >
+  <Link href="/">
+  <span className="font-sans font-black text-3xl text-white px-4">
     Shiba
-  </Link>
+  </span>
+</Link>
 
   {/* NAV BUTTONS (all spacing controlled here) */}
   <div className="flex items-center gap-6">  
