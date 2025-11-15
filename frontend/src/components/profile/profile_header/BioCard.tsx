@@ -3,11 +3,11 @@ type Props = {
 };
 
 export default function BioCard({ bio }: Props){
-  const displayBio = bio ? bio.substring(0, 100) : "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec qu";
+  const displayBio = bio && bio.trim().length > 0 ? bio : "No bio yet";
   
   return (
-    <div className="bg-accent-200 rounded-xl p-[3%] text-dark-900 max-w-[560px] min-h-[5rem]">
-      <p className="text-[1rem]">
+    <div className="bg-accent-200 rounded-xl p-[3%] text-dark-900 max-w-[560px] min-h-[5rem] max-h-[12rem] overflow-y-auto break-words pr-2">
+      <p className="text-[1rem] break-words whitespace-pre-wrap">
         {displayBio}
       </p>
     </div>

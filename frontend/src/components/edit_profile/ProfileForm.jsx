@@ -122,6 +122,7 @@ export default function ProfileForm({ userData, onProfileUpdate }) {
               onChange={handleSubjectsChange}
               placeholder="Select your subjects"
               multiple
+              maxSelections={3}
             />
           </div>
         </div>

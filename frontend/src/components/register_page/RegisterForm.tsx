@@ -29,13 +29,36 @@ type Props = {
 
 // Example options (match styling of existing components)
 const subjects = [
-  { name: "Math", color: "blue" },
-  { name: "Physics", color: "green" },
-  { name: "Chemistry", color: "purple" },
-  { name: "Biology", color: "red" },
-  { name: "English", color: "orange" },
-  { name: "History", color: "gray" },
+  { name: "Math", color: "indigo" },
+  { name: "Physics", color: "amber" },
+  { name: "Chemistry", color: "violet" },
+  { name: "Biology", color: "forest" },
+  { name: "English", color: "magenta" },
+  { name: "History", color: "sienna" },
+  { name: "Geography", color: "teal" },
+  { name: "Economics", color: "tangerine" },
+  { name: "Law", color: "charcoal" },
+  { name: "Thai", color: "crimson" },
+  { name: "Chinese", color: "gold" },
+  { name: "Programming", color: "periwinkle" },
+  { name: "Others", color: "slate" },
 ];
+
+// const tagColorMap: Record<string, string> = {
+//   Math: "bg-[#2563EB]",
+//   Physics: "bg-[#FF9D00]",
+//   Chemistry: "bg-[#9333EA]",
+//   Biology: "bg-[#467322]",
+//   History: "bg-[#893F07]",
+//   Geography: "bg-[#1E6A91]",
+//   Economics: "bg-[#FA733E]",
+//   Law: "bg-[#000000]",
+//   Thai: "bg-[#83110F]",
+//   English: "bg-[#BE0EA7]",
+//   Chinese: "bg-[#CBC400]",
+//   Programming: "bg-[#6366F1]",
+//   Others: "bg-[#63647A]",
+// };
 
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
@@ -150,6 +173,7 @@ export default function RegisterForm({ initial = {} }: Props) {
                   placeholder="Select your subjects"
                   multiple={true}
                   color={false}
+                  maxSelections={3}
                 />
               </div>
             </div>

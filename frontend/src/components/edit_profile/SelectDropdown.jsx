@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
-import SubjectTags from "./SubjectTags";
 import CompactSubjectTags from "./CompactSubjectTags";
 
-export default function SelectDropdown({ options, value, onChange, placeholder, multiple, color }) {
+export default function SelectDropdown({
+  options,
+  value,
+  onChange,
+  placeholder,
+  multiple,
+  color,
+  maxSelections = Infinity
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -36,6 +43,12 @@ export default function SelectDropdown({ options, value, onChange, placeholder, 
         return optionName === valueName;
       });
       
+      const selectionLimitReached = maxSelections !== undefined && currentValues.length >= maxSelections;
+
+      if (!isAlreadySelected && selectionLimitReached) {
+        return;
+      }
+
       const newValues = isAlreadySelected
         ? currentValues.filter(v => {
             const optionName = typeof option === 'object' ? (option.name || option.subject || option.label) : option;
@@ -63,10 +76,15 @@ export default function SelectDropdown({ options, value, onChange, placeholder, 
     return value === option;
   };
 
+  const selectedValues = Array.isArray(value) ? value : [];
+  const selectionLimitReached =
+    multiple && Number.isFinite(maxSelections) && selectedValues.length >= maxSelections;
+
   const displayValue = () => {
     if (multiple) {
       if (Array.isArray(value) && value.length > 0) {
-        return `${value.length} subject(s) selected`;
+        const limitLabel = Number.isFinite(maxSelections) ? `/${maxSelections}` : "";
+        return `${value.length}${limitLabel} subject(s) selected`;
       }
       return placeholder; 
     }
@@ -107,6 +125,11 @@ export default function SelectDropdown({ options, value, onChange, placeholder, 
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div> 
+            {selectionLimitReached && Number.isFinite(maxSelections) && (
+              <span className="text-xs text-gray-500">
+                Maximum of {maxSelections} selections reached
+              </span>
+            )}
           </div>
         ) : (
           <>
@@ -131,17 +154,24 @@ export default function SelectDropdown({ options, value, onChange, placeholder, 
           {options.map((option, index) => {
             const optionName = typeof option === 'object' ? (option.name || option.subject || option.label) : option;
             const optionKey = typeof option === 'object' ? (option.id || option.key || index) : option;
+            const optionSelected = isSelected(option);
+            const optionDisabled = multiple && !optionSelected && selectionLimitReached;
             
             return (
               <div
                 key={optionKey}
-                onClick={() => handleOptionClick(option)}
-                className={`px-3 py-2 cursor-pointer hover:bg-blue-50 flex items-center justify-between ${
-                  isSelected(option) ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
+                onClick={() => {
+                  if (optionDisabled) return;
+                  handleOptionClick(option);
+                }}
+                className={`px-3 py-2 flex items-center justify-between ${
+                  optionDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-blue-50'
+                } ${
+                  optionSelected ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
                 }`}
               >
                 <span>{optionName}</span>
-                {isSelected(option) && (
+                {optionSelected && (
                   <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>

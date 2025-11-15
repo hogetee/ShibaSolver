@@ -5,13 +5,21 @@ import { uploadImageToCloudinary } from "@/utils/uploadImage";
 
 // example Options for dropdowns with colors
 const subjects = [
-  { name: "Math", color: "blue" },
-  { name: "Physics", color: "green" },
-  { name: "Chemistry", color: "purple" },
-  { name: "Biology", color: "red" },
-  { name: "English", color: "orange" },
-  { name: "History", color: "gray" }
+  { name: "Math", color: "indigo" },
+  { name: "Physics", color: "amber" },
+  { name: "Chemistry", color: "violet" },
+  { name: "Biology", color: "forest" },
+  { name: "English", color: "magenta" },
+  { name: "History", color: "sienna" },
+  { name: "Geography", color: "teal" },
+  { name: "Economics", color: "tangerine" },
+  { name: "Law", color: "charcoal" },
+  { name: "Thai", color: "crimson" },
+  { name: "Chinese", color: "gold" },
+  { name: "Programming", color: "periwinkle" },
+  { name: "Others", color: "slate" },
 ];
+
 
 const educationLevels = ["High School", "Undergraduate", "Graduate", "Other"];
 
