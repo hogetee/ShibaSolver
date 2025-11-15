@@ -132,6 +132,7 @@ const handleRemoveImage = () => {
               onChange={(e) => setTitle(e.target.value)}
               maxLength={100}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
+              data-testid="edit-post-title"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
           </div>
@@ -156,6 +157,7 @@ const handleRemoveImage = () => {
               rows={5}
               maxLength={500}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
+              data-testid="edit-post-details"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
           </div>
@@ -221,6 +223,7 @@ const handleRemoveImage = () => {
                   checked={isSolved}
                   onChange={() => setIsSolved(true)}
                   className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                  data-testid="edit-post-radio-solved"
                 />
                 <span>Solved</span>
               </label>
@@ -231,6 +234,7 @@ const handleRemoveImage = () => {
                   checked={!isSolved}
                   onChange={() => setIsSolved(false)}
                   className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                  data-testid="edit-post-radio-unsolved"
                 />
                 <span>Unsolved</span>
               </label>
@@ -238,7 +242,7 @@ const handleRemoveImage = () => {
           </div>
 
           {error && (
-            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium" data-testid="edit-post-error">
               {error}
             </div>
           )}
@@ -249,6 +253,7 @@ const handleRemoveImage = () => {
               type="submit"
               disabled={isSaving || uploading}
               className="rounded-md bg-purple-700 px-8 py-2 font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
+              data-testid="edit-post-save-button"
             >
               {isSaving ? 'Saving…' : 'Save Changes'}
             </button>

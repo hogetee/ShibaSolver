@@ -126,6 +126,7 @@ export default function PostHeader({
           className={`${
             isSolved ? "bg-[#16A34A]" : "bg-[#DC2626]"
           } text-white font-bold px-2.5 py-1 rounded-md`}
+          data-testid={isSolved ? "post-status-solved" : "post-status-unsolved"}
         >
           {isSolved ? "Solved" : "Unsolved"}
         </span>
@@ -134,6 +135,7 @@ export default function PostHeader({
           <span
             key={tag}
             className={`${tagColorMap[tag] || "bg-gray-500"} text-white font-bold px-2.5 py-1 rounded-md`}
+            data-testid={`post-tag-${tag}`}
           >
             {tag}
           </span>
@@ -147,6 +149,7 @@ export default function PostHeader({
             setIsMenuOpen((prev) => !prev);
           }}
           className="p-2 rounded-full hover:bg-gray-100"
+          data-testid="post-options-button"
         >
           <MoreVertical className="w-5 h-5 text-gray-500" />
         </button>
@@ -196,6 +199,7 @@ export default function PostHeader({
                       setIsMenuOpen(false);
                     }}
                     className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                    data-testid="post-edit-button"
                   >
                     <Pencil className="w-4 h-4 mr-3" />
                     Edit
@@ -208,6 +212,7 @@ export default function PostHeader({
                       setIsMenuOpen(false);
                     }}
                     className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    data-testid="post-delete-button"
                   >
                     <Trash2 className="w-4 h-4 mr-3" />
                     Delete

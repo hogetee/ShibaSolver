@@ -122,7 +122,7 @@ const Post = ({ postData: initialPostData, userRating, onPostUpdate, onPostDelet
 
   return (
     <>
-    <div className="w-full min-h-[30vh] bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-6 flex flex-col font-display">
+    <div className="w-full min-h-[30vh] bg-white hover:shadow-2xl/15 rounded-2xl shadow-lg p-6 flex flex-col font-display" data-testid="post-card">
       <PostHeader 
           isSolved={postData.is_solved} 
           tags={postData.tags}

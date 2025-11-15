@@ -43,6 +43,7 @@ const MultiSelectSubject = ({ options, selected, onChange, limit }: MultiSelectS
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className="w-full rounded-md border-gray-300 shadow-sm bg-white p-2 flex items-center cursor-pointer min-h-[38px]"
+        data-testid="subject-select-box"
       >
         {selected.length > 0 ? (
           <div className="flex flex-wrap gap-2">
@@ -67,6 +68,7 @@ const MultiSelectSubject = ({ options, selected, onChange, limit }: MultiSelectS
               className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100 ${
                 selected.includes(option) ? 'bg-indigo-50 font-semibold' : ''
               }`}
+              data-testid={`subject-option-${option}`}
             >
               <span className="block truncate">{option}</span>
               {selected.includes(option) && (

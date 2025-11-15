@@ -138,6 +138,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               placeholder="Enter your title here..."
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
               maxLength={100}
+              data-testid="create-post-title"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
           </div>
@@ -163,6 +164,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               rows={5}
               maxLength={500}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
+              data-testid="create-post-details"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
           </div>
@@ -213,7 +215,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
           </div>
 
           {error && (
-            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium" data-testid="create-post-error">
               {error}
             </div>
           )}
@@ -224,6 +226,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               type="submit"
               disabled={isCreating || uploading}
               className="rounded-md bg-purple-700 px-8 py-2 font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
+              data-testid="create-post-submit"
             >
               {isCreating ? 'Submitting...' : 'Submit'}
             </button>

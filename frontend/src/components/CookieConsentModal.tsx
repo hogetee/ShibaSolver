@@ -11,6 +11,7 @@ export default function CookieConsentModal() {
       className={`fixed inset-0 flex items-end justify-start z-50 p-4 font-display transition-opacity duration-500 ${
         showModal ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
+      data-testid="cookie-banner"
     >
       <div
         className={`bg-accent-600 rounded-2xl p-8 max-w-2xs w-full text-white transform transition-all duration-500 ease-out ${
@@ -62,6 +63,7 @@ export default function CookieConsentModal() {
           <button
             onClick={acceptAll}
             className="flex-auto sm:text-xl text-sm bg-accent-200 text-accent-600 font-bold py-3 px-6 rounded-xl hover:bg-white transition-colors cursor-pointer whitespace-nowrap"
+            data-testid="cookie-accept-button"
           >
             Accept All
           </button>
