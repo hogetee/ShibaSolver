@@ -15,7 +15,8 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 export default function TopMenu() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
-  const { isOpen, toggle, open, close } = useNotification(); // <-- ensure close exists
+  const { isOpen, toggle, open } = useNotification();
+
   const { user, isLoading, refetch } = useCurrentUser();
   const isLoggedIn = Boolean(user);
 
@@ -25,13 +26,16 @@ export default function TopMenu() {
     return () => window.removeEventListener("auth:logout", handleLogout);
   }, [refetch]);
 
-  /** Highlight active page */
+  // FIX: Close notification panel when route changes
+  useEffect(() => {
+    if (isOpen) toggle();
+  }, [pathname]);
+
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
   };
 
-  /** Notification bell behavior */
   const handleBellClick = () => {
     if (pathname !== "/") {
       router.push("/");
@@ -41,18 +45,11 @@ export default function TopMenu() {
     toggle();
   };
 
-  /** 🚀 Close notifications when navigating to ANY other page */
-  useEffect(() => {
-    if (isOpen) {
-      close(); // always close when route changes
-    }
-  }, [pathname, isOpen, close]);
-
   if (isLoading) return null;
 
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-dark-900 shadow-md flex justify-between items-center px-8 z-50">
-
+      
       {/* Logo */}
       <Link href="/">
         <span className="font-sans font-black text-3xl text-white px-4">
@@ -60,7 +57,6 @@ export default function TopMenu() {
         </span>
       </Link>
 
-      {/* Buttons */}
       <div className="flex items-center gap-6">
 
         {/* Home */}
@@ -68,7 +64,7 @@ export default function TopMenu() {
           size="large"
           className="!text-accent-200"
           onClick={() => {
-            if (pathname === "/" && isOpen) close();
+            if (pathname === "/" && isOpen) toggle();
             else router.push("/");
           }}
         >
@@ -79,18 +75,14 @@ export default function TopMenu() {
 
         {/* Settings */}
         <Link href="/settings">
-          <IconButton
-            size="large"
-            className="!text-accent-200"
-            onClick={() => isOpen && close()}   // <-- ensure settings closes panel
-          >
+          <IconButton size="large" className="!text-accent-200">
             {isActive("/settings")
               ? <Settings sx={{ fontSize: 36 }} />
               : <SettingsOutlined sx={{ fontSize: 36 }} />}
           </IconButton>
         </Link>
 
-        {/* Notification */}
+        {/* Notifications */}
         <IconButton
           size="large"
           className="!text-accent-200"
@@ -109,14 +101,14 @@ export default function TopMenu() {
               className="cursor-pointer"
             />
           </Link>
-        ) : (!isLoading && (
+        ) : (
           <Link
             href="/signup"
             className="font-display font-semibold text-xl text-primary-0 rounded-full bg-white py-2 px-6 hover:bg-accent-200"
           >
             Sign in
           </Link>
-        ))}
+        )}
 
       </div>
     </nav>
