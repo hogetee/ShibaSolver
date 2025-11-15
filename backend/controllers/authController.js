@@ -13,9 +13,9 @@ function cookieOpts() {
   const isProd = (process.env.NODE_ENV || "development") === "production";
   return {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: isProd ? "none" : "lax",
     secure: isProd,
-    domain: process.env.COOKIE_DOMAIN || "localhost",
+    domain: isProd ? process.env.COOKIE_DOMAIN : undefined,
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 วัน
   };
@@ -103,7 +103,7 @@ exports.googleLogin = async (req, res) => {
       });
     }
   } catch (err) {
-    console.error(err);
+    console.error("GOOGLE LOGIN ERROR:", err);
     return res.status(401).json({
       success: false,
       error: { code: "INVALID_ID_TOKEN", message: "Invalid Google id_token" },
