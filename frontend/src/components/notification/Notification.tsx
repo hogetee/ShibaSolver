@@ -1,30 +1,31 @@
 import React from "react";
 
+const normalizeToUTC = (s: string) => {
+  let t = String(s).trim();
+  // Replace first whitespace between date and time with 'T'
+  t = t.replace(/\s+/, "T");
+  // Truncate fractional seconds to milliseconds (if present)
+  t = t.replace(/\.(\d{3})\d+/, ".$1");
+  // Strip any existing timezone designator (Z or +HH[:MM] / -HH[:MM])
+  t = t.replace(/[Zz]|[+-]\d{2}:?\d{2}$/, "");
+  // Append Z to force UTC parsing
+  return t + "Z";
+};
+
 const formatTimeAgo = (dateString: string) => {
   if (!dateString) return "";
-  // Normalize incoming DB timestamp so it parses as UTC (+00:00)
-  const normalizeToUTC = (s: string) => {
-    let t = String(s).trim();
-    // Replace first whitespace between date and time with 'T'
-    t = t.replace(/\s+/, "T");
-    // Truncate fractional seconds to milliseconds (if present)
-    t = t.replace(/\.(\d{3})\d+/, ".$1");
-    // Strip any existing timezone designator (Z or +HH[:MM] / -HH[:MM])
-    t = t.replace(/[Zz]|[+-]\d{2}:?\d{2}$/, "");
-    // Append Z to force UTC parsing
-    return t + "Z";
-  };
 
   const now = new Date();
   const commentDate = new Date(normalizeToUTC(dateString));
-  
-  // ตรวจสอบว่า Date ถูกต้องหรือไม่
+
+  // Validate parsed date
   if (isNaN(commentDate.getTime())) {
     console.error("Invalid date string:", dateString);
-    return ""; // หรือ return ค่า default
+    return "";
   }
 
-  const seconds = Math.floor((now.getTime() - commentDate.getTime() + (new Date().getTimezoneOffset() * 60 * 60 * 1000)) / 1000);
+  // Use raw epoch difference; Date.getTime() is absolute (ms since epoch)
+  const seconds = Math.floor((now.getTime() - commentDate.getTime()) / 1000);
 
   if (seconds < 0) {
     // กรณีเวลาในอนาคต (อาจเกิดจาก time sync)
@@ -91,7 +92,8 @@ function formatRelativeTime(ts?: string | null): string {
   const date = parseTimestampToDate(ts);
   if (!date) return String(ts);
 
-  const diffMs = Date.now() - date.getTime() + (new Date().getTimezoneOffset() * 60000);
+  // No timezone-offset correction needed: both Date.now() and date.getTime() are epoch ms
+  const diffMs = Date.now() - date.getTime();
   const sec = Math.floor(diffMs / 1000);
   if (sec < 5) return "just now";
   if (sec < 60) return `${sec} sec${sec === 1 ? "" : "s"} ago`;
