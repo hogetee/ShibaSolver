@@ -29,7 +29,7 @@ exports.loginAdmin = async (req, res) => {
     res.cookie('admin_access_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 60 * 60 * 1000,
       path: '/',
     });
