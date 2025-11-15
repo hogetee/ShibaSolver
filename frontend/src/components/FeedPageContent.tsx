@@ -67,7 +67,7 @@ export default function Home() {
         message: n.message,
         created_at: n.created_at,
         is_read: Boolean(n.is_read),
-        href: n.link || "#",
+        href: n.link ?? "#",
         type: n.notification_type,
       }));
 
@@ -201,7 +201,7 @@ export default function Home() {
       <div className="mt-6 space-y-3">
         <h3 className="text-xl font-semibold mb-4">Saved posts</h3>
         {savePosts.map((sp) => {
-          const slug = slugify(sp.title || "");
+          const slug = slugify(sp.title ?? "untitled");
           const desc = sp.description ?? "";
           const avatar = sp.author.profile_picture ?? "/image/DefaultAvatar.png";
           const authorName = sp.author.display_name ?? "Anonymous";
@@ -212,7 +212,7 @@ export default function Home() {
               href={`/post/${sp.post_id}/${slug}`}
               className="block p-3 rounded bg-accent-200/50 hover:bg-accent-200"
             >
-              <h4 className="text-md font-semibold text-gray-900 truncate">{sp.title || "(Untitled)"}</h4>
+              <h4 className="text-md font-semibold text-gray-900 truncate">{sp.title ?? "Untitled"}</h4>
               <p className="text-sm text-gray-600 mt-1 truncate">{desc}</p>
               <div className="flex items-center gap-2 mt-3">
                 <img
@@ -262,15 +262,20 @@ export default function Home() {
 
       {/* FEED CONTENT (SHIFT LEFT WHEN OPEN) */}
       <div className ="flex flex-row">
-        <div className ="flex flex-col w-[25%] max-w-xl mt-10 pl-[1%] pr-[2%] font-display">
-          <SearchComponent />
-          {renderSavedPost()}
-        </div>
+        {/* Left sidebar: fixed so it scrolls independently from the main feed */}
+        <aside
+          className={`fixed top-16 left-0 h-full w-[25%] max-w-xl overflow-auto`}
+        >
+          <div className="pt-4">
+            <SearchComponent />
+            {renderSavedPost()}
+          </div>
+        </aside>
 
         <main 
-          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ${
+          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ml-[25%] ${
             isOpen ? "mr-[20%]" : ""
-          }`}
+          } `}
         >
           <h1 className="text-5xl font-bold p-4 mb-2">Recent Posts</h1>
           {renderContent()}
