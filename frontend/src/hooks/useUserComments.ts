@@ -134,7 +134,7 @@ export default function useUserComments(
                 display_name: currentUserData?.data?.display_name || "Unknown",
                 profile_picture:
                   currentUserData?.data?.profile_picture ||
-                  "https://www.gravatar.com/avatar/?d=mp",
+                  "/image/DefaultAvatar.png",
               },
             };
           })

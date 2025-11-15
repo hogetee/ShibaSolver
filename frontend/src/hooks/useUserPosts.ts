@@ -102,7 +102,7 @@ export default function useUserPosts(
           // Ensure author exists
           author: post.author || {
             display_name: currentUserData?.data?.display_name || "Unknown",
-            profile_picture: currentUserData?.data?.profile_picture || "https://www.gravatar.com/avatar/?d=mp",
+            profile_picture: currentUserData?.data?.profile_picture || "/image/DefaultAvatar.png",
           },
           // Ensure boolean fields exist
           liked_by_user: Boolean(post.liked_by_user),

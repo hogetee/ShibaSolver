@@ -35,8 +35,10 @@ export const useUpdatePost = () => {
       post_image: dataToUpdate.imageUrl || null, // ✅ send Cloudinary URL
     };
 
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+
     try {
-      const response = await fetch(`http://localhost:5003/api/v1/posts/${postId}`, {
+      const response = await fetch(`${API_BASE}/api/v1/posts/${postId}`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
