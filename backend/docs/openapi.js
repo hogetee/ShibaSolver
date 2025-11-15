@@ -205,6 +205,7 @@ module.exports = {
           user_id: { type: 'integer' },
           user_name: { type: 'string', nullable: true },
           display_name: { type: 'string', nullable: true },
+          profile_picture: { type: 'string', nullable: true },
           email: { type: 'string', format: 'email' },
           user_state: {
             type: 'string',
