@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import MultiSelectSubject from './MultiSelectSubject';
 import { useCreatePost } from '@/hooks/useCreatePost';
 import { PostData } from './Post';
@@ -26,7 +26,6 @@ const subjectOptions = [
   "Economics", "Law", "Thai", "English", "Chinese", "Programming", "Others"
 ];
 
-// ✅ Set your Cloudinary credentials here
 const CLOUD_NAME = "dkhggwcub";
 const UPLOAD_PRESET = "unsigned_preset";
 
@@ -38,8 +37,8 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Upload image to Cloudinary
   const handleImageUpload = async (file: File) => {
     setUploading(true);
     try {
@@ -75,17 +74,31 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // เคลียร์ Error เก่าทุกครั้งที่กด
 
+    // --- 1. ตรวจสอบ Title ---
+    if (title.trim().length === 0) {
+      setError("Please enter a title.");
+      return; // หยุดทำงาน
+    }
+
+    // --- 2. ตรวจสอบ Subjects ---
     if (selectedSubjects.length === 0) {
-      alert("Please select at least one subject.");
-      return;
+      setError("Please select at least one subject.");
+      return; // หยุดทำงาน
+    }
+
+    // --- 3. ตรวจสอบ Details ---
+    if (details.trim().length === 0) {
+      setError("Please enter the details.");
+      return; // หยุดทำงาน
     }
 
     const formData: NewPostData = {
       title,
       subjects: selectedSubjects,
       details,
-      imageUrl: imageUrl || null, // ✅ pass uploaded URL
+      imageUrl: imageUrl || null, 
     };
 
     try {
@@ -98,7 +111,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm backdrop-brightness-30">
+    <div className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50">
       <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg rounded-xl bg-white p-8 shadow-xl">
         <button
           type="button"
@@ -106,7 +119,9 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
           className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
           aria-label="Close modal"
         >
-          ✕
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
 
         <h2 className="text-3xl font-bold mb-6">Create Post</h2>
@@ -123,7 +138,6 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               placeholder="Enter your title here..."
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
               maxLength={100}
-              required
             />
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
           </div>
@@ -149,7 +163,6 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               rows={5}
               maxLength={500}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
-              required
             />
             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
           </div>
@@ -187,7 +200,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
               </p>
             )}
 
-            {/* Optional: show preview */}
+            {/* Optional: show preview
             {imageUrl && (
               <div className="mt-3">
                 <img
@@ -196,15 +209,21 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
                   className="max-h-48 rounded-md border border-gray-300 shadow-sm"
                 />
               </div>
-            )}
+            )} */}
           </div>
+
+          {error && (
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+              {error}
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="flex items-center justify-end">
             <button
               type="submit"
               disabled={isCreating || uploading}
-              className="rounded-md bg-purple-700 px-8 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
+              className="rounded-md bg-purple-700 px-8 py-2 font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
             >
               {isCreating ? 'Submitting...' : 'Submit'}
             </button>

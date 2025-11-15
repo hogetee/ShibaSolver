@@ -8,16 +8,25 @@ interface DeletePostModalProps {
 
 const DeletePostModal = ({ onClose, onConfirm, isDeleting }: DeletePostModalProps) => {
   return (
-    // Backdrop
-    <div 
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-    >
+    <div className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50">
       {/* Modal Card */}
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl"
       >
+
+        {/* Close Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+          aria-label="Close modal"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
         <h2 className="text-3xl font-bold mb-4">Delete Post</h2>
         
         <p className="text-gray-600 mb-4">
@@ -29,16 +38,7 @@ const DeletePostModal = ({ onClose, onConfirm, isDeleting }: DeletePostModalProp
         </p>
         
         {/* Buttons */}
-        <div className="flex items-center justify-end gap-4">
-          <button 
-            type="button"
-            onClick={onClose}
-            disabled={isDeleting}
-            className="px-6 py-2 rounded-md border border-gray-300 text-gray-700 bg-white font-semibold hover:bg-gray-50 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          
+        <div className="flex items-center justify-end gap-4"> 
           <button
             type="button"
             onClick={onConfirm}

@@ -9,6 +9,7 @@ import { slugify } from '@/utils/slugify';
 import Link from 'next/link';
 import EditPostModal, { UpdatedPostData } from './EditPostModal'; 
 import DeletePostModal from './DeletePostModal'; 
+import ReportPostModal from './ReportPostModal'; // 1. Import Modal ใหม่
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useUpdatePost } from '@/hooks/useUpdatePost'; 
 import { useDeletePost } from '@/hooks/useDeletePost';
@@ -58,6 +59,7 @@ const Post = ({ postData: initialPostData, userRating, onPostUpdate, onPostDelet
   const [postData, setPostData] = useState(initialPostData);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false); // 2. สร้าง State สำหรับ Report Modal
   
   const { user } = useCurrentUser();
   const { updatePost, isUpdating, error: updateError } = useUpdatePost(); 
@@ -127,6 +129,8 @@ const Post = ({ postData: initialPostData, userRating, onPostUpdate, onPostDelet
           isCurrentUserAuthor={isCurrentUserAuthor}
           onEditClick={() => setIsEditModalOpen(true)}
           onDeleteClick={() => setIsDeleteModalOpen(true)}
+          onReportClick={() => setIsReportModalOpen(true)} // 3. ส่งฟังก์ชันเปิด Modal ลงไป
+          postId={postData.post_id}
         />
       
       {/* ✅ Only title/description clickable */}
@@ -172,6 +176,14 @@ const Post = ({ postData: initialPostData, userRating, onPostUpdate, onPostDelet
           isDeleting={isDeleting}
         />
     )}
+
+    {/* 4. เพิ่ม Logic การแสดง Report Modal */}
+      {isReportModalOpen && (
+        <ReportPostModal
+          postId={postData.post_id}
+          onClose={() => setIsReportModalOpen(false)}
+        />
+      )}
 
     </>
   );

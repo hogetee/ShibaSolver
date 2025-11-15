@@ -29,13 +29,14 @@ const EditPostModal = ({ postToEdit, onClose, onSave, isSaving }: EditPostModalP
   const [title, setTitle] = useState(postToEdit.title);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(postToEdit.tags || []);
   const [details, setDetails] = useState(postToEdit.description);
-  const [isSolved, setIsSolved] = useState(postToEdit.is_solved);
+  const [isSolved, setIsSolved] = useState(postToEdit.is_solved || false);
 
   // 🖼️ Image state
   const [imageUrl, setImageUrl] = useState<string | null>(postToEdit.post_image || null);
-  const [imageFileName, setImageFileName] = useState<string>('');
+  const [imageFileName, setImageFileName] = useState<string>(postToEdit.post_image ? "Current Image" : '');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // 📤 Upload image
   const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,8 +70,23 @@ const handleRemoveImage = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // เคลียร์ Error เก่า
+
+    // --- ตรวจสอบ Title ---
+    if (title.trim().length === 0) {
+      setError("Please enter a title.");
+      return;
+    }
+    
+    // --- ตรวจสอบ Subjects ---
     if (selectedSubjects.length === 0) {
-      alert('Please select at least one subject.');
+      setError("Please select at least one subject.");
+      return;
+    }
+
+    // --- ตรวจสอบ Details ---
+    if (details.trim().length === 0) {
+      setError("Please enter the details.");
       return;
     }
 
@@ -86,7 +102,7 @@ const handleRemoveImage = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm backdrop-brightness-30">
+    <div className="font-display fixed inset-0 z-50 flex min-h-screen items-center justify-center backdrop-blur-sm backdrop-brightness-50">
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-xl bg-white p-8 shadow-xl"
@@ -115,7 +131,6 @@ const handleRemoveImage = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={100}
-              required
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{title.length}/100</p>
@@ -140,7 +155,6 @@ const handleRemoveImage = () => {
               onChange={(e) => setDetails(e.target.value)}
               rows={5}
               maxLength={500}
-              required
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
             />
             <p className="text-right text-xs text-gray-400 mt-1">{details.length}/500</p>
@@ -170,19 +184,21 @@ const handleRemoveImage = () => {
                 disabled={uploading}
                 className="hidden"
               />
-
-              {imageFileName && !uploading && (
-                <span className="text-sm text-gray-500">{imageFileName}</span>
-              )}
             </div>
+
+            {imageFileName && !uploading && (
+              <p className="mt-2 text-sm text-gray-500">
+                Selected: <span className="font-medium">{imageFileName}</span>
+              </p>
+            )}
 
             {imageUrl && imageUrl.trim() !== '' && (
               <div className="mt-3">
-                <img
+                {/* <img
                   src={imageUrl}
                   alt="Uploaded"
                   className="max-h-48 rounded-md border border-gray-300 shadow-sm"
-                />
+                /> */}
                 <button
                   type="button"
                   onClick={handleRemoveImage}
@@ -221,12 +237,18 @@ const handleRemoveImage = () => {
             </div>
           </div>
 
+          {error && (
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+              {error}
+            </div>
+          )}
+
           {/* Save Button */}
           <div className="flex justify-end mt-6">
             <button
               type="submit"
               disabled={isSaving || uploading}
-              className="rounded-md bg-purple-700 px-8 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
+              className="rounded-md bg-purple-700 px-8 py-2 font-semibold text-white shadow-sm hover:bg-purple-600 disabled:opacity-50"
             >
               {isSaving ? 'Saving…' : 'Save Changes'}
             </button>

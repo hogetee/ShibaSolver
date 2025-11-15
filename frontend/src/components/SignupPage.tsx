@@ -14,7 +14,7 @@ export default function SignupPage() {
     const checkAuth = async () => {
       const username = localStorage.getItem("username");
       if (username) {
-        router.push(`/user/${username}`);
+        window.location.href = `/user/${username}`;
         return;
       }
     };

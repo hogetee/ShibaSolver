@@ -1,158 +1,269 @@
-'use client';
+"use client";
 
 import Post, { PostData } from "@/components/post/Post";
 import Notification, { NotificationData } from "@/components/notification/Notification";
-import Link from 'next/link';
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { Notifications } from '@mui/icons-material';
+import CreatePostButton from "@/components/post/CreatePostButton";
+import CreatePostModal from "@/components/post/CreatePostModal";
+import { useFetchFeeds } from "@/hooks/useFetchFeeds";
+import { useNotification } from "@/context/NotificationContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import SearchComponent from "@/components/topMenu/SearchComponent";
+import { slugify } from "@/utils/slugify";
 
-import CreatePostButton from '@/components/post/CreatePostButton';
-import CreatePostModal from '@/components/post/CreatePostModal';
-import { useFetchFeeds } from "@/hooks/useFetchFeeds"; // 1. ใช้ Hook นี้เป็นหลัก
-
-// Type สำหรับ Response จาก API (ใช้ใน handleCreatePost)
 interface ApiResponse {
   success: boolean;
   data: PostData;
   tags: string[];
 }
 
-// ฟังก์ชัน Mock สำหรับ Notifications (ยังคงไว้เหมือนเดิม)
-async function getNotificationData(): Promise<NotificationData[]> {
-  const mockData: NotificationData[] = [
-    { noti_id: "1", message: "Nano liked your post", time: "2 hrs ago" },
-    { noti_id: "2", message: "Nano replied: “Thanks ...”", time: "2 hrs ago" },
-    { noti_id: "3", message: "Tan replied: “I agree ...”", time: "yesterday" },
-  ];
-  return mockData;
-}
-
 export default function Home() {
-  // 2. เรียกใช้ Hook เพื่อดึงข้อมูลโพสต์ทั้งหมดจาก API จริง
+
+  const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5003";
+
   const { posts, setPosts, isLoading, error } = useFetchFeeds();
 
-  // State สำหรับส่วนที่ไม่เกี่ยวกับ Posts
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // 1. สร้าง "คู่มือ" หรือฟังก์ชันสำหรับจัดการการอัปเดต
-  const handlePostUpdateInFeed = (updatedPost: PostData) => {
-    setPosts(currentPosts => 
-      currentPosts.map(p => 
-        p.post_id === updatedPost.post_id ? updatedPost : p
-      )
-    );
-  };
+  const { user: currentUser } = useCurrentUser();
 
-  // 2. สร้าง "คู่มือ" สำหรับการลบ (เผื่อไว้ในอนาคต)
-  const handlePostDeleteInFeed = (postIdToDelete: string) => {
-    setPosts(currentPosts => 
-      currentPosts.filter(p => p.post_id !== postIdToDelete)
-    );
-  };
+  // Saved posts (bookmarks)
+  const [savePosts, setSavePosts] = useState<PostData[]>([]);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+  const [savedError, setSavedError] = useState<string | null>(null);
 
-  // ใช้ useEffect สำหรับดึงข้อมูล Notifications แยกต่างหาก
-  useEffect(() => {
-    async function fetchNotifications() {
-      const notificationsData = await getNotificationData();
-      setNotifications(notificationsData);
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const { isOpen } = useNotification();
+
+  const fetchNotifications = async () => {
+    setIsLoadingNotifications(true);
+    try {
+      const res = await fetch(`${BASE}/api/v1/notifications`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error(`Failed to load notifications: ${res.status}`);
+        setNotifications([]);
+        return;
+      }
+      
+      const items = Array.isArray(body.data) ? body.data : body.rows ?? [];
+
+      const mapped: NotificationData[] = items.map((n: any) => ({
+        // notification_id, notification_type, message, link, is_read, created_at
+        noti_id: String(n.notification_id),
+        message: n.message,
+        created_at: n.created_at,
+        is_read: Boolean(n.is_read),
+        href: n.link || "#",
+        type: n.notification_type,
+      }));
+
+      setNotifications(mapped);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      setNotifications([]);
+    } finally {
+      setIsLoadingNotifications(false);
     }
-    fetchNotifications();
-  }, []); // ทำงานแค่ครั้งแรกครั้งเดียว
+  };
 
-  // ฟังก์ชันสำหรับ "ประกอบร่าง" โพสต์ใหม่ที่สมบูรณ์
+  const fetchSavedPosts = async () => {
+    setIsLoadingSaved(true);
+    setSavedError(null);
+    try {
+      const res = await fetch(`${BASE}/api/v1/posts/bookmarks`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = body?.message || `Failed to load saved posts: ${res.status}`;
+        setSavedError(msg);
+        setSavePosts([]);
+        return;
+      }
+
+      const items = Array.isArray(body?.data) ? body.data : body?.rows ?? [];
+
+      const mapped: PostData[] = items.map((p: any) => ({
+        post_id: String(p.post_id),
+        title: p.title,
+        description: p.description ?? "",
+        post_image: p.post_image ?? null,
+        is_solved: Boolean(p.is_solved),
+        created_at: p.created_at ?? "",
+        author: {
+          user_id: String(p.user_id),
+          display_name:
+            p.author.display_name ?? "Anonymous",
+          profile_picture:
+            p.author.profile_picture ?? "/image/DefaultAvatar.png",
+        },
+        tags: p.tags ?? [],
+      }));
+
+      setSavePosts(mapped);
+    } catch (err: any) {
+      setSavedError(err?.message ?? String(err));
+      setSavePosts([]);
+    } finally {
+      setIsLoadingSaved(false);
+    }
+  };
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+      e.preventDefault();
+      window.location.href = href;
+    };
+
+  useEffect(() => {
+    fetchNotifications();
+    fetchSavedPosts();
+  }, []);
+
+  const handlePostUpdateInFeed = (updated: PostData) => {
+    setPosts((current) =>
+      current.map((p) => (p.post_id === updated.post_id ? updated : p))
+    );
+  };
+
+  const handlePostDeleteInFeed = (deletedId: string) => {
+    setPosts((current) => current.filter((p) => p.post_id !== deletedId));
+  };
+
   const handleCreatePost = (apiResponse: ApiResponse) => {
+    if (!currentUser) {
+      // สั่ง reload หน้าแทน
+      window.location.reload(); 
+      return;
+    }
+
+    const newRawPost = apiResponse.data;
+
     const newPost: PostData = {
-      ...apiResponse.data,
+      ...newRawPost,
       tags: apiResponse.tags,
-      author: { // ควรดึงข้อมูลผู้ใช้ที่ล็อกอินอยู่มาใส่
-        user_id: "current-user-id", // Placeholder
-        display_name: "Me",         // Placeholder
-        profile_picture: "/image/DefaultAvatar.png",
+      author: {
+        user_id: String(currentUser.user_id), 
+        display_name: currentUser.display_name, 
+        profile_picture: currentUser.profile_picture || "/image/DefaultAvatar.png", 
       },
       stats: { likes: 0, dislikes: 0 },
+      liked_by_user: false,
+      disliked_by_user: false,
       topComment: undefined,
     };
-    setPosts(prevPosts => [newPost, ...prevPosts]);
+    setPosts((prev) => [newPost, ...prev]);
   };
 
-  // ฟังก์ชันสำหรับ Render ส่วนของ Feed
   const renderContent = () => {
-    if (isLoading) {
-      return <p className="text-center text-gray-500 mt-10">Loading posts...</p>;
-    }
-    if (error) {
-      return <p className="text-center text-red-500 mt-10">Error: {error}</p>;
-    }
-    if (posts.length === 0) {
-      return <p className="text-center text-gray-500 mt-10">No posts found. Create one!</p>;
-    }
+    if (isLoading) return <p className="text-center mt-10">Loading posts...</p>;
+    if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
+    if (posts.length === 0)
+      return <p className="text-center mt-10">No posts yet.</p>;
+
     return (
+      <div className="max-w-5xl mr-[2%]">
       <div className="space-y-5">
         {posts.map((post) => (
-          <Post key={post.post_id} 
-          postData={post} 
-          onPostUpdate={handlePostUpdateInFeed}
-          onPostDelete={handlePostDeleteInFeed}
+          <Post 
+            key={post.post_id}
+            postData={post}
+            onPostUpdate={handlePostUpdateInFeed}
+            onPostDelete={handlePostDeleteInFeed}
           />
         ))}
       </div>
+      </div>
     );
   };
 
+  const renderSavedPost = () => {
+    if (isLoadingSaved) return <p className="text-center mt-4">Loading saved posts...</p>;
+    if (savedError) return <p className="text-center text-red-500 mt-4">{savedError}</p>;
+    if (savePosts.length === 0)
+      return <p className="text-center mt-4">No saved posts yet. Try saving some posts to see them here.</p>;
+
+    return (
+      <div className="mt-6 space-y-3">
+        <h3 className="text-xl font-semibold mb-4">Saved posts</h3>
+        {savePosts.map((sp) => {
+          const slug = slugify(sp.title || "");
+          const desc = sp.description ?? "";
+          const avatar = sp.author.profile_picture ?? "/image/DefaultAvatar.png";
+          const authorName = sp.author.display_name ?? "Anonymous";
+
+          return (
+            <Link
+              key={sp.post_id}
+              href={`/post/${sp.post_id}/${slug}`}
+              className="block p-3 rounded bg-accent-200/50 hover:bg-accent-200"
+            >
+              <h4 className="text-md font-semibold text-gray-900 truncate">{sp.title || "(Untitled)"}</h4>
+              <p className="text-sm text-gray-600 mt-1 truncate">{desc}</p>
+              <div className="flex items-center gap-2 mt-3">
+                <img
+                  src={avatar}
+                  alt={`${authorName} avatar`}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/image/DefaultAvatar.png";
+                  }}
+                />
+                <span className="text-sm font-medium text-gray-800">{authorName}</span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col font-display">
-      
-      {/* Notification toggle Button */}
-      <button
-        style={{ left: showNotifications ? 'calc(20% + 8px)' : '8px' }}
-        className={`fixed top-20 z-50 text-white rounded-full p-2 cursor-pointer transition-all duration-300 ${showNotifications ? "bg-accent-600/70" : "bg-accent-600"} hover:bg-accent-600/85`}
-        onClick={() => setShowNotifications((prev) => !prev)}
-        aria-label="Toggle notifications"
-      >
-        <Notifications />
-      </button>
 
-      {/* Notifications */}
-      <aside className={`fixed top-16 h-full border-r p-2 transition-transform duration-300 ${showNotifications ? "translate-x-0 w-[20%] max-w-320" : "-translate-x-full w-[20%] max-w-xs"}`}>
-        <h2 className="text-2xl font-bold mb-6 mt-5 ml-4 text-dark-900">
-          Notifications
-        </h2>
-        {notifications.map((notification) => (
-          <Notification key={notification.noti_id} notificationData={notification} />
+      {/* ✅ Notification Sidebar — RIGHT SIDE */}
+      <aside
+        className={`
+          fixed top-16 right-0 h-full border-l p-2 transition-transform duration-300 bg-white w-[20%] max-w-xl
+          ${isOpen ? "translate-x-0" : "translate-x-full"}
+        `}
+      >
+        <h2 className="text-2xl font-bold mb-6 mt-5 ml-4">Notifications</h2>
+        {notifications.map((noti) => (
+          <Notification key={noti.noti_id} notificationData={noti} />
         ))}
       </aside>
 
-      {/* Feed content */}
-      <div className={`flex flex-1 transition-all duration-300 ${showNotifications ? "ml-[20%]" : ""}`}>
-        <main className="flex-1 mb-10 px-[5%]">
-          <h1 className="text-5xl font-bold p-4 mb-2 text-dark-900">
-            Recent Posts
-          </h1>
+      {/* FEED CONTENT (SHIFT LEFT WHEN OPEN) */}
+      <div className ="flex flex-row">
+        <div className ="flex flex-col w-[25%] max-w-xl mt-10 pl-[1%] pr-[2%] font-display">
+          <SearchComponent />
+          {renderSavedPost()}
+        </div>
+
+        <main 
+          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ${
+            isOpen ? "mr-[20%]" : ""
+          }`}
+        >
+          <h1 className="text-5xl font-bold p-4 mb-2">Recent Posts</h1>
           {renderContent()}
         </main>
-        
-        {/* Premium Sidebar */}
-        <aside className="w-80 mt-27 mr-5 self-start">
-          <Link href="/subscribe" className="block rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-2xl/15">
-            <img
-              src="/image/premium-banner.png"
-              alt="Get Premium - 20% off"
-              className="w-full h-auto rounded-xl cursor-pointer"
-            />
-          </Link>
-        </aside>
       </div>
-      
-      {/* ปุ่ม และ Modal สำหรับสร้างโพสต์ */}
-      <CreatePostButton onClick={() => setIsCreateModalOpen(true)} />
-      {isCreateModalOpen && (
-        <CreatePostModal 
-          onClose={() => setIsCreateModalOpen(false)}
-          onPostSubmit={handleCreatePost} 
-        />
-      )}
+        {/* ✅ Create Post Button & Modal */}
+        <CreatePostButton onClick={() => setIsCreateModalOpen(true)} />
+        {isCreateModalOpen && (
+          <CreatePostModal
+            onClose={() => setIsCreateModalOpen(false)}
+            onPostSubmit={handleCreatePost}
+          />
+        )}
     </div>
   );
 }

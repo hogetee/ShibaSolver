@@ -18,6 +18,8 @@ export type PostComment = {
   dislikes: number;
   total_votes: number;
   ratio: number | null;
+  user_name: string | null;        
+  profile_picture: string | null; 
 };
 
 type AccessControlledResponse = {
@@ -89,7 +91,9 @@ export default function usePostComments(
               likes: 0,
               dislikes: 0,
               total_votes: 0,
-              ratio: null
+              ratio: null,
+              user_name: null,       
+              profile_picture:  null, 
             }
           ];
           if (!aborted) setComments(mock);
@@ -143,7 +147,9 @@ export default function usePostComments(
           likes: Number(c.likes ?? 0),
           dislikes: Number(c.dislikes ?? 0),
           total_votes: Number(c.total_votes ?? 0),
-          ratio: c.ratio == null ? null : Number(c.ratio)
+          ratio: c.ratio == null ? null : Number(c.ratio),
+          user_name: c.user_name ?? null,         
+          profile_picture: c.profile_picture , 
         })) as PostComment[];
 
         if (!aborted) {
