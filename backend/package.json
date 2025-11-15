@@ -1,0 +1,44 @@
+{
+  "name": "shibasolver",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/hogetee/ShibaSolver#readme",
+  "bugs": {
+    "url": "https://github.com/hogetee/ShibaSolver/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hogetee/ShibaSolver.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test-coverage": "jest --watchAll --coverage"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cookieparser": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.0",
+    "express-xss-sanitizer": "^2.0.1",
+    "google-auth-library": "^10.3.0",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10"
+  }
+}
