@@ -58,7 +58,7 @@ export default function BannedAccountsPage() {
         setBannedUsers([]);
         return;
       }
-      const items = Array.isArray(body.data) ? body.data : body.rows ?? [];
+      const items =  body.data ?? [];
       
       const mapped: BannedUserData[] = items.map((u: any) => ({
         // user_id,
@@ -70,7 +70,7 @@ export default function BannedAccountsPage() {
         name: u.user_name,
         nickname: u.display_name,
         bannedDate: u.banned_at,
-        profileImage: u.profile_image,
+        profileImage: u.profile_picture,
         userId: u.user_id,
       }));
       

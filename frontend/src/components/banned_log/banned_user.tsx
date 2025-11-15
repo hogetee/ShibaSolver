@@ -22,6 +22,31 @@ const BannedUser: React.FC<BannedUserProps> = ({
 
   const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5003';
 
+  const formatDateDMY = (iso?: string) => {
+    if (!iso) return '';
+    // Try to parse the incoming timestamp. Treat timezone-less strings as UTC.
+    let d = new Date(iso);
+    if (isNaN(d.getTime())) {
+      d = new Date(iso + 'Z');
+      if (isNaN(d.getTime())) return iso; // fallback to raw string
+    }
+
+    const tz7 = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+    
+    const dayChanged = (
+      tz7.getUTCFullYear() !== d.getUTCFullYear() ||
+      tz7.getUTCMonth() !== d.getUTCMonth() ||
+      tz7.getUTCDate() !== d.getUTCDate()
+    );
+
+    const useDate = dayChanged ? tz7 : d;
+
+    const day = String(useDate.getUTCDate()).padStart(2, '0');
+    const month = String(useDate.getUTCMonth() + 1).padStart(2, '0');
+    const year = useDate.getUTCFullYear() + 543;
+    return `${day} / ${month} / ${year}`;
+  };
+
   const handleUnban = async () => {
     setIsUnbanning(true);
     try {
@@ -80,8 +105,6 @@ const BannedUser: React.FC<BannedUserProps> = ({
         </button>
         </div>
 
-
-
         {/* <div className="grid grid-cols-1 md:grid-cols-2 items-end gap-3 px-5"> */}
           {/* Left: Reason of Ban (label stays fixed, value wraps) */}
           {/* <div className="flex items-start gap-3 max-w-full">
@@ -98,8 +121,8 @@ const BannedUser: React.FC<BannedUserProps> = ({
             <span className="bg-[#4B0082] text-white py-2 px-3 rounded-lg text-xl font-bold shrink-0">
               Banned Since
             </span>
-            <span className="font-bold text-xl break-words whitespace-nowrap ml-2 mt-2">
-              {bannedDate}
+            <span className="font-semibold text-xl break-words whitespace-nowrap ml-2 mt-2">
+              {formatDateDMY(bannedDate)}
             </span>
           </div>
         {/* </div> */}
