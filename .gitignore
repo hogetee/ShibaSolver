@@ -1,6 +1,0 @@
-node_modules/*
-config/config.env
-.DS_Store
-frontend/node_modules/
-frontend/build/
-frontend/.next/
