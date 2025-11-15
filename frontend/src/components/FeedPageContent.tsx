@@ -210,7 +210,7 @@ export default function Home() {
             <Link
               key={sp.post_id}
               href={`/post/${sp.post_id}/${slug}`}
-              className="block p-3 rounded bg-accent-200/50 hover:bg-accent-200"
+              className="block p-3 rounded bg-accent-200/50 hover:bg-accent-200 mb-3"
             >
               <h4 className="text-md font-semibold text-gray-900 truncate">{sp.title ?? "Untitled"}</h4>
               <p className="text-sm text-gray-600 mt-1 truncate">{desc}</p>
@@ -264,7 +264,7 @@ export default function Home() {
       <div className ="flex flex-row">
         {/* Left sidebar: fixed so it scrolls independently from the main feed */}
         <aside
-          className={`fixed top-16 left-0 h-full px-2 py-4 mb-6 w-[25%] max-w-xl overflow-auto`}
+          className={`fixed top-16 left-1 h-full px-2 py-4 w-[25%] max-w-xl overflow-auto`}
         >
           <div className="pt-4">
             <SearchComponent />
@@ -273,11 +273,11 @@ export default function Home() {
         </aside>
 
         <main 
-          className={`flex flex-1 items-start flex-col mb-10 transition-all duration-300 ml-[26%] ${
+          className={`py-5 flex flex-1 items-start flex-col mb-10 transition-all duration-300 ml-[26%] ${
             isOpen ? "mr-[20%]" : ""
           } `}
         >
-          <h1 className="text-5xl font-bold p-4 mb-2">Recent Posts</h1>
+          <h1 className="text-4xl font-bold p-4 mb-2 font-sans">Recent Posts</h1>
           {renderContent()}
         </main>
       </div>
