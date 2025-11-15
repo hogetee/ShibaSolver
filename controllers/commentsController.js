@@ -286,7 +286,7 @@ exports.createComment = async (req, res) => {
 
        // 5.1 แจ้งเจ้าของโพสต์ (ถ้าคนคอมเมนต์ไม่ใช่เจ้าของโพสต์เอง)
       const previewText = `${sanitizedText.slice(0, 40)}${sanitizedText.length > 40 ? '…' : ''}`;
-      const commentLink = `/post/${newComment.post_id}#comment-${newComment.comment_id}`;
+      const commentLink = `/post/${newComment.post_id}/${newComment.comment_id}`;
       if (postOwnerId && Number(postOwnerId) !== Number(userId)) {
         await createNotification(pool, {
           toUserId: postOwnerId,
@@ -558,7 +558,7 @@ exports.replyToComment = async (req, res, next) => {
         toUserId: parent.parent_user_id,
         type: 'reply',
         message: `${actorName} replied: "${previewText}"`,
-        link: `/post/${reply.post_id}#comment-${reply.comment_id}`,
+        link: `/post/${reply.post_id}/${reply.comment_id}`,
       });
     }
     
