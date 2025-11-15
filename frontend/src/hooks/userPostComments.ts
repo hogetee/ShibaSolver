@@ -100,11 +100,9 @@ export default function usePostComments(
           return;
         }
 
-        const BASE_URL = process.env.BACKEND_URL ;
-        const url = new URL(`/api/v1/comments/post/${encodeURIComponent(String(postId))}`, BASE_URL);
-        url.searchParams.set("sort", sort);
-
-
+        const BASE_URL = process.env.BACKEND_URL;
+        const url = `${BASE_URL}/api/v1/comments/post/${encodeURIComponent(String(postId))}?sort=${sort}`;  
+        
         // inside usePostComments, replace the fetch error handling
         const res = await fetch(url.toString(), { signal: controller.signal, credentials: "include" });
         let payload: any = null;
