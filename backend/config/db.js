@@ -5,7 +5,10 @@ const connectDB = async () => {
     // test connection
     const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl:
+      process.env.DATABASE_SSL === 'false'
+        ? false
+        : { rejectUnauthorized: false }
     });
     await pool.connect();
     console.log('PostgreSQL connected successfully');
