@@ -78,7 +78,6 @@ const theme = createTheme({
   typography: {
     fontFamily: [
       "Afacad",
-      "Inter",
       "-apple-system",
       "BlinkMacSystemFont",
       "Segoe UI",

@@ -1,9 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Sarabun&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Afacad&display=swap");
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -47,16 +44,6 @@ body {
   button:not(:disabled),
   [role="button"] {
     cursor: pointer;
-  }
-}
-
-
-@layer utilities {
-  .select-placeholder {
-    color: theme('colors.gray.400');
-  }
-  .select-placeholder option {
-    color: theme('colors.gray.900');
   }
 }
 
