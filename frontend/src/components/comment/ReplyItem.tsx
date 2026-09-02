@@ -102,14 +102,14 @@ export const ReplyItem: React.FC<ReplyItemProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-semibold text-dark-800">
+              <span className="font-semibold text-dark-900">
                 {reply.author.display_name || "Anonymous"}
               </span>
-              <span className="text-dark-500">
+              <span className="text-gray-400">
                 {formatTimeAgo(reply.created_at)}
               </span>
               {reply.is_edited && (
-                <span className="text-xs text-dark-400 italic">(edited)</span>
+                <span className="text-xs text-gray-400 italic">(edited)</span>
               )}
             </div>
 

@@ -77,7 +77,7 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
         </button>
 
         <h2 className="text-3xl font-semibold text-gray-900 mb-4">Report Comment</h2>
-        <p className="text-l text-gray-600 mb-4">
+        <p className="text-lg text-gray-600 mb-4">
           Why are you reporting this comment? Your report is anonymous.
         </p>
 
@@ -94,7 +94,7 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
                     className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                     disabled={isReporting}
                   />
-                  <span className="text-m text-gray-700">{reason}</span>
+                  <span className="text-base text-gray-700">{reason}</span>
               </label>
             ))}
             {selectedReason === 'Other' && (
@@ -114,7 +114,7 @@ const ReportCommentModal = ({ commentId, onClose }: ReportCommentModalProps) => 
           </div>
 
           {error && (
-           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-base font-medium">
             {error}
           </div>
           )}

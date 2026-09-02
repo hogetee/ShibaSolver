@@ -82,7 +82,7 @@ export default function ProfileHeader({ dummyUser }: Props) {
               <div className="flex justify-center mt-2">
                 <button
                   onClick={() => setIsReportModalOpen(true)}
-                  className="flex items-center justify-center text-m font-bold text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 transition-colors"
+                  className="flex items-center justify-center text-base font-bold text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 transition-colors"
                 >
                   <Flag className="w-4 h-4 mr-3" />
                   Report

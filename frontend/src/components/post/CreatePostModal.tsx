@@ -215,7 +215,7 @@ const CreatePostModal = ({ onClose, onPostSubmit }: CreatePostModalProps) => {
           </div>
 
           {error && (
-            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium" data-testid="create-post-error">
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-base font-medium" data-testid="create-post-error">
               {error}
             </div>
           )}

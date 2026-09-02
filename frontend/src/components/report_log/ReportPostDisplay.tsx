@@ -289,7 +289,7 @@ export default function ReportPostDisplay({
               postImage={postData.post_image}
             />
 
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600 transition-colors group-hover:border-accent-300 group-hover:bg-accent-50">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600 transition-colors group-hover:border-accent-400 group-hover:bg-accent-200/40">
               <div className="flex items-center gap-3">
                 <Avatar
                   alt={postData.author.display_name}

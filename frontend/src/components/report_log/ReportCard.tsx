@@ -114,13 +114,13 @@ export default function ReportCard({
         <div className="flex space-x-3 justify-evenly">
           <button
             onClick={() => onRemove(report.id)}
-            className="cursor-pointer px-10 sm:px-12 md:px-15 lg:px-17 py-2 bg-red-500 text-white rounded-lg font-xl font-black hover:bg-red-600 transition-colors"
+            className="cursor-pointer px-10 sm:px-12 md:px-15 lg:px-17 py-2 bg-red-500 text-white rounded-lg font-black hover:bg-red-600 transition-colors"
           >
             {report.type === "posts" ? "Remove Post" : "Remove Comment"}
           </button>
           <button
             onClick={() => onReject(report.id)}
-            className="cursor-pointer px-10 sm:px-12 md:px-15 lg:px-17 bg-green-500 text-white rounded-lg font-xl font-black hover:bg-green-600 transition-colors"
+            className="cursor-pointer px-10 sm:px-12 md:px-15 lg:px-17 bg-green-500 text-white rounded-lg font-black hover:bg-green-600 transition-colors"
           >
             Reject Report
           </button>

@@ -41,7 +41,7 @@ export default function CookieConsentModal() {
 
           <div>
             <div className="mb-3">
-              <h2 className="sm:text-lg text-md font-bold">Data Privacy</h2>
+              <h2 className="sm:text-lg text-base font-bold">Data Privacy</h2>
             </div>
             <ul className="text-white/80 sm:text-sm text-xs pl-4 space-y-1">
               <li className="flex items-start">

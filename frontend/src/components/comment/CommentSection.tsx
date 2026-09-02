@@ -86,7 +86,7 @@ export default function CommentSection({ initialComments, postId }: Props) {
       </div>
       {/* The list of comments is rendered from state */}
       <div className="mt-5 pt-4 ">
-        <h2 className="text-2xl font-semibold mb-4 text-dark-800 font-display">
+        <h2 className="text-2xl font-semibold mb-4 text-dark-900 font-display">
           Comments ({topLevelComments.length})
         </h2>
         <div className="space-y-4">

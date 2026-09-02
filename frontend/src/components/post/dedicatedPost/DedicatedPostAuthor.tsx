@@ -216,7 +216,7 @@ const PostAuthor = ({
 
       <div className="flex items-center gap-4">
         {/* Like */}
-        <div className="flex items-center gap-2 text-black-500">
+        <div className="flex items-center gap-2 text-gray-600">
           <button
             onClick={toggleLike}
             disabled={loading}
@@ -238,7 +238,7 @@ const PostAuthor = ({
         </div>
 
         {/* Dislike */}
-        <div className="flex items-center gap-2 text-black-500">
+        <div className="flex items-center gap-2 text-gray-600">
           <button
             onClick={toggleDislike}
             disabled={loading}

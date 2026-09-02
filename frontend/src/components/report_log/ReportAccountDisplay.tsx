@@ -215,7 +215,7 @@ export default function ReportAccountDisplay({
               </div>
             </div>
 
-            <div className="flex items-center justify-end rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm transition-colors group-hover:border-accent-300 group-hover:bg-accent-50">
+            <div className="flex items-center justify-end rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm transition-colors group-hover:border-accent-400 group-hover:bg-accent-200/40">
               <span className="font-semibold text-accent-600">
                 View profile →
               </span>

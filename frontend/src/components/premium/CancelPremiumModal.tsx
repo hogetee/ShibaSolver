@@ -37,7 +37,7 @@ export default function CancelPremiumModal({ onClose }: Props) {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded-xl p-6 w-[40%] max-w-md min-w-[300px] shadow-lg">
         <h2 className="text-xl font-semibold mb-2">Cancel Premium</h2>
-        <p className="text-md text-gray-600 mb-4">
+        <p className="text-base text-gray-600 mb-4">
           Are you sure you want to cancel your premium membership? You will lose your premium features.
         </p>
         <div className="flex gap-3 justify-end">

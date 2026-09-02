@@ -104,7 +104,7 @@ export default function TopMenu() {
         ) : (
           <Link
             href="/signup"
-            className="font-display font-semibold text-xl text-primary-0 rounded-full bg-white py-2 px-6 
+            className="font-display font-semibold text-xl text-dark-900 rounded-full bg-white py-2 px-6 
             !bg-accent-200"
           >
             Sign in

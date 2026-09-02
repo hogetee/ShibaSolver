@@ -71,7 +71,7 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
         </button>
 
         <h2 className="text-3xl font-semibold text-gray-900 mb-4">Report User</h2>
-        <p className="text-l text-gray-600 mb-4">
+        <p className="text-lg text-gray-600 mb-4">
           Why are you reporting <span className="font-semibold text-[#4B0082]">{userName}</span>? 
           Your report is anonymous.
         </p>
@@ -89,7 +89,7 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
                   className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                   disabled={isReporting}
                 />
-                <span className="text-m text-gray-700">{reason}</span>
+                <span className="text-base text-gray-700">{reason}</span>
               </label>
             ))}
             {selectedReason === 'Other' && (
@@ -109,7 +109,7 @@ const ReportUserModal = ({ userId, userName, onClose }: ReportUserModalProps) =>
           </div>
 
           {error && (
-           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium">
+           <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-base font-medium">
             {error}
           </div>
           )}

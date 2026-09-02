@@ -370,7 +370,7 @@ export default function ReportCommentDisplay({
           {postHref && (
             <Link
               href={postHref}
-              className="ml-auto text-accent-600 transition-colors hover:text-accent-500"
+              className="ml-auto text-accent-600 transition-colors hover:text-accent-400"
               aria-label="View full comment in post"
             >
               View in post →

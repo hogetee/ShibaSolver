@@ -37,7 +37,7 @@ export default function PremiumModal({ onClose }: Props) {
         <div className="relative bg-white rounded-xl p-6 w-[40%] max-w-md min-w-[300px] shadow-lg">
             <h2 className="text-xl font-semibold mb-2">Upgrade to Premium</h2>
             <div>
-                <p className="text-md text-gray-600 mb-4">
+                <p className="text-base text-gray-600 mb-4">
                     Enjoy the full experience on our site, including exclusive sections for premium members.
                 </p>
                 <p className="text-lg text-accent-600 mb-1">Limited promotion — act now!</p>

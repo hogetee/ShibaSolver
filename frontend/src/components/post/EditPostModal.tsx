@@ -242,7 +242,7 @@ const handleRemoveImage = () => {
           </div>
 
           {error && (
-            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-m font-medium" data-testid="edit-post-error">
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md text-base font-medium" data-testid="edit-post-error">
               {error}
             </div>
           )}

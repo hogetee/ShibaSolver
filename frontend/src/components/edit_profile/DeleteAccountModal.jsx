@@ -31,7 +31,7 @@ export default function DeleteAccountModal({ isOpen, onClose, onSuccess }) {
         {/* Error message */}
         {showError && (
           <div className="text-center mb-4">
-            <p className="text-red-400 text-md">
+            <p className="text-red-400 text-base">
               {error || "Failed to delete account. Please try again."}
             </p>
           </div>

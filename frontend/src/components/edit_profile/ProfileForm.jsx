@@ -128,7 +128,7 @@ export default function ProfileForm({ userData, onProfileUpdate }) {
         </div>
 
 
-        <div className="w-1/3 flex justify-center h-6rem mt-5">
+        <div className="w-1/3 flex justify-center mt-5">
           <ProfilePicture value={formData.profilePic} onChange={handleProfilePicChange} />
         </div>
       </div>
