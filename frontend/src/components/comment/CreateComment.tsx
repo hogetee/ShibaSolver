@@ -204,7 +204,7 @@ export default function CreateComment({
                   className="absolute -top-2 -right-2 bg-white rounded-full p-0.5"
                   aria-label="Remove attachment"
                 >
-                  <RemoveCircleIcon className="h-5 w-5 text-red-600 cursor-pointer" />
+                  <RemoveCircleIcon className="h-5 w-5 text-red-600" />
                 </button>
               </div>
             ) : null}
