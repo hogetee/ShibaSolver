@@ -293,7 +293,7 @@ export default function ReportPostDisplay({
               <div className="flex items-center gap-3">
                 <Avatar
                   alt={postData.author.display_name}
-                  src={postData.author.profile_picture || "/default-avatar.png"}
+                  src={postData.author.profile_picture || DEFAULT_AVATAR}
                   className="w-8 h-8"
                 />
 

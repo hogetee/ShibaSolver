@@ -97,7 +97,7 @@ export default function TopMenu() {
         {isLoggedIn ? (
           <Link href={`/user/${user?.user_name}`}>
             <Avatar
-              src={user?.profile_picture ?? "/default-avatar.png"}
+              src={user?.profile_picture ?? "/image/DefaultAvatar.png"}
               className="cursor-pointer"
             />
           </Link>
