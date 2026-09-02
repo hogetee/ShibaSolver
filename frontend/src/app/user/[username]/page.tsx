@@ -11,7 +11,7 @@ export default async function UserPage({ params, searchParams }: Props) {
   const resolvedSearchParams = await searchParams;
   
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-16">
       <UserProfile searchParams={resolvedSearchParams} />
     </div>
   );

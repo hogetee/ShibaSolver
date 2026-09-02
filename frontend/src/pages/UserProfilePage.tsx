@@ -44,9 +44,6 @@ export default function UserProfilePage({ searchParams }: Props) {
   const usernameStr = typeof username === 'string' ? username : undefined;
   return (
     <div>
-      <div className="min-h-[64px] bg-dark-900 text-neutral-100 flex justify-center w-[100%] items-center">
-        NavBar
-      </div>
       {isLoading ? (
         <>
           <ProfileHeaderSkeleton />
