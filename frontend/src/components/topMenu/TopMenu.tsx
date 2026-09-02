@@ -52,7 +52,7 @@ export default function TopMenu() {
       
       {/* Logo */}
       <Link href="/">
-        <span className="font-sans font-black text-3xl text-white px-4">
+        <span className="font-black text-3xl text-white px-4">
           Shiba
         </span>
       </Link>

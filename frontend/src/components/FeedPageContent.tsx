@@ -277,7 +277,7 @@ export default function Home() {
             isOpen ? "mr-[20%]" : ""
           } `}
         >
-          <h1 className="text-4xl font-bold p-4 mb-2 font-sans">Recent Posts</h1>
+          <h1 className="text-4xl font-bold p-4 mb-2">Recent Posts</h1>
           {renderContent()}
         </main>
       </div>

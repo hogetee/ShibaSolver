@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Afacad&display=swap"
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-display antialiased`}>
         {/* ✅ Provider wraps TopMenu + pages so both can use the same context */}
         <NotificationProvider>
           <TopMenu />
